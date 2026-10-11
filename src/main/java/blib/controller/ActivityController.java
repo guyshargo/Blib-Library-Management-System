@@ -12,6 +12,7 @@ import blib.enums.ActivityType;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@CrossOrigin
 @RestController 
 @RequestMapping("/api/activities")
 public class ActivityController {

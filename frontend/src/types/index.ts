@@ -34,6 +34,7 @@ export interface BorrowedBook {
     returnDate: string;
     memberId: number;
     title: string;
+    author?: string;
     librarianName: string;
     bookCopyId: number;
     extensionDate?: string;
@@ -118,6 +119,7 @@ export interface OrderedBook {
     arrivalStatus: ArrivalStatus;
     bookId: number;
     title: string;
+    author?: string;
     arrivalDate?: string;
 }
 

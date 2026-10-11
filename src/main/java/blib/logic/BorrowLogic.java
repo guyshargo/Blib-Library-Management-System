@@ -250,7 +250,7 @@ public class BorrowLogic {
 
 
     public synchronized List<BorrowedBook> importBorrowedBooks(int member_id) {
-        String query = "SELECT bb.*, b.title FROM borrowed_books bb JOIN books b ON bb.book_id = b.book_id WHERE bb.member_id = ?";
+        String query = "SELECT bb.*, b.title, b.author FROM borrowed_books bb JOIN books b ON bb.book_id = b.book_id WHERE bb.member_id = ?";
         List<BorrowedBook> borrowList = new ArrayList<>();
         
         try (Connection connection = dbConnector.getConnection();
@@ -263,7 +263,7 @@ public class BorrowLogic {
                     java.sql.Date extensionDateSql = rs.getDate("extension_date");
                     LocalDate extension_date = (extensionDateSql != null) ? extensionDateSql.toLocalDate().plusDays(1) : null;
                     
-                    borrowList.add(new BorrowedBook(
+                    BorrowedBook borrowedBook = new BorrowedBook(
                             rs.getInt("member_id"),
                             rs.getString("title"),
                             rs.getInt("copy_id"),
@@ -273,7 +273,9 @@ public class BorrowLogic {
                             rs.getDate("return_date").toLocalDate().plusDays(1),
                             extension_date,
                             rs.getInt("book_id")
-                    ));
+                    );
+                    borrowedBook.setAuthor(rs.getString("author"));
+                    borrowList.add(borrowedBook);
                 }
             }
         } catch (SQLException e) {

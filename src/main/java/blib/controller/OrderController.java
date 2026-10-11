@@ -5,6 +5,7 @@ import blib.logic.OrderLogic;
 
 import blib.model.OrderedBook;
 import blib.dto.OrderRequest;
+import blib.enums.ArrivalStatus;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
@@ -45,10 +47,10 @@ public class OrderController {
 
     // cancel a book order
     @DeleteMapping("/{orderId}")
-    public ResponseEntity<String> cancelOrder(@PathVariable int orderId, @RequestParam int bookId, @RequestParam String arrivalStatus){
+    public ResponseEntity<String> cancelOrder(@PathVariable int orderId, @RequestParam int bookId, @RequestParam ArrivalStatus arrivalStatus){
         boolean isCanceled = orderLogic.cancelOrder(orderId);
 
-        if(isCanceled && "Arrived".equals(arrivalStatus)){
+        if(isCanceled && arrivalStatus == ArrivalStatus.ARRIVED){
             orderLogic.changeArrivalStatus(bookId);
         }
 

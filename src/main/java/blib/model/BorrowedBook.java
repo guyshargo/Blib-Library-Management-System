@@ -11,6 +11,7 @@ public class BorrowedBook implements Serializable {
     private LocalDate returnDate;
     private int memberId;
     private String title;
+    private String author;
     private String librarianName;
     private int bookCopyId;
     private LocalDate extensionDate;
@@ -61,6 +62,10 @@ public class BorrowedBook implements Serializable {
     public int getMemberId() { return this.memberId; }
 
     public String getNameOfBook() { return this.title; }
+
+    public String getAuthor() { return this.author; }
+
+    public void setAuthor(String author) { this.author = author; }
 
     public String getLibrarianName() { return this.librarianName; }
 

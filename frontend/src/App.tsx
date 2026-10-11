@@ -9,8 +9,7 @@ import BookDetails from './pages/catalog/BookDetails';
 
 import Home from './pages/catalog/Home';
 import PersonalInfo from './pages/member/PersonalInfo';
-import OrderBook from './pages/member/OrderBook';
-import ExtendBorrow from './pages/member/ExtendBorrow';
+import MyBooks from './pages/member/MyBooks';
 
 import ReturnBook from './pages/librarian/ReturnBook';
 import ViewMember from './pages/librarian/ViewMember';
@@ -38,8 +37,9 @@ function App() {
 
             <Route path="/home" element={<Home />} />
             <Route path="/personal-info" element={<PersonalInfo />} />
-            <Route path="/orders" element={<OrderBook />} />
-            <Route path="/my-borrows" element={<ExtendBorrow />} />
+            <Route path="/orders" element={<Navigate to="/catalog" replace />} />
+            <Route path="/my-books" element={<MyBooks />} />
+            <Route path="/my-borrows" element={<Navigate to="/my-books" replace />} />
 
             <Route path="/return-book" element={<ReturnBook />} />
             <Route path="/view-member" element={<ViewMember />} />

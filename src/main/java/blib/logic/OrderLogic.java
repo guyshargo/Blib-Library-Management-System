@@ -50,7 +50,7 @@ public class OrderLogic {
     }
 
     public synchronized List<OrderedBook> importOrderedBooks(int member_id) {
-        String query = "SELECT o.*, b.title FROM orders o JOIN books b ON o.book_id = b.book_id WHERE o.member_id = ?";
+        String query = "SELECT o.*, b.title, b.author FROM orders o JOIN books b ON o.book_id = b.book_id WHERE o.member_id = ?";
         List<OrderedBook> orderList = new ArrayList<>();
         
         try (Connection con = dbConnector.getConnection();
@@ -68,7 +68,7 @@ public class OrderLogic {
                     LocalDate order_date = (orderDateSql != null) ? orderDateSql.toLocalDate() : null;
                     LocalDate localCurrentDate = (arrivalDateSql != null) ? arrivalDateSql.toLocalDate() : null;
                     
-                    orderList.add(new OrderedBook(
+                    OrderedBook orderedBook = new OrderedBook(
                             rs.getInt("order_id"),
                             rs.getString("member_name"),
                             rs.getInt("member_id"),
@@ -79,7 +79,9 @@ public class OrderLogic {
                             order_date,
                             arrival_status,
                             localCurrentDate
-                    ));
+                    );
+                    orderedBook.setAuthor(rs.getString("author"));
+                    orderList.add(orderedBook);
                 }
             }
         } catch (SQLException e) {
@@ -162,8 +164,11 @@ public class OrderLogic {
                                          String member_phone, String member_email) {
         BookLogic bookLogic = new BookLogic();
         Book book = bookLogic.fetchBook(bookID);
-        
-        if (book.getNumberOfCopies() == book.getNumberOforders()) {
+        if (book == null) {
+            return "book not found";
+        }
+
+        if (book.getNumberOforders() >= book.getNumberOfCopies()) {
             return "reached maximum ordering to the book";
         }
             

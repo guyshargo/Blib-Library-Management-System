@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
 
 type ColorTheme = 'wood' | 'botanical' | 'coastal';
-type BrowseIconName = 'dashboard' | 'members' | 'addMember' | 'borrow' | 'return' | 'memberList' | 'reports' | 'invoice' | 'catalog' | 'orders' | 'subjects' | 'trending';
+type BrowseIconName = 'dashboard' | 'members' | 'addMember' | 'borrow' | 'return' | 'memberList' | 'reports' | 'invoice' | 'catalog' | 'subjects' | 'trending';
 
 const BrowseLinkIcon: React.FC<{ name: BrowseIconName }> = ({ name }) => (
     <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -15,8 +15,7 @@ const BrowseLinkIcon: React.FC<{ name: BrowseIconName }> = ({ name }) => (
         {name === 'memberList' && <><circle cx="9" cy="8" r="3" /><path d="M3.5 20v-1a4.5 4.5 0 0 1 4.5-4.5h2a4.5 4.5 0 0 1 4.5 4.5v1m1-13h5m-5 4h5m-5 4h5" /></>}
         {name === 'reports' && <><path d="M4 20V11m5 9V5m5 15v-7m5 7V8" /></>}
         {name === 'invoice' && <><path d="M6 3.5h9l4 4V20H6z" /><path d="M14.5 3.5V8H19M9 12h7m-7 4h7" /></>}
-        {name === 'catalog' && <><path d="M3.5 5.5c3.1-.8 6-.3 8.5 1.5v13c-2.5-1.8-5.4-2.3-8.5-1.5z" /><path d="M20.5 5.5c-3.1-.8-6-.3-8.5 1.5v13c2.5-1.8 5.4-2.3 8.5-1.5z" /><path d="M12 7v13" /></>}
-        {name === 'orders' && <><path d="M4 17 9 12l4 3 7-8" /><path d="M15 7h5v5" /></>}
+        {name === 'catalog' && <><circle cx="12" cy="12" r="8.5" /><path d="m15.8 8.2-2.5 5.1-5.1 2.5 2.5-5.1z" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2" /></>}
         {name === 'subjects' && <><path d="m6 18 7.5-7.5" /><path d="m12.5 4 .8 2.2L15.5 7l-2.2.8-.8 2.2-.8-2.2L9.5 7l2.2-.8z" /><path d="m18 12 .6 1.4L20 14l-1.4.6L18 16l-.6-1.4L16 14l1.4-.6z" /><path d="m5 5 .5 1.5L7 7l-1.5.5L5 9l-.5-1.5L3 7l1.5-.5z" /></>}
         {name === 'trending' && <><path d="M4 18 10 12l4 3 6-8" /><path d="M14 7h6v6" /></>}
     </svg>
@@ -108,8 +107,7 @@ const Layout: React.FC = () => {
         : [
             { path: '', label: 'Subjects', icon: 'subjects' as const },
             { path: '', label: 'Trending', icon: 'trending' as const },
-            { path: '/catalog', label: 'Library Explorer', icon: 'catalog' as const },
-            { path: '/orders', label: 'Order Requests', icon: 'orders' as const }
+            { path: '/catalog', label: 'Library Explorer', icon: 'catalog' as const }
           ];
     const navItemClass = 'nav-item flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-base font-semibold text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border';
 
@@ -128,7 +126,7 @@ const Layout: React.FC = () => {
                     {!isLibrarian && (
                         <button
                             className={navItemClass}
-                            onClick={() => navigate('/my-borrows')}
+                            onClick={() => navigate('/my-books')}
                         >
                             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round">
                                 <path d="M6.5 4.75h11v15l-5.5-3.5-5.5 3.5z" />

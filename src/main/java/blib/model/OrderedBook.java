@@ -17,6 +17,7 @@ public class OrderedBook implements Serializable {
     private ArrivalStatus arrivalStatus;
     private int bookId;
     private String title;
+    private String author;
     private LocalDate arrivalDate;
 
 
@@ -70,6 +71,14 @@ public class OrderedBook implements Serializable {
 
     public String getBookTitle() {
         return this.title;
+    }
+
+    public String getAuthor() {
+        return this.author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
     }
 
 
