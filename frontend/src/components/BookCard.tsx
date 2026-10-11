@@ -17,21 +17,21 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
     return (
         <div 
             onClick={() => navigate(`/book-details`, { state: { selectedBook: book } })}
-            className="flex flex-col items-center bg-transparent min-w-[120px] max-w-[120px] cursor-pointer transition-all duration-200 hover:-translate-y-2 group"
+            className="flex min-w-[120px] max-w-[120px] shrink-0 flex-col items-center bg-transparent cursor-pointer"
         >
             <img 
                 src={`/images/covers/${book.bookId}.jpg`} 
                 alt={book.title}
                 onError={handleImageError}
-                className="w-[120px] h-[180px] object-cover rounded-[2px] shadow-[3px_5px_10px_rgba(0,0,0,0.35)] transition-shadow duration-200 group-hover:shadow-[5px_8px_15px_rgba(0,0,0,0.5)]"
+                className="book-cover-image relative w-[120px] h-[180px] object-cover rounded-[2px] shadow-[3px_5px_10px_rgba(0,0,0,0.35)]"
             />
-            
-            <div className="mt-2 font-sans font-extrabold text-[13px] text-[#3E3028] text-center w-full truncate px-1">
+
+            <div className="mt-2 font-sans font-extrabold text-[13px] text-primary text-center w-full truncate px-1">
                 {book.title}
             </div>
-            
+
             {/* Using genre since author isn't in your Book interface yet */}
-            <div className="font-sans text-[11px] text-[#8b6b58] text-center w-full truncate px-1">
+            <div className="font-sans text-[11px] text-secondary text-center w-full truncate px-1">
                 {book.genre}
             </div>
         </div>

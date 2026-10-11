@@ -8,7 +8,7 @@ import type { Member, BorrowedBook, Activity } from '../../types';
 const ViewMember: React.FC = () => {
     const location = useLocation();
     const passedMember = location.state?.selectedMember as Member;
-    
+
     const [member, setMember] = useState<Member | null>(passedMember || null);
     const [activities, setActivities] = useState<Activity[]>([]);
     const [borrows, setBorrows] = useState<BorrowedBook[]>([]);
@@ -34,13 +34,13 @@ const ViewMember: React.FC = () => {
         try {
             const today = new Date().toISOString().split('T')[0];
             await librarianService.updateFreezeStatus(member.id, newStatus, today);
-            
+
             await borrowService.addActivity({
                 membershipNumber: member.id,
                 activityType: "freezeStatus",
                 entityId: member.id
             });
-            
+
             setMember({ ...member, freezeStatus: newStatus as any });
             alert("Updating status successful");
         } catch (error) {
@@ -56,7 +56,7 @@ const ViewMember: React.FC = () => {
 
         try {
             const librarianUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            
+
             const payload = {
                 memberId: member.id,
                 copyOfBookId: book.copyOfBookId,
@@ -80,23 +80,23 @@ const ViewMember: React.FC = () => {
 
     return (
         <div className="flex flex-col p-[30px] font-sans min-h-screen gap-5">
-            <div className="flex items-end gap-5 bg-white p-5 rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+            <div className="flex items-end gap-5 bg-surface p-5 rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
                 <div className="flex flex-col gap-1">
-                    <span className="text-base font-bold text-[#333]">Full Name:</span>
-                    <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-[#ccc] outline-none min-w-[200px] bg-[#f5f5f5] text-[#666] cursor-not-allowed" readOnly value={member.fullName} />
+                    <span className="text-base font-bold text-primary">Full Name:</span>
+                    <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px] bg-neutral text-secondary cursor-not-allowed" readOnly value={member.fullName} />
                 </div>
                 <div className="flex flex-col gap-1">
-                    <span className="text-base font-bold text-[#333]">Email Address:</span>
-                    <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-[#ccc] outline-none min-w-[200px] bg-[#f5f5f5] text-[#666] cursor-not-allowed" readOnly value={member.email} />
+                    <span className="text-base font-bold text-primary">Email Address:</span>
+                    <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px] bg-neutral text-secondary cursor-not-allowed" readOnly value={member.email} />
                 </div>
                 <div className="flex flex-col gap-1">
-                    <span className="text-base font-bold text-[#333]">Membership Number:</span>
-                    <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-[#ccc] outline-none min-w-[200px] bg-[#f5f5f5] text-[#666] cursor-not-allowed" readOnly value={member.id} />
+                    <span className="text-base font-bold text-primary">Membership Number:</span>
+                    <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px] bg-neutral text-secondary cursor-not-allowed" readOnly value={member.id} />
                 </div>
                 <div className="flex flex-col gap-1">
-                    <span className="text-base font-bold text-[#333]">Freeze Status:</span>
+                    <span className="text-base font-bold text-primary">Freeze Status:</span>
                     <select 
-                        className="rounded-[5px] text-sm px-[15px] py-2.5 border border-[#ccc] outline-none min-w-[200px] bg-white" 
+                        className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px] bg-surface"
                         value={member.freezeStatus} 
                         onChange={e => handleToggleFreeze(e.target.value)}
                     >
@@ -108,8 +108,8 @@ const ViewMember: React.FC = () => {
 
             <div className="flex gap-5">
                 <div className="flex-1">
-                    <h3 className="text-base font-bold text-[#333] mb-2">Activities</h3>
-                    <ul className="bg-white p-5 rounded-[5px] max-h-[200px] overflow-y-auto">
+                    <h3 className="text-base font-bold text-primary mb-2">Activities</h3>
+                    <ul className="bg-surface p-5 rounded-[5px] max-h-[200px] overflow-y-auto">
                         {activities.length === 0 ? <li>No activities found.</li> : activities.map((act, i) => (
                             <li key={i} className="mb-1">{i + 1} {new Date(act.activityDateTime).toLocaleString()} - {act.type}</li>
                         ))}
@@ -118,36 +118,36 @@ const ViewMember: React.FC = () => {
             </div>
 
             <div className="flex flex-col gap-1">
-                <span className="text-base font-bold text-[#333]">Borrowed Books:</span>
+                <span className="text-base font-bold text-primary">Borrowed Books:</span>
                 <input 
-                    className="rounded-[5px] text-sm px-[15px] py-2.5 border border-[#ccc] outline-none min-w-[200px]" 
+                    className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px]"
                     placeholder="Enter Book's Title to Filter" 
                     value={filterQuery} 
                     onChange={e => setFilterQuery(e.target.value)} 
                 />
             </div>
 
-            <table className="w-full bg-[#fff8f2] rounded-[5px] border-collapse font-semibold mt-2.5">
+            <table className="w-full bg-surface rounded-[5px] border-collapse font-semibold mt-2.5">
                 <thead>
                     <tr>
-                        <th className="bg-[#fec999] p-3 text-left">Book Title</th>
-                        <th className="bg-[#fec999] p-3 text-left">Borrow Date</th>
-                        <th className="bg-[#fec999] p-3 text-left">Return Date (Click to Extend)</th>
-                        <th className="bg-[#fec999] p-3 text-left">Librarian Name</th>
+                        <th className="bg-table-header p-3 text-left">Book Title</th>
+                        <th className="bg-table-header p-3 text-left">Borrow Date</th>
+                        <th className="bg-table-header p-3 text-left">Return Date (Click to Extend)</th>
+                        <th className="bg-table-header p-3 text-left">Librarian Name</th>
                     </tr>
                 </thead>
                 <tbody>
                     {filteredBorrows.map(book => (
-                        <tr key={book.copyOfBookId} className="odd:bg-[#fdf6f0] even:bg-[#fee2cd] hover:bg-[#f4e2e1]">
-                            <td className="p-3 border-b border-[#f6e6d8]">{book.title}</td>
-                            <td className="p-3 border-b border-[#f6e6d8]">{book.borrowDate}</td>
+                        <tr key={book.copyOfBookId} className="odd:bg-surface-soft even:bg-table-row-alt hover:bg-row-hover">
+                            <td className="p-3 border-b border-border-subtle">{book.title}</td>
+                            <td className="p-3 border-b border-border-subtle">{book.borrowDate}</td>
                             <td 
-                                className="p-3 border-b border-[#f6e6d8] text-blue-600 underline cursor-pointer hover:text-blue-800" 
+                                className="p-3 border-b border-border-subtle text-accent-text underline cursor-pointer hover:text-accent-text-hover"
                                 onClick={() => handleChangeReturnDate(book)}
                             >
                                 {book.returnDate}
                             </td>
-                            <td className="p-3 border-b border-[#f6e6d8]">{book.librarianName}</td>
+                            <td className="p-3 border-b border-border-subtle">{book.librarianName}</td>
                         </tr>
                     ))}
                 </tbody>

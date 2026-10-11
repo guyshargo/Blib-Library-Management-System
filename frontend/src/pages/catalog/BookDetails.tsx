@@ -6,7 +6,7 @@ import type { Book } from '../../types';
 const BookDetails: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    
+
     // Retrieves the book passed from the SearchCatalog table click
     const selectedBook = location.state?.selectedBook as Book;
 
@@ -59,7 +59,7 @@ const BookDetails: React.FC = () => {
             <div className="flex flex-col items-center p-[30px] font-sans min-h-screen">
                 <h2 className="text-2xl font-bold mb-4">No book selected.</h2>
                 <button 
-                    className="bg-[#fec999] rounded-full text-black text-lg font-semibold border-2 border-transparent px-[25px] py-2 transition-all duration-200 hover:bg-[#fda95c]/65 hover:text-[#333] hover:shadow-[inset_0_3px_8px_rgba(0,0,0,0.3)]" 
+                    className="bg-accent-subtle rounded-full text-primary text-lg font-semibold border-2 border-transparent px-[25px] py-2 transition-all duration-200 hover:bg-accent-subtle-hover hover:text-primary hover:shadow-[inset_0_3px_8px_rgba(0,0,0,0.3)]"
                     onClick={() => navigate(-1)}
                 >
                     Return
@@ -69,28 +69,78 @@ const BookDetails: React.FC = () => {
     }
 
     return (
-        <div className="flex flex-col items-center p-[30px] font-sans min-h-screen">
-            <div className="flex flex-col gap-5 w-[600px] bg-white/80 p-[30px] rounded-[10px]">
-                <div className="flex items-center gap-5">
-                    <span className="w-[180px] text-xl font-semibold">Book Name:</span>
-                    <input className="flex-grow rounded-[30px] text-lg px-5 py-2.5 border border-[#ccc]" type="text" readOnly value={copyName} />
-                </div>
-                <div className="flex items-center gap-5">
-                    <span className="w-[180px] text-xl font-semibold">Book Status:</span>
-                    <input className="flex-grow rounded-[30px] text-lg px-5 py-2.5 border border-[#ccc]" type="text" readOnly value={status} />
-                </div>
-                <div className="flex items-center gap-5">
-                    <span className="w-[180px] text-xl font-semibold">Shelf Location:</span>
-                    <input className="flex-grow rounded-[30px] text-lg px-5 py-2.5 border border-[#ccc]" type="text" readOnly value={shelf} />
-                </div>
-                <div className="flex items-center gap-5">
-                    <span className="w-[180px] text-xl font-semibold">Closest Return:</span>
-                    <input className="flex-grow rounded-[30px] text-lg px-5 py-2.5 border border-[#ccc]" type="text" readOnly value={returnDate} />
-                </div>
-                <div className="flex items-center gap-5">
-                    <span className="w-[180px] text-xl font-semibold">Book Summary:</span>
-                    <textarea className="flex-grow text-lg px-5 py-2.5 border border-[#ccc] rounded-[15px] min-h-[120px] resize-none" readOnly value={selectedBook.summary || ''} />
-                </div>
+        <div className="p-4 font-sans text-primary sm:p-6 lg:p-8">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-[200px_minmax(0,1fr)] lg:gap-10">
+                <aside className="flex flex-col items-center gap-4 md:items-start">
+                    <img
+                        src={`/images/covers/${selectedBook.bookId}.jpg`}
+                        alt={`Cover of ${selectedBook.title}`}
+                        onError={event => {
+                            event.currentTarget.src = '/images/book_logo.png';
+                        }}
+                        className="w-full max-w-[200px] rounded-[3px] object-cover shadow-[3px_5px_10px_rgba(0,0,0,0.25)]"
+                    />
+                    <div className="w-full max-w-[200px] space-y-3">
+                        <div className="rounded-md border border-border-subtle bg-surface-soft px-4 py-3 text-sm">
+                            <span className="font-semibold text-secondary">Availability</span>
+                            <p className="mt-1 text-base font-semibold text-primary">{status}</p>
+                        </div>
+                        {status === 'Available' && (
+                            <div className="rounded-md border border-border-subtle bg-surface-soft px-4 py-3 text-sm">
+                                <span className="font-semibold text-secondary">Shelf location</span>
+                                <p className="mt-1 text-base text-primary">{shelf}</p>
+                            </div>
+                        )}
+                        {status === 'Borrowed' && (
+                            <div className="rounded-md border border-border-subtle bg-surface-soft px-4 py-3 text-sm">
+                                <span className="font-semibold text-secondary">Expected return</span>
+                                <p className="mt-1 text-base text-primary">{returnDate}</p>
+                            </div>
+                        )}
+                    </div>
+                </aside>
+
+                <section className="min-w-0">
+                    <p className="text-sm font-semibold uppercase tracking-wide text-accent-text">{selectedBook.genre}</p>
+                    <h1 className="mt-2 break-words text-3xl font-bold leading-tight text-primary sm:text-4xl">
+                        {selectedBook.title}
+                    </h1>
+                    <p className="mt-2 text-base text-secondary">
+                        by: {selectedBook.author || 'Author not listed'}
+                    </p>
+                    {copyName !== selectedBook.title && (
+                        <p className="mt-2 text-sm text-muted">Available copy: {copyName}</p>
+                    )}
+
+                    <dl className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="rounded-md border border-border-subtle px-4 py-3">
+                            <dt className="text-sm text-muted">Total copies</dt>
+                            <dd className="mt-1 font-semibold text-primary">{selectedBook.copiesNum}</dd>
+                        </div>
+                        <div className="rounded-md border border-border-subtle px-4 py-3">
+                            <dt className="text-sm text-muted">Borrowed copies</dt>
+                            <dd className="mt-1 font-semibold text-primary">{selectedBook.borrowedCopiesNum}</dd>
+                        </div>
+                        <div className="rounded-md border border-border-subtle px-4 py-3">
+                            <dt className="text-sm text-muted">Orders</dt>
+                            <dd className="mt-1 font-semibold text-primary">{selectedBook.ordersNum}</dd>
+                        </div>
+                    </dl>
+
+                    <section className="mt-8">
+                        <h2 className="text-lg font-semibold text-primary">About this book</h2>
+                        <p className="mt-3 whitespace-pre-line text-base leading-7 text-secondary">
+                            {selectedBook.summary || 'No summary is available for this book.'}
+                        </p>
+                    </section>
+
+                    {selectedBook.keywords && (
+                        <section className="mt-7">
+                            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Keywords</h2>
+                            <p className="mt-2 break-words text-sm text-secondary">{selectedBook.keywords}</p>
+                        </section>
+                    )}
+                </section>
             </div>
         </div>
     );

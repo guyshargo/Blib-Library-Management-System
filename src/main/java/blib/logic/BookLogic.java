@@ -251,6 +251,7 @@ public class BookLogic {
             try (ResultSet resultSet = ps.executeQuery()) {
                 if (resultSet.next()) {
                     String title = resultSet.getString("title");
+                    String author = resultSet.getString("author");
                     String genre = resultSet.getString("genre");
                     int numberOfCopies = resultSet.getInt("number_of_copies");
                     int borrowedCopies = resultSet.getInt("number_of_borrowed_copies");
@@ -261,7 +262,7 @@ public class BookLogic {
                     int numberOfOrders = resultSet.getInt("number_of_orders");
                     IsOrdered is_ordered = IsOrdered.valueOf(resultSet.getString("is_ordered").toUpperCase());
 
-                    return new Book(title, genre, numberOfCopies, borrowedCopies, keywords, is_ordered, book_id, numberOfOrders);
+                    return new Book(title, author, genre, numberOfCopies, borrowedCopies, keywords, is_ordered, book_id, numberOfOrders);
                 }
             }
         } catch (SQLException e) {
@@ -313,6 +314,7 @@ public class BookLogic {
                     IsOrdered isOrderedEnum = IsOrdered.valueOf(rs.getString("is_ordered").toUpperCase());
                     Book book = new Book(
                             rs.getString("title"),
+                            rs.getString("author"),
                             rs.getString("genre"),
                             rs.getInt("number_of_copies"),
                             rs.getInt("number_of_borrowed_copies"),

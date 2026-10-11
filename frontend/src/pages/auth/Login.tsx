@@ -45,25 +45,25 @@ const Login: React.FC = () => {
     };
 
     return (
-        <main className="min-h-screen bg-[#dac4a5] px-4 py-6 font-sans text-[#3E3028] sm:px-8 sm:py-10">
-            <div className="mx-auto flex min-h-[min(760px,calc(100vh-3rem))] w-full max-w-6xl flex-col overflow-hidden bg-[#FFFDF9] shadow-[0_12px_40px_rgba(62,48,40,0.12)] md:min-h-[680px] md:flex-row">
-                <section className="flex w-full flex-col justify-center bg-[#F0EAE1] px-8 py-12 sm:px-12 md:w-[46%] md:px-16 lg:px-20">
+        <main className="flex min-h-dvh flex-col bg-page px-4 py-6 font-sans text-primary sm:px-8 sm:py-10">
+            <div className="mx-auto my-auto flex min-h-[min(760px,calc(100dvh-3rem))] w-full max-w-6xl flex-col overflow-hidden bg-surface shadow-[0_12px_40px_rgba(var(--color-shadow),0.12)] md:min-h-[680px] md:flex-row">
+                <section className="flex w-full flex-col justify-center bg-accent-subtle px-8 py-12 sm:px-12 md:w-[46%] md:px-16 lg:px-20">
                     <div className="max-w-md">
-                        <p className="mb-5 text-sm font-semibold uppercase tracking-[0.2em] text-[#B83A24]">
+                        <p className="mb-5 text-sm font-semibold uppercase tracking-[0.2em] text-primary">
                             Your library, wherever you are
                         </p>
-                        <h1 className="text-4xl font-semibold tracking-tight text-[#3E3028] sm:text-5xl">
+                        <h1 className="text-4xl font-semibold tracking-tight text-primary sm:text-5xl">
                             Blib Library
                         </h1>
-                        <p className="mt-6 max-w-sm text-lg leading-8 text-[#6C5D53]">
+                        <p className="mt-6 max-w-sm text-lg leading-8 text-muted">
                             Sign in to borrow books, manage your reading, and stay connected with your library.
                         </p>
                     </div>
 
-                    <div className="mt-12 border-t border-[#D8C9B5] pt-6">
-                        <p className="text-sm text-[#6C5D53]">Just browsing?</p>
+                    <div className="mt-12 border-t border-border-subtle pt-6">
+                        <p className="text-sm text-muted">Just browsing?</p>
                         <button
-                            className="mt-2 text-sm font-semibold text-[#8B4A32] underline decoration-[#CBA471] underline-offset-4 transition-colors hover:text-[#B83A24]"
+                            className="mt-2 text-sm font-semibold text-accent-text underline decoration-accent-text underline-offset-4 transition-colors hover:text-accent-text"
                             onClick={() => navigate('/home')}
                         >
                             Continue as a guest
@@ -73,20 +73,20 @@ const Login: React.FC = () => {
 
                 <section className="flex flex-1 items-center justify-center px-7 py-12 sm:px-12 md:px-14 lg:px-20">
                     <div className="w-full max-w-md">
-                        <h2 className="text-3xl font-semibold tracking-tight text-[#3E3028]">Log in</h2>
-                        <p className="mt-2 text-sm leading-6 text-[#6C5D53]">
+                        <h2 className="text-3xl font-semibold tracking-tight text-primary">Log in</h2>
+                        <p className="mt-2 text-sm leading-6 text-muted">
                             Enter your account details to access Blib Library.
                         </p>
 
-                        <div className="mt-8 flex border-b border-[#D8C9B5]" role="tablist" aria-label="Login type">
+                        <div className="mt-8 flex border-b border-border-subtle" role="tablist" aria-label="Login type">
                             <button
                                 type="button"
                                 role="tab"
                                 aria-selected={role === 'MEMBER'}
                                 className={`-mb-px border-b-2 px-5 py-3 text-sm font-semibold transition-colors ${
                                     role === 'MEMBER'
-                                        ? 'border-[#B83A24] text-[#3E3028]'
-                                        : 'border-transparent text-[#85786D] hover:text-[#3E3028]'
+                                        ? 'border-accent-border text-primary'
+                                        : 'border-transparent text-secondary hover:text-primary'
                                 }`}
                                 onClick={() => handleRoleChange('MEMBER')}
                             >
@@ -98,8 +98,8 @@ const Login: React.FC = () => {
                                 aria-selected={role === 'LIBRARIAN'}
                                 className={`-mb-px border-b-2 px-5 py-3 text-sm font-semibold transition-colors ${
                                     role === 'LIBRARIAN'
-                                        ? 'border-[#B83A24] text-[#3E3028]'
-                                        : 'border-transparent text-[#85786D] hover:text-[#3E3028]'
+                                        ? 'border-accent-border text-primary'
+                                        : 'border-transparent text-secondary hover:text-primary'
                                 }`}
                                 onClick={() => handleRoleChange('LIBRARIAN')}
                             >
@@ -109,7 +109,7 @@ const Login: React.FC = () => {
 
                         <form onSubmit={handleLogin} className="mt-7 space-y-5">
                             <div>
-                                <label htmlFor="login-username" className="mb-2 block text-sm font-semibold text-[#5A4A42]">
+                                <label htmlFor="login-username" className="mb-2 block text-sm font-semibold text-secondary">
                                     Username
                                 </label>
                                 <input
@@ -119,12 +119,12 @@ const Login: React.FC = () => {
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     required
-                                    className="w-full border border-[#D8C9B5] bg-[#FFFDF9] px-3.5 py-3 text-base text-[#3E3028] outline-none transition focus:border-[#8B4A32] focus:ring-2 focus:ring-[#8B4A32]/15"
+                                    className="w-full border border-border-subtle bg-surface px-3.5 py-3 text-base text-primary outline-none transition focus:border-accent-border focus:ring-2 focus:ring-accent-wash"
                                 />
                             </div>
 
                             <div>
-                                <label htmlFor="login-password" className="mb-2 block text-sm font-semibold text-[#5A4A42]">
+                                <label htmlFor="login-password" className="mb-2 block text-sm font-semibold text-secondary">
                                     Password
                                 </label>
                                 <input
@@ -134,19 +134,19 @@ const Login: React.FC = () => {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    className="w-full border border-[#D8C9B5] bg-[#FFFDF9] px-3.5 py-3 text-base text-[#3E3028] outline-none transition focus:border-[#8B4A32] focus:ring-2 focus:ring-[#8B4A32]/15"
+                                    className="w-full border border-border-subtle bg-surface px-3.5 py-3 text-base text-primary outline-none transition focus:border-accent-border focus:ring-2 focus:ring-accent-wash"
                                 />
                             </div>
 
                             {errorMessage && (
-                                <div className="border-l-4 border-[#b33a32] bg-[#fbf1ef] px-3 py-2.5 text-sm text-[#8f2923]" role="alert">
+                                <div className="border-l-4 border-danger-border bg-danger-subtle px-3 py-2.5 text-sm text-danger-text" role="alert">
                                     {errorMessage}
                                 </div>
                             )}
 
                             <button
                                 type="submit"
-                                className="w-full bg-[#8B4A32] px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-[#703A29] focus:outline-none focus:ring-2 focus:ring-[#8B4A32] focus:ring-offset-2"
+                                className="w-full bg-accent-solid px-4 py-3 text-base font-semibold text-inverse transition-colors hover:bg-accent-solid-hover focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2"
                             >
                                 Log in as {role === 'MEMBER' ? 'Member' : 'Librarian'}
                             </button>

@@ -36,7 +36,7 @@ const BorrowBook: React.FC = () => {
     const handleScanMemberCard = async () => {
         const barcode = window.prompt("Scan ReaderCard Barcode\nPlease enter the barcode to scan:");
         if (!barcode || !barcode.trim()) return;
-        
+
         try {
             const member = await librarianService.getMemberByBarcode(barcode.trim());
             setMemberIdInput(member.memberId.toString());
@@ -55,7 +55,7 @@ const BorrowBook: React.FC = () => {
             const copy = await borrowService.getAvailableCopyById(parseInt(bookIdInput), member.memberId);
             setCopyOfBook(copy);
             setBookName(copy.CopyOfBookName);
-            
+
             const bookDetails = await borrowService.getBookDetails(copy.bookId);
             setAvailableCopies((bookDetails.copiesNum - bookDetails.borrowedNum).toString());
         } catch (error) {
@@ -90,7 +90,7 @@ const BorrowBook: React.FC = () => {
             // Check for late books before borrowing
             const borrows = await borrowService.getMemberBorrows(member.memberId);
             const lateBooks = borrows.filter(b => new Date(b.returnDate) < new Date());
-            
+
             if (lateBooks.length > 0) {
                 const lateTitles = lateBooks.map(b => `"${b.title}"`).join(',');
                 alert(`The following borrowed books haven't been returned in time:\n${lateTitles}\nPlease contact the library.`);
@@ -98,7 +98,7 @@ const BorrowBook: React.FC = () => {
             }
 
             const librarianUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-            
+
             const payload = {
                 memberId: member.memberId,
                 bookCopyId: copyOfBook.copyId,
@@ -107,7 +107,7 @@ const BorrowBook: React.FC = () => {
             };
 
             await borrowService.commitBorrow(payload);
-            
+
             await borrowService.addActivity({
                 memberId: member.memberId,
                 activityType: "borrow",
@@ -115,7 +115,7 @@ const BorrowBook: React.FC = () => {
             });
 
             alert("Book Borrowed successfully.");
-            
+
             // Reset state
             setMember(null); setMemberIdInput('');
             setCopyOfBook(null); setBookIdInput(''); setBookName(''); setAvailableCopies('');
@@ -128,52 +128,52 @@ const BorrowBook: React.FC = () => {
 
     return (
         <div className="flex flex-col items-center p-[30px] font-sans min-h-screen gap-5">
-            <h2 className="text-[23px] font-bold text-[#333]">Library Member Information</h2>
-            
-            <div className="flex flex-col w-[600px] gap-5 bg-white p-5 rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+            <h2 className="text-[23px] font-bold text-primary">Library Member Information</h2>
+
+            <div className="flex flex-col w-[600px] gap-5 bg-surface p-5 rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
                 <div className="flex gap-5 items-end w-full">
                     <div className="flex flex-col gap-1 flex-1">
-                        <span className="text-base font-bold text-[#333]">Membership Number:</span>
-                        <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-[#ccc] outline-none" value={memberIdInput} onChange={e => setMemberIdInput(e.target.value)} />
+                        <span className="text-base font-bold text-primary">Membership Number:</span>
+                        <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none" value={memberIdInput} onChange={e => setMemberIdInput(e.target.value)} />
                     </div>
-                    <button className={`${baseBtn} bg-[#edc915] text-black hover:bg-[#d4b412]`} onClick={handleScanMemberCard}>Scan Reader Card</button>
+                    <button className={`${baseBtn} bg-warning-strong text-primary hover:bg-warning`} onClick={handleScanMemberCard}>Scan Reader Card</button>
                 </div>
                 <div className="flex gap-5 items-end w-full">
                     <div className="flex flex-col gap-1 flex-1">
-                        <span className="text-base font-bold text-[#333]">Full Name:</span>
-                        <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-[#ccc] outline-none bg-[#f5f5f5] text-[#666] cursor-not-allowed" readOnly value={member?.fullName || ''} />
+                        <span className="text-base font-bold text-primary">Full Name:</span>
+                        <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none bg-neutral text-secondary cursor-not-allowed" readOnly value={member?.fullName || ''} />
                     </div>
-                    <button className={`${baseBtn} bg-[#fec999] text-black hover:bg-[#fda95c]/65`} onClick={handleFindMember}>Find Member</button>
+                    <button className={`${baseBtn} bg-accent-subtle text-primary hover:bg-accent-subtle-hover`} onClick={handleFindMember}>Find Member</button>
                 </div>
             </div>
 
-            <hr className="w-full border-t border-[#ccc] my-5" />
+            <hr className="w-full border-t border-border my-5" />
 
-            <h2 className="text-[23px] font-bold text-[#333]">Book Information</h2>
+            <h2 className="text-[23px] font-bold text-primary">Book Information</h2>
 
-            <div className="flex flex-col w-[600px] gap-5 bg-white p-5 rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+            <div className="flex flex-col w-[600px] gap-5 bg-surface p-5 rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
                 <div className="flex gap-5 items-end w-full">
                     <div className="flex flex-col gap-1 flex-1">
-                        <span className="text-base font-bold text-[#333]">Book ID:</span>
-                        <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-[#ccc] outline-none disabled:bg-[#f5f5f5] disabled:cursor-not-allowed" value={bookIdInput} onChange={e => setBookIdInput(e.target.value)} disabled={!member} />
+                        <span className="text-base font-bold text-primary">Book ID:</span>
+                        <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none disabled:bg-neutral disabled:cursor-not-allowed" value={bookIdInput} onChange={e => setBookIdInput(e.target.value)} disabled={!member} />
                     </div>
-                    <button className={`${baseBtn} bg-[#edc915] text-black hover:bg-[#d4b412]`} onClick={handleScanBook} disabled={!member}>Scan Book</button>
+                    <button className={`${baseBtn} bg-warning-strong text-primary hover:bg-warning`} onClick={handleScanBook} disabled={!member}>Scan Book</button>
                 </div>
                 <div className="flex gap-5 w-full">
                     <div className="flex flex-col gap-1 flex-[2]">
-                        <span className="text-base font-bold text-[#333]">Book Name:</span>
-                        <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-[#ccc] outline-none bg-[#f5f5f5] text-[#666] cursor-not-allowed" readOnly value={bookName} />
+                        <span className="text-base font-bold text-primary">Book Name:</span>
+                        <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none bg-neutral text-secondary cursor-not-allowed" readOnly value={bookName} />
                     </div>
                     <div className="flex flex-col gap-1 flex-1">
-                        <span className="text-base font-bold text-[#333]">Copies:</span>
-                        <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-[#ccc] outline-none bg-[#f5f5f5] text-[#666] cursor-not-allowed" readOnly value={availableCopies} />
+                        <span className="text-base font-bold text-primary">Copies:</span>
+                        <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none bg-neutral text-secondary cursor-not-allowed" readOnly value={availableCopies} />
                     </div>
                 </div>
             </div>
 
             <div className="flex gap-10 mt-[30px]">
-                <button className={`${baseBtn} bg-[#fec999] text-black hover:bg-[#fda95c]/65`} onClick={handleFindBook} disabled={!member || !bookIdInput}>Find Book</button>
-                <button className={`${baseBtn} bg-[#5caa58] text-white hover:bg-[#4d8f4a]`} onClick={handleCommitBorrow} disabled={!member || !copyOfBook}>
+                <button className={`${baseBtn} bg-accent-subtle text-primary hover:bg-accent-subtle-hover`} onClick={handleFindBook} disabled={!member || !bookIdInput}>Find Book</button>
+                <button className={`${baseBtn} bg-success-bright text-primary hover:bg-success-dark`} onClick={handleCommitBorrow} disabled={!member || !copyOfBook}>
                     Commit Borrow
                 </button>
             </div>

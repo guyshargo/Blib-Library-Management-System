@@ -18,6 +18,7 @@ export interface Activity {
 
 export interface Book {
     title: string;
+    author?: string;
     genre: BookGenre;
     copiesNum: number;
     borrowedCopiesNum: number;

@@ -7,6 +7,7 @@ import blib.enums.IsOrdered;
 public class Book implements Serializable {
     private static final long serialVersionUID = 1L;
     private String title;
+    private String author;
     private String genre;
     private int copiesNum;
     private int borrowedCopiesNum;
@@ -16,9 +17,10 @@ public class Book implements Serializable {
     private int ordersNum;
     private String summary;
 
-    public Book(String title, String genre, int copiesNum, int borrowedCopiesNum, String keywords,
+    public Book(String title, String author, String genre, int copiesNum, int borrowedCopiesNum, String keywords,
                 IsOrdered isOrdered, int bookId, int ordersNum) {
         this.title = title;
+        this.author = author;
         this.genre = genre;
         this.copiesNum = copiesNum;
         this.borrowedCopiesNum = borrowedCopiesNum;
@@ -31,6 +33,10 @@ public class Book implements Serializable {
     @JsonProperty("title")
     public String getBookTitle() { return this.title; }
     public void setBookTitle(String title) { this.title = title; }
+
+    @JsonProperty("author")
+    public String getAuthor() { return this.author; }
+    public void setAuthor(String author) { this.author = author; }
     
     @JsonProperty("genre")
     public String getBookGenre() { return this.genre; }
@@ -65,5 +71,5 @@ public class Book implements Serializable {
     public String getBookSummary() { return this.summary; }
     public void setBookSummary(String summary) { this.summary = summary; }
     
-    public String toString() { return "(Book) " + this.title + " (genre: " + this.genre + ", copies: " + this.copiesNum + ", borrowed: " + this.borrowedCopiesNum + ", keywords: " + this.keywords + ", ordered?: " + this.isOrdered + ", id: " + this.bookId + ", orders: " + this.ordersNum + ", Summary: " + this.summary + ")\n"; }
+    public String toString() { return "(Book) " + this.title + " (author: " + this.author + ", genre: " + this.genre + ", copies: " + this.copiesNum + ", borrowed: " + this.borrowedCopiesNum + ", keywords: " + this.keywords + ", ordered?: " + this.isOrdered + ", id: " + this.bookId + ", orders: " + this.ordersNum + ", Summary: " + this.summary + ")\n"; }
 }

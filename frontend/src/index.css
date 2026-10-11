@@ -2,3 +2,178 @@
 @tailwind components;
 @tailwind utilities;
 
+:root,
+:root[data-theme="wood"] {
+  --color-bg-page: #ffedc0;
+  --color-bg-header: #895234;
+  --color-bg-surface: #fffdf9;
+  --color-bg-surface-soft: #fdf6f0;
+  --color-bg-table-header: #e5b488;
+  --color-bg-table-row-alt: #f6e6d8;
+  --color-bg-row-hover: #fee2cd;
+  --color-bg-input: #f9f9f9;
+  --color-bg-neutral: #f5f5f5;
+  --color-bg-pattern:
+    radial-gradient(ellipse 16px 9px at 74% 58%, transparent 43%, rgba(137, 82, 52, 0.13) 48% 53%, transparent 58%),
+    repeating-linear-gradient(3deg, transparent 0 11px, rgba(137, 82, 52, 0.12) 11px 12px, transparent 12px 24px),
+    repeating-linear-gradient(177deg, transparent 0 31px, rgba(137, 82, 52, 0.07) 31px 32px, transparent 32px 47px);
+  --color-bg-pattern-size: 192px 112px;
+  --color-text-primary: #3e3028;
+  --color-text-secondary: #5a4a42;
+  --color-text-muted: #6c5d53;
+  --color-text-inverse: #fff;
+  --color-border: #ccc;
+  --color-border-subtle: #e1d7c6;
+  --color-border-strong: #cba471;
+  --color-accent-solid: #895234;
+  --color-accent-solid-hover: #6f422c;
+  --color-accent-text: #895234;
+  --color-accent-text-hover: #6f422c;
+  --color-accent-border: #895234;
+  --color-accent-subtle: #fec999;
+  --color-accent-subtle-hover: #fda95c;
+  --color-accent-wash: rgba(139, 74, 50, 0.12);
+  --color-shadow: 62, 48, 40;
+  --color-danger-subtle: #f4e2e1;
+  --color-danger-text: #8f2923;
+  --color-danger-border: #b33a32;
+  --color-info-subtle: #add8e6;
+  --color-info-border: #9bc2ce;
+  --color-info: #5ca5e0;
+  --color-info-strong: #6ab7f6;
+  --color-success-subtle: #a0dba0;
+  --color-success-bright: #50cc50;
+  --color-success-dark: #49b849;
+  --color-warning: #d4b412;
+  --color-warning-strong: #edc915;
+  --color-warning-soft: #e6a749;
+  --color-warning-bright: #ffba52;
+  --color-chart-series-1: #895234;
+  --color-chart-series-2: #cba471;
+}
+
+:root[data-theme="botanical"] {
+  --color-bg-page: #e5ebdf;
+  --color-bg-header: #42664b;
+  --color-bg-surface: #fbfdf9;
+  --color-bg-surface-soft: #f0f5ed;
+  --color-bg-table-header: #b9cbb2;
+  --color-bg-table-row-alt: #e5eee0;
+  --color-bg-row-hover: #dce8d7;
+  --color-bg-input: #f4f8f1;
+  --color-bg-neutral: #eef2eb;
+  --color-bg-pattern:
+    radial-gradient(ellipse 11px 22px at 22px 22px, transparent 64%, rgba(47, 107, 91, 0.2) 67% 73%, transparent 76%),
+    radial-gradient(ellipse 11px 22px at 46px 46px, transparent 64%, rgba(47, 107, 91, 0.2) 67% 73%, transparent 76%),
+    linear-gradient(135deg, transparent 49%, rgba(47, 107, 91, 0.15) 49% 51%, transparent 51%);
+  --color-bg-pattern-size: 72px 72px;
+  --color-text-primary: #29382d;
+  --color-text-secondary: #405747;
+  --color-text-muted: #586e5d;
+  --color-text-inverse: #fff;
+  --color-border: #c5d2c1;
+  --color-border-subtle: #d6e0d2;
+  --color-border-strong: #8ba581;
+  --color-accent-solid: #2f6b5b;
+  --color-accent-solid-hover: #245447;
+  --color-accent-text: #2f6b5b;
+  --color-accent-text-hover: #245447;
+  --color-accent-border: #2f6b5b;
+  --color-accent-subtle: #c9d9c3;
+  --color-accent-subtle-hover: #a9c39f;
+  --color-accent-wash: rgba(47, 107, 91, 0.12);
+  --color-shadow: 41, 56, 45;
+  --color-chart-series-1: #2f6b5b;
+  --color-chart-series-2: #c4a85b;
+}
+
+:root[data-theme="coastal"] {
+  --color-bg-page: #e4ebf2;
+  --color-bg-header: #365d7a;
+  --color-bg-surface: #fbfcfe;
+  --color-bg-surface-soft: #f0f4f8;
+  --color-bg-table-header: #b6c9d8;
+  --color-bg-table-row-alt: #e4edf4;
+  --color-bg-row-hover: #d8e6f0;
+  --color-bg-input: #f4f7fa;
+  --color-bg-neutral: #edf1f5;
+  --color-bg-pattern:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='48' viewBox='0 0 160 48'%3E%3Cpath d='M-20 12 C0 2 20 2 40 12 S80 22 100 12 S140 2 160 12 S200 22 220 12 M-20 36 C0 26 20 26 40 36 S80 46 100 36 S140 26 160 36 S200 46 220 36' fill='none' stroke='%23316b72' stroke-opacity='.12' stroke-width='1'/%3E%3C/svg%3E");
+  --color-bg-pattern-size: 160px 48px;
+  --color-text-primary: #273746;
+  --color-text-secondary: #3f5364;
+  --color-text-muted: #586d7e;
+  --color-text-inverse: #fff;
+  --color-border: #c4d0db;
+  --color-border-subtle: #d6e0e8;
+  --color-border-strong: #829db2;
+  --color-accent-solid: #316b72;
+  --color-accent-solid-hover: #28575e;
+  --color-accent-text: #316b72;
+  --color-accent-text-hover: #28575e;
+  --color-accent-border: #316b72;
+  --color-accent-subtle: #c8d8e5;
+  --color-accent-subtle-hover: #a6c1d5;
+  --color-accent-wash: rgba(49, 107, 114, 0.12);
+  --color-shadow: 39, 55, 70;
+  --color-chart-series-1: #316b72;
+  --color-chart-series-2: #c58c73;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg-page);
+    color: var(--color-text-primary);
+  }
+}
+
+.book-shelf-scroll {
+  scrollbar-width: none;
+  scroll-behavior: smooth;
+}
+
+.book-shelf-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.book-cover-image {
+  transform-origin: center center;
+  transition-property: opacity, scale;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .book-cover-image:hover {
+    z-index: 1;
+    scale: 1.05;
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: reduce) {
+  .book-cover-image:hover {
+    opacity: 0.88;
+  }
+}
+
+.bg-page {
+  background-color: var(--color-bg-page);
+  background-image: var(--color-bg-pattern);
+  background-repeat: repeat;
+  background-size: var(--color-bg-pattern-size);
+  color: var(--color-text-primary);
+}
+
+.nav-item {
+  background-color: var(--color-bg-surface);
+  transition-property: background-color, color;
+  transition-duration: 100ms;
+  transition-timing-function: ease-out;
+}
+
+@media (hover: hover) {
+  .nav-item:hover {
+    background-color: var(--color-accent-wash);
+    color: var(--color-text-primary);
+  }
+}

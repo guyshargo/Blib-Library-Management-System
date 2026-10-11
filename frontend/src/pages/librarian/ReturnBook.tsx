@@ -13,10 +13,10 @@ const ReturnBook: React.FC = () => {
         try {
             const memberData = await librarianService.getMember(parseInt(memberIdInput));
             setMember(memberData);
-            
+
             const borrowsData = await borrowService.getMemberBorrows(memberData.id);
             setBorrows(borrowsData);
-            
+
             if (borrowsData.length === 0) {
                 alert("This member has no borrowed books.");
             }
@@ -33,16 +33,16 @@ const ReturnBook: React.FC = () => {
         try {
             const returnDate = new Date();
             const dueDate = new Date(book.returnDate);
-            
+
             const oneWeekLate = new Date(dueDate);
             oneWeekLate.setDate(oneWeekLate.getDate() + 7);
-            
+
             if (returnDate > oneWeekLate) {
                 await librarianService.updateFreezeStatus(book.memberId, "Frozen", returnDate.toISOString().split('T')[0]);
             }
 
             await librarianService.returnBook(book.copyOfBookId, book.memberId);
-            
+
             const isLate = returnDate > dueDate;
             const diffDays = Math.ceil((returnDate.getTime() - dueDate.getTime()) / (1000 * 3600 * 24));
             const activityDesc = isLate 
@@ -65,34 +65,34 @@ const ReturnBook: React.FC = () => {
     return (
         <div className="flex flex-col p-[30px] font-sans min-h-screen gap-5">
             <h2 className="text-2xl font-bold">Return Book</h2>
-            <div className="flex items-end gap-5 bg-white p-5 rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
+            <div className="flex items-end gap-5 bg-surface p-5 rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
                 <div className="flex flex-col gap-1">
-                    <span className="text-base font-bold text-[#333]">Membership Number:</span>
+                    <span className="text-base font-bold text-primary">Membership Number:</span>
                     <input 
-                        className="rounded-[5px] text-sm px-[15px] py-2.5 border border-[#ccc] outline-none min-w-[200px]" 
+                        className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px]"
                         value={memberIdInput} 
                         onChange={e => setMemberIdInput(e.target.value)} 
                     />
                 </div>
-                <button className="bg-[#fec999] rounded-full text-black text-base font-semibold border-2 border-transparent px-[25px] py-2.5 cursor-pointer transition-all duration-200 hover:bg-[#fda95c]/65 hover:shadow-[inset_0_3px_8px_rgba(0,0,0,0.3)]" onClick={handleSearch}>Find</button>
+                <button className="bg-accent-subtle rounded-full text-primary text-base font-semibold border-2 border-transparent px-[25px] py-2.5 cursor-pointer transition-all duration-200 hover:bg-accent-subtle-hover hover:shadow-[inset_0_3px_8px_rgba(0,0,0,0.3)]" onClick={handleSearch}>Find</button>
                 <div className="flex flex-col gap-1 ml-5">
-                    <span className="text-base font-bold text-[#333]">Member name:</span>
-                    <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-[#ccc] outline-none min-w-[200px] bg-[#f5f5f5] text-[#666] cursor-not-allowed" readOnly value={member?.fullName || ''} />
+                    <span className="text-base font-bold text-primary">Member name:</span>
+                    <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px] bg-neutral text-secondary cursor-not-allowed" readOnly value={member?.fullName || ''} />
                 </div>
             </div>
 
-            <table className="w-full bg-[#fff8f2] rounded-[5px] border-collapse font-semibold mt-2.5">
+            <table className="w-full bg-surface rounded-[5px] border-collapse font-semibold mt-2.5">
                 <thead>
                     <tr>
-                        <th className="bg-[#fec999] p-3 text-left">Copy of book ID</th>
-                        <th className="bg-[#fec999] p-3 text-left">Book Name</th>
+                        <th className="bg-table-header p-3 text-left">Copy of book ID</th>
+                        <th className="bg-table-header p-3 text-left">Book Name</th>
                     </tr>
                 </thead>
                 <tbody>
                     {borrows.map(book => (
-                        <tr key={book.copyOfBookId} onClick={() => handleReturn(book)} className="odd:bg-[#fdf6f0] even:bg-[#fee2cd] hover:bg-[#f4e2e1] hover:cursor-pointer">
-                            <td className="p-3 border-b border-[#f6e6d8]">{book.copyOfBookId}</td>
-                            <td className="p-3 border-b border-[#f6e6d8]">{book.title}</td>
+                        <tr key={book.copyOfBookId} onClick={() => handleReturn(book)} className="odd:bg-surface-soft even:bg-table-row-alt hover:bg-row-hover hover:cursor-pointer">
+                            <td className="p-3 border-b border-border-subtle">{book.copyOfBookId}</td>
+                            <td className="p-3 border-b border-border-subtle">{book.title}</td>
                         </tr>
                     ))}
                 </tbody>

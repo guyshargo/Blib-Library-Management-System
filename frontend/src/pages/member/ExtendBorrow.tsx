@@ -5,7 +5,7 @@ import type { BorrowedBook, Member } from '../../types';
 const ExtendBorrow: React.FC = () => {
     const [member, setMember] = useState<Member | null>(null);
     const [borrowedBooks, setBorrowedBooks] = useState<BorrowedBook[]>([]);
-    
+
     const [searchName, setSearchName] = useState('');
     const [isOverdueOnly, setIsOverdueOnly] = useState(false);
     const [selectedCopyId, setSelectedCopyId] = useState<string>('');
@@ -30,7 +30,7 @@ const ExtendBorrow: React.FC = () => {
 
     const filteredBooks = borrowedBooks.filter(book => {
         const matchesName = book.title.toLowerCase().includes(searchName.toLowerCase());
-        
+
         let matchesOverdue = true;
         if (isOverdueOnly) {
             const returnDate = new Date(book.returnDate);
@@ -50,7 +50,7 @@ const ExtendBorrow: React.FC = () => {
         }
 
         const selectedBook = borrowedBooks.find(b => b.copyOfBookId.toString() === selectedCopyId);
-        
+
         if (!selectedBook || !member) {
             alert("Extension Request: There is no book with the inserted ID");
             return;
@@ -58,7 +58,7 @@ const ExtendBorrow: React.FC = () => {
 
         const returnDate = new Date(selectedBook.returnDate);
         returnDate.setHours(0, 0, 0, 0);
-        
+
         const now = new Date();
         now.setHours(0, 0, 0, 0);
 
@@ -82,7 +82,7 @@ const ExtendBorrow: React.FC = () => {
 
         try {
             await borrowService.extendBorrow(member.id, selectedBook.copyOfBookId);
-            
+
             await borrowService.addActivity({
                 membershipNumber: member.id,
                 activityType: "extendBorrow",
@@ -96,16 +96,16 @@ const ExtendBorrow: React.FC = () => {
         }
     };
 
-    const inputClass = "rounded-[17px] text-sm px-[15px] py-2 border border-[#ccc] bg-[#f9f9f9]";
-    const btnClass = "bg-[#fec999] rounded-full text-black text-base font-semibold border-2 border-transparent px-5 py-2 cursor-pointer transition-all duration-200 hover:bg-[#fda95c]/65 hover:shadow-[inset_0_3px_8px_rgba(0,0,0,0.3)]";
+    const inputClass = "rounded-[17px] text-sm px-[15px] py-2 border border-border bg-input";
+    const btnClass = "bg-accent-subtle rounded-full text-primary text-base font-semibold border-2 border-transparent px-5 py-2 cursor-pointer transition-all duration-200 hover:bg-accent-subtle-hover hover:shadow-[inset_0_3px_8px_rgba(0,0,0,0.3)]";
 
     return (
         <div className="flex flex-col p-[30px] font-sans min-h-screen gap-[30px]">
-            <h2 className="text-[20px] font-bold text-[#333] self-center">Search Borrowed Books</h2>
-            
+            <h2 className="text-[20px] font-bold text-primary self-center">Search Borrowed Books</h2>
+
             <div className="flex gap-10 items-center justify-center">
                 <div className="flex items-center gap-2.5">
-                    <span className="text-[20px] font-bold text-[#333]">Copy of book ID:</span>
+                    <span className="text-[20px] font-bold text-primary">Copy of book ID:</span>
                     <input 
                         className={inputClass} 
                         value={selectedCopyId}
@@ -114,29 +114,29 @@ const ExtendBorrow: React.FC = () => {
                 </div>
             </div>
 
-            <table className="w-full bg-[#fff8f2] rounded-[5px] border-collapse border-2 border-[#fec999] font-semibold mt-5">
+            <table className="w-full bg-surface rounded-[5px] border-collapse border-2 border-accent-subtle font-semibold mt-5">
                 <thead>
                     <tr>
-                        <th className="bg-[#fec999] p-2.5 text-left border-r border-[#e5b488]">Borrowed book ID</th>
-                        <th className="bg-[#fec999] p-2.5 text-left border-r border-[#e5b488]">Name</th>
-                        <th className="bg-[#fec999] p-2.5 text-left border-r border-[#e5b488]">Return Date</th>
+                        <th className="bg-table-header p-2.5 text-left border-r border-border-subtle">Borrowed book ID</th>
+                        <th className="bg-table-header p-2.5 text-left border-r border-border-subtle">Name</th>
+                        <th className="bg-table-header p-2.5 text-left border-r border-border-subtle">Return Date</th>
                     </tr>
                 </thead>
                 <tbody>
                     {filteredBooks.map(book => {
                         const isOverdue = new Date(book.returnDate).setHours(0,0,0,0) < new Date().setHours(0,0,0,0);
                         const isSelected = selectedCopyId === book.copyOfBookId.toString();
-                        
+
                         return (
                             <tr 
                                 key={book.copyOfBookId} 
                                 onClick={() => setSelectedCopyId(book.copyOfBookId.toString())}
-                                className={`cursor-pointer ${isSelected ? 'bg-[#fec999] text-black' : 'odd:bg-[#fdf6f0] even:bg-[#ffffff] hover:bg-[#f4e2e1]'}`}
-                                style={{ backgroundColor: isOverdue && !isSelected ? '#ffcccc' : undefined }}
+                                className={`cursor-pointer ${isSelected ? 'bg-accent-subtle text-primary' : 'odd:bg-surface-soft even:bg-surface hover:bg-row-hover'}`}
+                                style={{ backgroundColor: isOverdue && !isSelected ? 'var(--color-danger-subtle)' : undefined }}
                             >
-                                <td className="p-2.5 border-r border-[#f6e6d8] border-b border-[#f6e6d8]">{book.copyOfBookId}</td>
-                                <td className="p-2.5 border-r border-[#f6e6d8] border-b border-[#f6e6d8]">{book.title}</td>
-                                <td className="p-2.5 border-r border-[#f6e6d8] border-b border-[#f6e6d8]">{book.returnDate}</td>
+                                <td className="p-2.5 border-r border-border-subtle border-b border-border-subtle">{book.copyOfBookId}</td>
+                                <td className="p-2.5 border-r border-border-subtle border-b border-border-subtle">{book.title}</td>
+                                <td className="p-2.5 border-r border-border-subtle border-b border-border-subtle">{book.returnDate}</td>
                             </tr>
                         );
                     })}
@@ -149,14 +149,14 @@ const ExtendBorrow: React.FC = () => {
 
             <div className="flex gap-10 items-center justify-center">
                 <div className="flex items-center gap-2.5">
-                    <span className="text-[19px] font-bold text-[#333]">Book Name:</span>
+                    <span className="text-[19px] font-bold text-primary">Book Name:</span>
                     <input 
                         className={inputClass} 
                         value={searchName}
                         onChange={e => setSearchName(e.target.value)}
                     />
                 </div>
-                
+
                 <div className="flex items-center gap-2.5 ml-5">
                     <input 
                         type="checkbox" 
@@ -165,7 +165,7 @@ const ExtendBorrow: React.FC = () => {
                         onChange={e => setIsOverdueOnly(e.target.checked)}
                         className="w-[18px] h-[18px] cursor-pointer"
                     />
-                    <label htmlFor="overdue" className="text-base font-bold text-[#333] cursor-pointer">Overdue</label>
+                    <label htmlFor="overdue" className="text-base font-bold text-primary cursor-pointer">Overdue</label>
                 </div>
             </div>
         </div>
