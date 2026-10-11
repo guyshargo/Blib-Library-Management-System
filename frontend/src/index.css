@@ -34,20 +34,6 @@
   --color-accent-subtle-hover: #fda95c;
   --color-accent-wash: rgba(139, 74, 50, 0.12);
   --color-shadow: 62, 48, 40;
-  --color-danger-subtle: #f4e2e1;
-  --color-danger-text: #8f2923;
-  --color-danger-border: #b33a32;
-  --color-info-subtle: #add8e6;
-  --color-info-border: #9bc2ce;
-  --color-info: #5ca5e0;
-  --color-info-strong: #6ab7f6;
-  --color-success-subtle: #a0dba0;
-  --color-success-bright: #50cc50;
-  --color-success-dark: #49b849;
-  --color-warning: #d4b412;
-  --color-warning-strong: #edc915;
-  --color-warning-soft: #e6a749;
-  --color-warning-bright: #ffba52;
   --color-chart-series-1: #895234;
   --color-chart-series-2: #cba471;
 }
@@ -120,10 +106,43 @@
   --color-chart-series-2: #c58c73;
 }
 
+:root {
+  --color-danger-subtle: #f4e2e1;
+  --color-danger-text: #8f2923;
+  --color-danger-border: #b33a32;
+  --color-info-subtle: #add8e6;
+  --color-info-border: #9bc2ce;
+  --color-info: #5ca5e0;
+  --color-info-strong: #6ab7f6;
+  --color-success-subtle: #a0dba0;
+  --color-success-bright: #50cc50;
+  --color-success-dark: #1b5e20;
+  --color-warning: #d4b412;
+  --color-warning-strong: #edc915;
+  --color-warning-soft: #e6a749;
+  --color-warning-bright: #ffba52;
+}
+
 @layer base {
   body {
     background-color: var(--color-bg-page);
     color: var(--color-text-primary);
+  }
+
+  button:not(:disabled) {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  button:not(:disabled) {
+    transition-property: transform;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+  }
+
+  button:not(:disabled):active {
+    transform: scale(0.96);
   }
 }
 
@@ -164,16 +183,29 @@
   color: var(--color-text-primary);
 }
 
-.nav-item {
-  background-color: var(--color-bg-surface);
-  transition-property: background-color, color;
-  transition-duration: 100ms;
-  transition-timing-function: ease-out;
-}
+@layer utilities {
+  .animate-in {
+    animation-duration: 500ms;
+    animation-fill-mode: both;
+    animation-timing-function: ease-out;
+  }
 
-@media (hover: hover) {
-  .nav-item:hover {
-    background-color: var(--color-accent-wash);
-    color: var(--color-text-primary);
+  .fade-in {
+    animation-name: fade-in;
+  }
+
+  .slide-in-from-bottom-4 {
+    animation-name: slide-in-from-bottom;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slide-in-from-bottom {
+    from { transform: translateY(1rem); }
+    to { transform: translateY(0); }
   }
 }
+

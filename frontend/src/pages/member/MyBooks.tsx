@@ -9,7 +9,7 @@ const toLocalDate = (value: string) => {
     return new Date(year, month - 1, day);
 };
 
-const formatDate = (value: string) => toLocalDate(value).toLocaleDateString();
+const formatDate = (value: string) => new Intl.DateTimeFormat(navigator.language).format(toLocalDate(value));
 
 const MyBooks: React.FC = () => {
     const [member, setMember] = useState<Member | null>(null);
@@ -159,14 +159,14 @@ const MyBooks: React.FC = () => {
             }
         } catch (error) {
             console.error('Failed to cancel book order', error);
-            setFeedback({ kind: 'error', text: 'The order could not be cancelled. Please try again.' });
+            setFeedback({ kind: 'error', text: 'The order could not be cancelled. Check your connection and try again.' });
         } finally {
             setCancellingOrderId(null);
         }
     };
 
     const inputClass = 'w-full min-w-0 border border-border-subtle bg-surface px-3.5 py-3 text-base text-primary outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash';
-    const buttonClass = 'inline-flex min-h-11 items-center justify-center border border-accent-border bg-surface px-4 py-2.5 text-sm font-semibold text-accent-text transition-colors hover:bg-accent-solid hover:text-inverse focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+    const buttonClass = 'inline-flex min-h-11 items-center justify-center border border-accent-border bg-surface px-4 py-2.5 text-sm font-semibold text-accent-text transition-colors can-hover:bg-accent-solid can-hover:text-inverse focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
 
     if (!member && (borrowedLoading || ordersLoading)) {
         return (
@@ -272,7 +272,7 @@ const MyBooks: React.FC = () => {
                             <span className="sr-only">Filter borrowed books by title</span>
                             <input
                                 className={inputClass}
-                                placeholder="Filter by title"
+                                placeholder="Filter by Title"
                                 value={borrowedTitleFilter}
                                 onChange={event => setBorrowedTitleFilter(event.target.value)}
                             />
@@ -281,7 +281,7 @@ const MyBooks: React.FC = () => {
                             <span className="sr-only">Filter borrowed books by author</span>
                             <input
                                 className={inputClass}
-                                placeholder="Filter by author"
+                                placeholder="Filter by Author"
                                 value={borrowedAuthorFilter}
                                 onChange={event => setBorrowedAuthorFilter(event.target.value)}
                             />
@@ -308,8 +308,22 @@ const MyBooks: React.FC = () => {
                         return `${isSelected ? 'bg-accent-subtle' : index % 2 ? 'bg-surface' : 'bg-surface-soft'} ${isOverdue ? 'text-danger-text' : ''}`;
                     }}
                     loadingMessage={borrowedLoading ? 'Loading borrowed books...' : undefined}
-                    errorMessage={borrowedError ? 'Borrowed books could not be loaded.' : undefined}
-                    emptyMessage={borrowedBooks.length ? 'No borrowed books match these filters.' : 'You have no borrowed books.'}
+                    errorMessage={borrowedError ? (
+                        <span className="inline-flex flex-wrap items-center justify-center gap-3">
+                            <span>Unable to load borrowed books.</span>
+                            <button type="button" className="underline underline-offset-4" onClick={() => void loadBorrowedBooks(member.memberId)}>Retry</button>
+                        </span>
+                    ) : undefined}
+                    emptyMessage={borrowedBooks.length ? (
+                        <span className="inline-flex flex-wrap items-center justify-center gap-3">
+                            <span>No borrowed books match these filters.</span>
+                            <button type="button" className="underline underline-offset-4" onClick={() => {
+                                setBorrowedTitleFilter('');
+                                setBorrowedAuthorFilter('');
+                                setIsOverdueOnly(false);
+                            }}>Clear filters</button>
+                        </span>
+                    ) : 'You have no borrowed books.'}
                 />
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -338,7 +352,7 @@ const MyBooks: React.FC = () => {
                         <span className="sr-only">Filter ordered books by title</span>
                         <input
                             className={inputClass}
-                            placeholder="Filter by title"
+                            placeholder="Filter by Title"
                             value={orderTitleFilter}
                             onChange={event => setOrderTitleFilter(event.target.value)}
                         />
@@ -347,7 +361,7 @@ const MyBooks: React.FC = () => {
                         <span className="sr-only">Filter ordered books by author</span>
                         <input
                             className={inputClass}
-                            placeholder="Filter by author"
+                            placeholder="Filter by Author"
                             value={orderAuthorFilter}
                             onChange={event => setOrderAuthorFilter(event.target.value)}
                         />
@@ -359,8 +373,21 @@ const MyBooks: React.FC = () => {
                     rows={filteredOrders}
                     getRowKey={order => order.orderId}
                     loadingMessage={ordersLoading ? 'Loading orders...' : undefined}
-                    errorMessage={ordersError ? 'Your orders could not be loaded.' : undefined}
-                    emptyMessage={orders.length ? 'No ordered books match these filters.' : 'You have no ordered books.'}
+                    errorMessage={ordersError ? (
+                        <span className="inline-flex flex-wrap items-center justify-center gap-3">
+                            <span>Unable to load orders.</span>
+                            <button type="button" className="underline underline-offset-4" onClick={() => void loadOrders(member.memberId)}>Retry</button>
+                        </span>
+                    ) : undefined}
+                    emptyMessage={orders.length ? (
+                        <span className="inline-flex flex-wrap items-center justify-center gap-3">
+                            <span>No ordered books match these filters.</span>
+                            <button type="button" className="underline underline-offset-4" onClick={() => {
+                                setOrderTitleFilter('');
+                                setOrderAuthorFilter('');
+                            }}>Clear filters</button>
+                        </span>
+                    ) : 'You have no ordered books.'}
                 />
             </section>
         </div>

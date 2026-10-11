@@ -14,7 +14,7 @@ const ReturnBook: React.FC = () => {
             const memberData = await librarianService.getMember(parseInt(memberIdInput));
             setMember(memberData);
 
-            const borrowsData = await borrowService.getMemberBorrows(memberData.id);
+            const borrowsData = await borrowService.getMemberBorrows(memberData.memberId);
             setBorrows(borrowsData);
 
             if (borrowsData.length === 0) {
@@ -28,7 +28,7 @@ const ReturnBook: React.FC = () => {
     };
 
     const handleReturn = async (book: BorrowedBook) => {
-        if (!window.confirm("Are you sure you want to return this book?")) return;
+        if (!window.confirm(`Return "${book.title}"?`)) return;
 
         try {
             const returnDate = new Date();
@@ -41,7 +41,7 @@ const ReturnBook: React.FC = () => {
                 await librarianService.updateFreezeStatus(book.memberId, "Frozen", returnDate.toISOString().split('T')[0]);
             }
 
-            await librarianService.returnBook(book.copyOfBookId, book.memberId);
+            await librarianService.returnBook(book.bookCopyId, book.memberId);
 
             const isLate = returnDate > dueDate;
             const diffDays = Math.ceil((returnDate.getTime() - dueDate.getTime()) / (1000 * 3600 * 24));
@@ -50,38 +50,39 @@ const ReturnBook: React.FC = () => {
                 : `returning,return ${book.title}`;
 
             await borrowService.addActivity({
-                membershipNumber: book.memberId,
+                memberId: book.memberId,
                 activityType: activityDesc.split(',')[0],
-                entityId: book.copyOfBookId
+                entityId: book.bookCopyId
             });
 
-            alert("The book has been successfully returned.");
-            setBorrows(prev => prev.filter(b => b.copyOfBookId !== book.copyOfBookId));
+            alert("Book returned.");
+            setBorrows(prev => prev.filter(b => b.bookCopyId !== book.bookCopyId));
         } catch (error) {
-            alert("The book could not be returned.");
+            alert("Unable to return this book. Check the connection and try again.");
         }
     };
 
     return (
-        <div className="flex flex-col p-[30px] font-sans min-h-screen gap-5">
-            <h2 className="text-2xl font-bold">Return Book</h2>
-            <div className="flex items-end gap-5 bg-surface p-5 rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-                <div className="flex flex-col gap-1">
+        <div className="flex min-h-screen flex-col gap-5 p-4 font-sans sm:p-6 lg:p-8">
+            <h1 className="text-2xl font-bold text-primary">Return book</h1>
+            <div className="grid grid-cols-1 items-end gap-4 rounded-lg bg-surface p-4 shadow-sm sm:grid-cols-2 sm:p-5 lg:grid-cols-3">
+                <div className="flex min-w-0 flex-col gap-1">
                     <span className="text-base font-bold text-primary">Membership Number:</span>
                     <input 
-                        className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px]"
+                        className="min-w-0 rounded-md border border-border px-3.5 py-3 text-base outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash sm:text-sm"
                         value={memberIdInput} 
                         onChange={e => setMemberIdInput(e.target.value)} 
                     />
                 </div>
-                <button className="bg-accent-subtle rounded-full text-primary text-base font-semibold border-2 border-transparent px-[25px] py-2.5 cursor-pointer transition-all duration-200 hover:bg-accent-subtle-hover hover:shadow-[inset_0_3px_8px_rgba(0,0,0,0.3)]" onClick={handleSearch}>Find</button>
-                <div className="flex flex-col gap-1 ml-5">
-                    <span className="text-base font-bold text-primary">Member name:</span>
-                    <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px] bg-neutral text-secondary cursor-not-allowed" readOnly value={member?.fullName || ''} />
+                <button className="rounded-md bg-accent-solid px-5 py-3 text-base font-semibold text-inverse transition-colors can-hover:bg-accent-solid-hover" onClick={handleSearch}>Find member</button>
+                <div className="flex min-w-0 flex-col gap-1">
+                    <span className="text-base font-bold text-primary">Member name</span>
+                    <input className="min-w-0 rounded-md border border-border bg-surface-soft px-3.5 py-3 text-base text-secondary outline-none sm:text-sm" readOnly value={member?.fullName || ''} />
                 </div>
             </div>
 
-            <table className="w-full bg-surface rounded-[5px] border-collapse font-semibold mt-2.5">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[480px] border-collapse rounded-[5px] bg-surface font-semibold">
                 <thead>
                     <tr>
                         <th className="bg-table-header p-3 text-left">Copy of book ID</th>
@@ -89,14 +90,17 @@ const ReturnBook: React.FC = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {borrows.map(book => (
-                        <tr key={book.copyOfBookId} onClick={() => handleReturn(book)} className="odd:bg-surface-soft even:bg-table-row-alt hover:bg-row-hover hover:cursor-pointer">
-                            <td className="p-3 border-b border-border-subtle">{book.copyOfBookId}</td>
+                    {borrows.length === 0 ? (
+                        <tr><td className="p-4 text-sm text-muted" colSpan={2}>No borrowed books to return.</td></tr>
+                    ) : borrows.map(book => (
+                        <tr key={book.bookCopyId} onClick={() => handleReturn(book)} className="odd:bg-surface-soft even:bg-table-row-alt can-hover:bg-row-hover can-hover:cursor-pointer">
+                            <td className="p-3 border-b border-border-subtle">{book.bookCopyId}</td>
                             <td className="p-3 border-b border-border-subtle">{book.title}</td>
                         </tr>
                     ))}
                 </tbody>
             </table>
+            </div>
         </div>
     );
 };

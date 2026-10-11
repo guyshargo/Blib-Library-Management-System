@@ -33,13 +33,13 @@ const Login: React.FC = () => {
             }
         } catch (error: any) {
             if (error.response?.status === 401 || error.response?.status === 404) {
-                setErrorMessage('Username or Password are incorrect. Please try again.');
+                setErrorMessage('Incorrect username or password. Check your details and try again.');
             } else if (error.message === 'The user is already logged into the system.') {
                 setErrorMessage(error.message);
             } else if (error.code === 'ERR_NETWORK') {
-                setErrorMessage('Network Error: Cannot connect to the server.');
+                setErrorMessage('Unable to connect to the server. Check your connection and try again.');
             } else {
-                setErrorMessage('An unexpected error occurred. Please try again.');
+                setErrorMessage('Unable to sign in. Check your details and try again.');
             }
         }
     };
@@ -63,7 +63,7 @@ const Login: React.FC = () => {
                     <div className="mt-12 border-t border-border-subtle pt-6">
                         <p className="text-sm text-muted">Just browsing?</p>
                         <button
-                            className="mt-2 text-sm font-semibold text-accent-text underline decoration-accent-text underline-offset-4 transition-colors hover:text-accent-text"
+                            className="mt-2 text-sm font-semibold text-accent-text underline decoration-accent-text underline-offset-4 transition-colors can-hover:text-accent-text"
                             onClick={() => navigate('/home')}
                         >
                             Continue as a guest
@@ -86,7 +86,7 @@ const Login: React.FC = () => {
                                 className={`-mb-px border-b-2 px-5 py-3 text-sm font-semibold transition-colors ${
                                     role === 'MEMBER'
                                         ? 'border-accent-border text-primary'
-                                        : 'border-transparent text-secondary hover:text-primary'
+                                        : 'border-transparent text-secondary can-hover:text-primary'
                                 }`}
                                 onClick={() => handleRoleChange('MEMBER')}
                             >
@@ -99,7 +99,7 @@ const Login: React.FC = () => {
                                 className={`-mb-px border-b-2 px-5 py-3 text-sm font-semibold transition-colors ${
                                     role === 'LIBRARIAN'
                                         ? 'border-accent-border text-primary'
-                                        : 'border-transparent text-secondary hover:text-primary'
+                                        : 'border-transparent text-secondary can-hover:text-primary'
                                 }`}
                                 onClick={() => handleRoleChange('LIBRARIAN')}
                             >
@@ -146,7 +146,7 @@ const Login: React.FC = () => {
 
                             <button
                                 type="submit"
-                                className="w-full bg-accent-solid px-4 py-3 text-base font-semibold text-inverse transition-colors hover:bg-accent-solid-hover focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2"
+                                className="w-full bg-accent-solid px-4 py-3 text-base font-semibold text-inverse transition-colors can-hover:bg-accent-solid-hover focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2"
                             >
                                 Log in as {role === 'MEMBER' ? 'Member' : 'Librarian'}
                             </button>

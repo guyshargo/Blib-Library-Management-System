@@ -12,9 +12,9 @@ interface DataTableProps<T> {
     columns: DataTableColumn<T>[];
     rows: T[];
     getRowKey: (row: T) => Key;
-    emptyMessage: string;
+    emptyMessage: ReactNode;
     loadingMessage?: string;
-    errorMessage?: string;
+    errorMessage?: ReactNode;
     getRowClassName?: (row: T, index: number) => string;
     tableClassName?: string;
 }

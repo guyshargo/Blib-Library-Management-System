@@ -4,7 +4,7 @@ import Layout from './components/Layout';
 
 import Login from './pages/auth/Login';
 
-import SearchCatalog from './pages/catalog/SearchCatalog';
+import LibraryExplorer from './pages/catalog/LibraryExplorer';
 import BookDetails from './pages/catalog/BookDetails';
 
 import Home from './pages/catalog/Home';
@@ -32,7 +32,7 @@ function App() {
 
         {/* Core System Pages - Wrapped in Main Layout */}
         <Route element={<Layout />}>
-            <Route path="/catalog" element={<SearchCatalog />} />
+            <Route path="/catalog" element={<LibraryExplorer />} />
             <Route path="/book-details" element={<BookDetails />} />
 
             <Route path="/home" element={<Home />} />

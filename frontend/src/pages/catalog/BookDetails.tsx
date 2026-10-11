@@ -212,7 +212,7 @@ const BookDetails: React.FC = () => {
             <div className="flex flex-col items-center p-[30px] font-sans min-h-screen">
                 <h2 className="text-2xl font-bold mb-4">No book selected.</h2>
                 <button 
-                    className="bg-accent-subtle rounded-full text-primary text-lg font-semibold border-2 border-transparent px-[25px] py-2 transition-all duration-200 hover:bg-accent-subtle-hover hover:text-primary hover:shadow-[inset_0_3px_8px_rgba(0,0,0,0.3)]"
+                    className="bg-accent-subtle rounded-full text-primary text-lg font-semibold border-2 border-transparent px-[25px] py-2 transition-all duration-200 can-hover:bg-accent-subtle-hover can-hover:text-primary can-hover:shadow-[inset_0_3px_8px_rgba(0,0,0,0.3)]"
                     onClick={() => navigate(-1)}
                 >
                     Return
@@ -300,7 +300,7 @@ const BookDetails: React.FC = () => {
                             <p className="mt-1 text-sm text-muted">Place an order for this title using your membership.</p>
                             <button
                                 type="button"
-                                className="mt-4 inline-flex min-h-11 items-center justify-center border border-accent-border bg-accent-solid px-5 py-2.5 text-sm font-semibold text-inverse transition-colors hover:bg-accent-solid-hover focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="mt-4 inline-flex min-h-11 items-center justify-center border border-accent-border bg-accent-solid px-5 py-2.5 text-sm font-semibold text-inverse transition-colors can-hover:bg-accent-solid-hover focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                 onClick={() => void handleOrder()}
                                 disabled={actionLoading || !member}
                             >
@@ -325,7 +325,7 @@ const BookDetails: React.FC = () => {
                                 </label>
                                 <button
                                     type="button"
-                                    className="inline-flex min-h-11 items-center justify-center border border-accent-border bg-accent-solid px-5 py-2.5 text-sm font-semibold text-inverse transition-colors hover:bg-accent-solid-hover focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="inline-flex min-h-11 items-center justify-center border border-accent-border bg-accent-solid px-5 py-2.5 text-sm font-semibold text-inverse transition-colors can-hover:bg-accent-solid-hover focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                     onClick={() => void handleBorrow()}
                                     disabled={actionLoading || status !== 'Available'}
                                 >

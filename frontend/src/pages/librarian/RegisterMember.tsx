@@ -52,43 +52,43 @@ const RegisterMember: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col items-center p-[30px] font-sans min-h-screen gap-5">
-            <div className="bg-surface-soft rounded-[25px] p-[30px] w-[500px] flex flex-col gap-[15px]">
-                <div className="flex flex-row items-center">
-                    <span className="text-base font-bold text-primary w-[160px]">ID:</span>
-                    <input className="flex-1 rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none" value={id} onChange={e => setId(e.target.value)} />
+        <div className="flex min-h-screen flex-col items-center gap-5 p-4 font-sans sm:p-6">
+            <div className="flex w-full max-w-xl flex-col gap-4 rounded-lg bg-surface p-4 sm:p-6">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <span className="text-base font-bold text-primary sm:w-40">ID:</span>
+                    <input className="min-w-0 flex-1 rounded-md border border-border px-3.5 py-3 text-base outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash sm:text-sm" value={id} onChange={e => setId(e.target.value)} />
                 </div>
-                <div className="flex flex-row items-center">
-                    <span className="text-base font-bold text-primary w-[160px]">Full Name:</span>
-                    <input className="flex-1 rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none" value={fullName} onChange={e => setFullName(e.target.value)} />
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <span className="text-base font-bold text-primary sm:w-40">Full name:</span>
+                    <input className="min-w-0 flex-1 rounded-md border border-border px-3.5 py-3 text-base outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash sm:text-sm" value={fullName} onChange={e => setFullName(e.target.value)} />
                 </div>
-                <div className="flex flex-row items-center">
-                    <span className="text-base font-bold text-primary w-[160px]">Username:</span>
-                    <input className="flex-1 rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none" value={userName} onChange={e => setUsername(e.target.value)} />
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <span className="text-base font-bold text-primary sm:w-40">Username:</span>
+                    <input className="min-w-0 flex-1 rounded-md border border-border px-3.5 py-3 text-base outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash sm:text-sm" value={userName} onChange={e => setUsername(e.target.value)} />
                 </div>
-                <div className="flex flex-row items-center">
-                    <span className="text-base font-bold text-primary w-[160px]">Password:</span>
-                    <input className="flex-1 rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none" type="password" value={password} onChange={e => setPassword(e.target.value)} />
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <span className="text-base font-bold text-primary sm:w-40">Password:</span>
+                    <input className="min-w-0 flex-1 rounded-md border border-border px-3.5 py-3 text-base outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash sm:text-sm" type="password" value={password} onChange={e => setPassword(e.target.value)} />
                 </div>
-                <div className="flex flex-row items-center">
-                    <span className="text-base font-bold text-primary w-[160px]">Phone Number:</span>
-                    <input className="flex-1 rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none" value={phone} onChange={e => setPhone(e.target.value)} />
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <span className="text-base font-bold text-primary sm:w-40">Phone number:</span>
+                    <input className="min-w-0 flex-1 rounded-md border border-border px-3.5 py-3 text-base outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash sm:text-sm" value={phone} onChange={e => setPhone(e.target.value)} />
                 </div>
-                <div className="flex flex-row items-center">
-                    <span className="text-base font-bold text-primary w-[160px]">Email Address:</span>
-                    <input className="flex-1 rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none" value={email} onChange={e => setEmail(e.target.value)} />
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <span className="text-base font-bold text-primary sm:w-40">Email address:</span>
+                    <input className="min-w-0 flex-1 rounded-md border border-border px-3.5 py-3 text-base outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash sm:text-sm" type="email" value={email} onChange={e => setEmail(e.target.value)} />
                 </div>
             </div>
 
-            <div className="flex gap-5 mt-[30px]">
+            <div className="mt-3 flex w-full max-w-xl flex-col gap-3 sm:flex-row">
                 <button 
-                    className="rounded-full text-primary text-base font-semibold border-2 border-transparent px-[25px] py-2.5 cursor-pointer transition-all duration-200 bg-info-strong hover:bg-info hover:shadow-[inset_0_3px_8px_rgba(0,0,0,0.3)]"
+                    className="flex-1 rounded-md bg-accent-solid px-5 py-3 text-base font-semibold text-inverse transition-colors can-hover:bg-accent-solid-hover"
                     onClick={handleSubmit}
                 >
                     Submit
                 </button>
                 <button 
-                    className="rounded-full text-primary text-base font-semibold border-2 border-transparent px-[25px] py-2.5 cursor-pointer transition-all duration-200 bg-warning-bright hover:bg-warning-soft hover:shadow-[inset_0_3px_8px_rgba(0,0,0,0.3)]"
+                    className="flex-1 rounded-md border border-border bg-surface px-5 py-3 text-base font-semibold text-primary transition-colors can-hover:bg-surface-soft"
                     onClick={handleClear}
                 >
                     Clear

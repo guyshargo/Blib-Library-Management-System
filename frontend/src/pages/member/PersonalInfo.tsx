@@ -31,6 +31,8 @@ const PersonalInfo: React.FC = () => {
     }, []);
 
     const loadActivities = async (memberId: number) => {
+        setActivitiesLoading(true);
+        setActivitiesError(false);
         try {
             const data = await memberService.getActivities(memberId);
             setActivities(data);
@@ -44,11 +46,11 @@ const PersonalInfo: React.FC = () => {
 
     const handleUpdatePhone = async () => {
         if (!member) return;
-        const newPhone = window.prompt("Update Phone Number\nPlease enter new Phone Number here:", member.phoneNum);
+        const newPhone = window.prompt("Update phone number\nEnter a 10-digit phone number:", member.phoneNum);
 
         if (newPhone === null) return;
         if (newPhone.length !== 10 || !/^\d+$/.test(newPhone)) {
-            alert("Phone number must be 10 digits and contain only numbers.");
+            alert("Enter a phone number with exactly 10 digits.");
             return;
         }
         await updateContactData(newPhone, member.email);
@@ -56,11 +58,11 @@ const PersonalInfo: React.FC = () => {
 
     const handleUpdateEmail = async () => {
         if (!member) return;
-        const newEmail = window.prompt("Update Email Address\nPlease enter new Email Address here:", member.email);
+        const newEmail = window.prompt("Update email address\nEnter the new email address:", member.email);
 
         if (newEmail === null) return;
         if (!newEmail.includes("@") || !newEmail.includes(".")) {
-            alert("Please enter a valid email address.");
+            alert("Enter a valid email address.");
             return;
         }
         await updateContactData(member.phoneNum, newEmail);
@@ -73,9 +75,9 @@ const PersonalInfo: React.FC = () => {
             const updatedMember = { ...updatedSub, phoneNum: phone, email };
             setMember(updatedMember);
             localStorage.setItem('currentUser', JSON.stringify(updatedMember));
-            alert("Personal information updated successfully.");
+            alert("Personal information updated.");
         } catch (error) {
-            alert("Network connection failed or failed to update on server.");
+            alert("Unable to update your information. Check your connection and try again.");
         }
     };
 
@@ -88,7 +90,7 @@ const PersonalInfo: React.FC = () => {
     }
 
     const inputClass = "w-full min-w-0 border border-border-subtle bg-surface px-3.5 py-3 text-base text-primary read-only:bg-surface-soft read-only:text-secondary";
-    const btnClass = "inline-flex min-h-11 shrink-0 items-center justify-center border border-accent-border bg-surface px-4 py-2.5 text-sm font-semibold text-accent-text transition-colors hover:bg-accent-solid hover:text-inverse focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2";
+    const btnClass = "inline-flex min-h-11 shrink-0 items-center justify-center border border-accent-border bg-surface px-4 py-2.5 text-sm font-semibold text-accent-text transition-colors can-hover:bg-accent-solid can-hover:text-inverse focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2";
     const isFrozen = member.freezeStatus === 'FROZEN';
     const activityColumns: DataTableColumn<Activity>[] = [
         {
@@ -96,7 +98,7 @@ const PersonalInfo: React.FC = () => {
             header: 'Date & time',
             headerClassName: 'w-[38%] border-e border-border-subtle',
             cellClassName: 'border-e border-border-subtle',
-            render: activity => new Date(activity.activityDateTime).toLocaleString(),
+            render: activity => new Intl.DateTimeFormat(navigator.language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(activity.activityDateTime)),
         },
         {
             key: 'activity-type',
@@ -169,7 +171,12 @@ const PersonalInfo: React.FC = () => {
                     getRowKey={activity => `${activity.memberId}-${activity.activityDateTime}-${activity.type}-${activity.affectedEntityId}`}
                     tableClassName="table-fixed"
                     loadingMessage={activitiesLoading ? 'Loading activity...' : undefined}
-                    errorMessage={activitiesError ? 'Activity could not be loaded. Please try again later.' : undefined}
+                    errorMessage={activitiesError ? (
+                        <span className="inline-flex flex-wrap items-center justify-center gap-3">
+                            <span>Unable to load activity.</span>
+                            <button type="button" className="underline underline-offset-4" onClick={() => member && void loadActivities(member.memberId)}>Retry</button>
+                        </span>
+                    ) : undefined}
                     emptyMessage="No activities found yet."
                 />
             </section>

@@ -54,7 +54,7 @@ const BorrowBook: React.FC = () => {
         try {
             const copy = await borrowService.getAvailableCopyById(parseInt(bookIdInput), member.memberId);
             setCopyOfBook(copy);
-            setBookName(copy.CopyOfBookName);
+            setBookName(copy.title);
 
             const bookDetails = await borrowService.getBookDetails(copy.bookId);
             setAvailableCopies((bookDetails.copiesNum - bookDetails.borrowedNum).toString());
@@ -114,67 +114,67 @@ const BorrowBook: React.FC = () => {
                 entityId: copyOfBook.copyId
             });
 
-            alert("Book Borrowed successfully.");
+            alert("Book borrowed.");
 
             // Reset state
             setMember(null); setMemberIdInput('');
             setCopyOfBook(null); setBookIdInput(''); setBookName(''); setAvailableCopies('');
         } catch (error: any) {
-            alert(error.response?.data || "Borrow Unsuccessful");
+            alert(error.response?.data || "Unable to borrow this book. Check member status and copy availability, then try again.");
         }
     };
 
-    const baseBtn = "rounded-full text-base font-semibold border-2 border-transparent px-[25px] py-2.5 cursor-pointer transition-all duration-200 hover:shadow-[inset_0_3px_8px_rgba(0,0,0,0.3)] disabled:opacity-50 disabled:cursor-not-allowed";
+    const baseBtn = "w-full whitespace-nowrap rounded-md px-4 py-3 text-base font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto";
 
     return (
-        <div className="flex flex-col items-center p-[30px] font-sans min-h-screen gap-5">
-            <h2 className="text-[23px] font-bold text-primary">Library Member Information</h2>
+        <div className="flex min-h-screen flex-col items-center gap-5 p-4 font-sans sm:p-6 lg:p-8">
+            <h2 className="text-xl font-bold text-primary sm:text-2xl">Library member information</h2>
 
-            <div className="flex flex-col w-[600px] gap-5 bg-surface p-5 rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-                <div className="flex gap-5 items-end w-full">
-                    <div className="flex flex-col gap-1 flex-1">
+            <div className="flex w-full max-w-2xl flex-col gap-5 rounded-lg bg-surface p-4 shadow-sm sm:p-5">
+                <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-end sm:gap-5">
+                    <div className="flex min-w-0 flex-1 flex-col gap-1">
                         <span className="text-base font-bold text-primary">Membership Number:</span>
-                        <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none" value={memberIdInput} onChange={e => setMemberIdInput(e.target.value)} />
+                        <input className="min-w-0 rounded-md border border-border px-3.5 py-3 text-base outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash sm:text-sm" value={memberIdInput} onChange={e => setMemberIdInput(e.target.value)} />
                     </div>
-                    <button className={`${baseBtn} bg-warning-strong text-primary hover:bg-warning`} onClick={handleScanMemberCard}>Scan Reader Card</button>
+                    <button className={`${baseBtn} border border-border bg-surface text-primary can-hover:bg-surface-soft`} onClick={handleScanMemberCard}>Scan reader card</button>
                 </div>
-                <div className="flex gap-5 items-end w-full">
-                    <div className="flex flex-col gap-1 flex-1">
+                <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-end sm:gap-5">
+                    <div className="flex min-w-0 flex-1 flex-col gap-1">
                         <span className="text-base font-bold text-primary">Full Name:</span>
-                        <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none bg-neutral text-secondary cursor-not-allowed" readOnly value={member?.fullName || ''} />
+                        <input className="min-w-0 rounded-md border border-border bg-surface-soft px-3.5 py-3 text-base text-secondary outline-none sm:text-sm" readOnly value={member?.fullName || ''} />
                     </div>
-                    <button className={`${baseBtn} bg-accent-subtle text-primary hover:bg-accent-subtle-hover`} onClick={handleFindMember}>Find Member</button>
+                    <button className={`${baseBtn} bg-accent-solid text-inverse can-hover:bg-accent-solid-hover`} onClick={handleFindMember}>Find member</button>
                 </div>
             </div>
 
             <hr className="w-full border-t border-border my-5" />
 
-            <h2 className="text-[23px] font-bold text-primary">Book Information</h2>
+            <h2 className="text-xl font-bold text-primary sm:text-2xl">Book information</h2>
 
-            <div className="flex flex-col w-[600px] gap-5 bg-surface p-5 rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-                <div className="flex gap-5 items-end w-full">
-                    <div className="flex flex-col gap-1 flex-1">
+            <div className="flex w-full max-w-2xl flex-col gap-5 rounded-lg bg-surface p-4 shadow-sm sm:p-5">
+                <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-end sm:gap-5">
+                    <div className="flex min-w-0 flex-1 flex-col gap-1">
                         <span className="text-base font-bold text-primary">Book ID:</span>
-                        <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none disabled:bg-neutral disabled:cursor-not-allowed" value={bookIdInput} onChange={e => setBookIdInput(e.target.value)} disabled={!member} />
+                        <input className="min-w-0 rounded-md border border-border px-3.5 py-3 text-base outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash disabled:bg-surface-soft disabled:cursor-not-allowed sm:text-sm" value={bookIdInput} onChange={e => setBookIdInput(e.target.value)} disabled={!member} />
                     </div>
-                    <button className={`${baseBtn} bg-warning-strong text-primary hover:bg-warning`} onClick={handleScanBook} disabled={!member}>Scan Book</button>
+                    <button className={`${baseBtn} border border-border bg-surface text-primary can-hover:bg-surface-soft`} onClick={handleScanBook} disabled={!member}>Scan book</button>
                 </div>
-                <div className="flex gap-5 w-full">
-                    <div className="flex flex-col gap-1 flex-[2]">
+                <div className="flex w-full flex-col gap-4 sm:flex-row sm:gap-5">
+                    <div className="flex min-w-0 flex-[2] flex-col gap-1">
                         <span className="text-base font-bold text-primary">Book Name:</span>
-                        <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none bg-neutral text-secondary cursor-not-allowed" readOnly value={bookName} />
+                        <input className="min-w-0 rounded-md border border-border bg-surface-soft px-3.5 py-3 text-base text-secondary outline-none sm:text-sm" readOnly value={bookName} />
                     </div>
-                    <div className="flex flex-col gap-1 flex-1">
+                    <div className="flex min-w-0 flex-1 flex-col gap-1">
                         <span className="text-base font-bold text-primary">Copies:</span>
-                        <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none bg-neutral text-secondary cursor-not-allowed" readOnly value={availableCopies} />
+                        <input className="min-w-0 rounded-md border border-border bg-surface-soft px-3.5 py-3 text-base text-secondary outline-none sm:text-sm" readOnly value={availableCopies} />
                     </div>
                 </div>
             </div>
 
-            <div className="flex gap-10 mt-[30px]">
-                <button className={`${baseBtn} bg-accent-subtle text-primary hover:bg-accent-subtle-hover`} onClick={handleFindBook} disabled={!member || !bookIdInput}>Find Book</button>
-                <button className={`${baseBtn} bg-success-bright text-primary hover:bg-success-dark`} onClick={handleCommitBorrow} disabled={!member || !copyOfBook}>
-                    Commit Borrow
+            <div className="mt-3 flex w-full max-w-2xl flex-col gap-3 sm:flex-row sm:gap-4">
+                <button className={`${baseBtn} border border-accent-border bg-surface text-accent-text can-hover:bg-accent-wash`} onClick={handleFindBook} disabled={!member || !bookIdInput}>Find book</button>
+                <button className={`${baseBtn} bg-accent-solid text-inverse can-hover:bg-accent-solid-hover`} onClick={handleCommitBorrow} disabled={!member || !copyOfBook}>
+                    Borrow book
                 </button>
             </div>
         </div>
