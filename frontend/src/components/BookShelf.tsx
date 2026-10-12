@@ -86,7 +86,7 @@ const BookShelf: FC<BookShelfProps> = ({ title, books }) => {
                         <button
                             type="button"
                             aria-label={`Scroll ${title} toward the beginning`}
-                            className="flex h-9 w-9 items-center justify-center border border-border-subtle bg-surface text-primary transition-colors hover:bg-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border disabled:cursor-not-allowed disabled:opacity-40"
+                            className="flex h-9 w-9 items-center justify-center border border-border-subtle bg-surface text-primary transition-colors can-hover:bg-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border disabled:cursor-not-allowed disabled:opacity-40"
                             disabled={!canScrollToStart}
                             onClick={() => scroll(false)}
                         >
@@ -97,7 +97,7 @@ const BookShelf: FC<BookShelfProps> = ({ title, books }) => {
                         <button
                             type="button"
                             aria-label={`Scroll ${title} toward the end`}
-                            className="flex h-9 w-9 items-center justify-center border border-border-subtle bg-surface text-primary transition-colors hover:bg-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border disabled:cursor-not-allowed disabled:opacity-40"
+                            className="flex h-9 w-9 items-center justify-center border border-border-subtle bg-surface text-primary transition-colors can-hover:bg-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border disabled:cursor-not-allowed disabled:opacity-40"
                             disabled={!canScrollToEnd}
                             onClick={() => scroll(true)}
                         >
@@ -111,7 +111,7 @@ const BookShelf: FC<BookShelfProps> = ({ title, books }) => {
                 <div className="min-w-0 rounded-[3px] border-b-[10px] border-border-strong shadow-[0_5px_5px_rgba(0,0,0,0.1)]">
                     <div
                         ref={shelfRef}
-                        className="book-shelf-scroll flex min-h-[220px] min-w-0 gap-[35px] overflow-x-auto pb-2.5 ps-5 pe-5 pt-2"
+                        className="book-shelf-scroll flex min-h-[220px] min-w-0 gap-5 overflow-x-auto pb-2.5 ps-4 pe-4 pt-2 sm:gap-8 sm:ps-5 sm:pe-5"
                         onScroll={updateScrollState}
                     >
                         {books.map(book => <BookCard key={book.bookId} book={book} />)}

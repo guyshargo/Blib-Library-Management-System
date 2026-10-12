@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { librarianService } from '../../services/librarianService';
 import type { Member } from '../../types';
@@ -6,22 +6,30 @@ import type { Member } from '../../types';
 const ManageMember: React.FC = () => {
     const [members, setMembers] = useState<Member[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState(false);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const loadMembers = async () => {
-            try {
-                const data = await librarianService.getAllMembers();
-                setMembers(data);
-            } catch (error) {
-                console.error("No subscribers found");
-            }
-        };
-        loadMembers();
+    const loadMembers = useCallback(async () => {
+        setLoading(true);
+        setLoadError(false);
+        try {
+            const data = await librarianService.getAllMembers();
+            setMembers(data);
+        } catch (error) {
+            console.error('Failed to load members', error);
+            setLoadError(true);
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
+    useEffect(() => {
+        void loadMembers();
+    }, [loadMembers]);
+
     const filteredMembers = members.filter(member => 
-        member.id.toString().includes(searchQuery) || 
+        member.memberId.toString().includes(searchQuery) || 
         member.fullName.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -42,18 +50,29 @@ const ManageMember: React.FC = () => {
     };
 
     return (
-        <div className="flex flex-col p-[30px] font-sans min-h-screen gap-5">
-            <div className="flex items-end gap-5 p-5 justify-center bg-transparent">
-                <span className="text-[20px] font-bold text-primary">Search members:</span>
+        <div className="flex min-h-screen flex-col gap-5 p-4 font-sans sm:p-6 lg:p-8">
+            <div className="flex flex-col items-stretch justify-center gap-3 bg-transparent p-2 sm:flex-row sm:items-center sm:gap-5">
+                <label htmlFor="member-search" className="text-base font-bold text-primary">Search members</label>
                 <input 
-                    className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none w-[400px]"
-                    placeholder="Enter member name or membership number" 
+                    id="member-search"
+                    className="w-full rounded-[5px] border border-border px-[15px] py-2.5 text-base outline-none sm:max-w-md sm:text-sm"
+                    placeholder="e.g. Alex Morgan or 123456789"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                 />
             </div>
 
-            <table className="w-full bg-surface rounded-[5px] border-collapse font-semibold mt-2.5">
+            {loadError && (
+                <div className="flex flex-wrap items-center justify-between gap-3 border-l-4 border-danger-border bg-danger-subtle p-4 text-danger-text" role="alert">
+                    <p>Unable to load members. Check your connection and try again.</p>
+                    <button className="rounded-md border border-danger-border px-4 py-2 text-sm font-semibold" onClick={() => void loadMembers()}>
+                        Retry
+                    </button>
+                </div>
+            )}
+
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[420px] border-collapse rounded-[5px] bg-surface font-semibold">
                 <thead>
                     <tr>
                         <th className="bg-table-header p-3 text-left">Membership Number</th>
@@ -61,18 +80,23 @@ const ManageMember: React.FC = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {filteredMembers.map(member => (
-                        <tr key={member.id} onClick={() => handleRowClick(member)} className="odd:bg-surface-soft even:bg-table-row-alt hover:bg-row-hover hover:cursor-pointer">
-                            <td className="p-3 border-b border-border-subtle">{member.id}</td>
+                    {loading ? (
+                        <tr><td className="p-4 text-sm text-muted" colSpan={2}>Loading members…</td></tr>
+                    ) : filteredMembers.length === 0 ? (
+                        <tr><td className="p-4 text-sm text-muted" colSpan={2}>{members.length === 0 ? 'No members are registered yet.' : 'No members match this search. Clear the search to see all members.'}</td></tr>
+                    ) : filteredMembers.map(member => (
+                        <tr key={member.memberId} onClick={() => handleRowClick(member)} className="odd:bg-surface-soft even:bg-table-row-alt can-hover:bg-row-hover can-hover:cursor-pointer">
+                            <td className="p-3 border-b border-border-subtle">{member.memberId}</td>
                             <td className="p-3 border-b border-border-subtle">{member.fullName}</td>
                         </tr>
                     ))}
                 </tbody>
             </table>
+            </div>
 
             <div className="flex justify-center mt-5">
                 <button 
-                    className="bg-accent-subtle rounded-full text-primary text-base font-semibold border-2 border-transparent px-[25px] py-2.5 cursor-pointer transition-all duration-200 hover:bg-accent-subtle-hover hover:shadow-[inset_0_3px_8px_rgba(0,0,0,0.3)]"
+                    className="rounded-md bg-accent-solid px-5 py-3 text-base font-semibold text-inverse transition-colors can-hover:bg-accent-solid-hover"
                     onClick={handleScanCard}
                 >
                     Scan Reader Card

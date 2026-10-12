@@ -5,153 +5,172 @@ import { borrowService } from '../../services/borrowService';
 import { memberService } from '../../services/memberService';
 import type { Member, BorrowedBook, Activity } from '../../types';
 
+const formatActivityDate = (value: string) =>
+    new Intl.DateTimeFormat(navigator.language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+
 const ViewMember: React.FC = () => {
     const location = useLocation();
-    const passedMember = location.state?.selectedMember as Member;
+    const passedMember = location.state?.selectedMember as Member | undefined;
 
-    const [member, setMember] = useState<Member | null>(passedMember || null);
+    const [member, setMember] = useState<Member | null>(passedMember ?? null);
     const [activities, setActivities] = useState<Activity[]>([]);
     const [borrows, setBorrows] = useState<BorrowedBook[]>([]);
     const [filterQuery, setFilterQuery] = useState('');
-
-    useEffect(() => {
-        if (member) {
-            loadData(member.id);
-        }
-    }, [member]);
+    const [loadError, setLoadError] = useState(false);
 
     const loadData = async (memberId: number) => {
-        const [acts, books] = await Promise.all([
-            memberService.getActivities(memberId),
-            borrowService.getMemberBorrows(memberId)
-        ]);
-        setActivities(acts);
-        setBorrows(books);
+        setLoadError(false);
+        try {
+            const [acts, books] = await Promise.all([
+                memberService.getActivities(memberId),
+                borrowService.getMemberBorrows(memberId),
+            ]);
+            setActivities(acts);
+            setBorrows(books);
+        } catch (error) {
+            console.error('Failed to load member details', error);
+            setLoadError(true);
+        }
     };
+
+    useEffect(() => {
+        if (member) void loadData(member.memberId);
+    }, [member]);
 
     const handleToggleFreeze = async (newStatus: string) => {
         if (!member) return;
         try {
             const today = new Date().toISOString().split('T')[0];
-            await librarianService.updateFreezeStatus(member.id, newStatus, today);
-
+            await librarianService.updateFreezeStatus(member.memberId, newStatus, today);
             await borrowService.addActivity({
-                membershipNumber: member.id,
-                activityType: "freezeStatus",
-                entityId: member.id
+                memberId: member.memberId,
+                activityType: 'freezeStatus',
+                entityId: member.memberId,
             });
-
-            setMember({ ...member, freezeStatus: newStatus as any });
-            alert("Updating status successful");
+            setMember({ ...member, freezeStatus: newStatus as Member['freezeStatus'] });
+            alert('Membership status updated.');
         } catch (error) {
-            alert("Error in updating Status");
+            console.error('Failed to update membership status', error);
+            alert('Unable to update the membership status. Check your connection and try again.');
         }
     };
 
     const handleChangeReturnDate = async (book: BorrowedBook) => {
-        if(!member) return;
-
-        const newDate = window.prompt(`Enter the new return date for the book: ${book.title}\nFormat: YYYY-MM-DD`, book.returnDate);
+        if (!member) return;
+        const newDate = window.prompt(
+            `Enter a new return date for "${book.title}" in YYYY-MM-DD format:`,
+            book.returnDate,
+        );
         if (!newDate) return;
 
         try {
             const librarianUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
-
-            const payload = {
-                memberId: member.id,
-                copyOfBookId: book.copyOfBookId,
+            await librarianService.changeReturnDate({
+                memberId: member.memberId,
+                bookCopyId: book.bookCopyId,
                 newReturnDate: newDate,
-                librarianName: librarianUser.fullName || "Librarian",
+                librarianName: librarianUser.fullName || 'Librarian',
                 librarianId: librarianUser.librarianId || 101,
-                extensionDate: new Date().toISOString().split('T')[0]
-            };
-
-            await librarianService.changeReturnDate(payload);
-            alert("Return date changed successfully.");
-            if (member) loadData(member.id);
+                extensionDate: new Date().toISOString().split('T')[0],
+            });
+            alert('Return date updated.');
+            void loadData(member.memberId);
         } catch (error) {
-            alert("Invalid Date or Failed to update return date on server.");
+            console.error('Failed to update return date', error);
+            alert('Unable to update the return date. Enter a valid date and try again.');
         }
     };
 
-    const filteredBorrows = borrows.filter(b => b.title.toLowerCase().includes(filterQuery.toLowerCase()));
+    const filteredBorrows = borrows.filter(book => book.title.toLowerCase().includes(filterQuery.toLowerCase()));
 
-    if (!member) return <div>No member selected.</div>;
+    if (!member) return <div className="p-6 text-sm text-muted">No member selected. Open a member record from the member list.</div>;
 
     return (
-        <div className="flex flex-col p-[30px] font-sans min-h-screen gap-5">
-            <div className="flex items-end gap-5 bg-surface p-5 rounded-[10px] shadow-[0_2px_10px_rgba(0,0,0,0.05)]">
-                <div className="flex flex-col gap-1">
-                    <span className="text-base font-bold text-primary">Full Name:</span>
-                    <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px] bg-neutral text-secondary cursor-not-allowed" readOnly value={member.fullName} />
+        <div className="flex min-h-screen flex-col gap-6 p-4 font-sans sm:p-6 lg:p-8">
+            {loadError && (
+                <div className="flex flex-wrap items-center justify-between gap-3 border-l-4 border-danger-border bg-danger-subtle p-4 text-danger-text" role="alert">
+                    <p>Unable to load this member’s details. Check your connection and try again.</p>
+                    <button className="rounded-md border border-danger-border px-4 py-2 text-sm font-semibold" onClick={() => void loadData(member.memberId)}>
+                        Retry
+                    </button>
                 </div>
-                <div className="flex flex-col gap-1">
-                    <span className="text-base font-bold text-primary">Email Address:</span>
-                    <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px] bg-neutral text-secondary cursor-not-allowed" readOnly value={member.email} />
-                </div>
-                <div className="flex flex-col gap-1">
-                    <span className="text-base font-bold text-primary">Membership Number:</span>
-                    <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px] bg-neutral text-secondary cursor-not-allowed" readOnly value={member.id} />
-                </div>
-                <div className="flex flex-col gap-1">
-                    <span className="text-base font-bold text-primary">Freeze Status:</span>
-                    <select 
-                        className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px] bg-surface"
-                        value={member.freezeStatus} 
-                        onChange={e => handleToggleFreeze(e.target.value)}
+            )}
+
+            <section className="grid grid-cols-1 items-end gap-4 rounded-lg bg-surface p-4 shadow-sm sm:grid-cols-2 sm:p-5 xl:grid-cols-4" aria-label="Member details">
+                <label className="flex min-w-0 flex-col gap-1 text-sm font-semibold text-secondary">
+                    Full name
+                    <input className="min-w-0 rounded-md border border-border bg-surface-soft px-3.5 py-3 text-base text-primary outline-none sm:text-sm" readOnly value={member.fullName} />
+                </label>
+                <label className="flex min-w-0 flex-col gap-1 text-sm font-semibold text-secondary">
+                    Email address
+                    <input className="min-w-0 rounded-md border border-border bg-surface-soft px-3.5 py-3 text-base text-primary outline-none sm:text-sm" readOnly value={member.email} />
+                </label>
+                <label className="flex min-w-0 flex-col gap-1 text-sm font-semibold text-secondary">
+                    Membership number
+                    <input className="min-w-0 rounded-md border border-border bg-surface-soft px-3.5 py-3 text-base text-primary outline-none sm:text-sm" readOnly value={member.memberId} />
+                </label>
+                <label className="flex min-w-0 flex-col gap-1 text-sm font-semibold text-secondary">
+                    Membership status
+                    <select
+                        className="min-w-0 rounded-md border border-border bg-surface px-3.5 py-3 text-base text-primary outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash sm:text-sm"
+                        value={member.freezeStatus}
+                        onChange={event => void handleToggleFreeze(event.target.value)}
                     >
                         <option value="Frozen">Frozen</option>
-                        <option value="Not Frozen">Not Frozen</option>
+                        <option value="Not Frozen">Not frozen</option>
                     </select>
-                </div>
-            </div>
+                </label>
+            </section>
 
-            <div className="flex gap-5">
-                <div className="flex-1">
-                    <h3 className="text-base font-bold text-primary mb-2">Activities</h3>
-                    <ul className="bg-surface p-5 rounded-[5px] max-h-[200px] overflow-y-auto">
-                        {activities.length === 0 ? <li>No activities found.</li> : activities.map((act, i) => (
-                            <li key={i} className="mb-1">{i + 1} {new Date(act.activityDateTime).toLocaleString()} - {act.type}</li>
-                        ))}
-                    </ul>
-                </div>
-            </div>
-
-            <div className="flex flex-col gap-1">
-                <span className="text-base font-bold text-primary">Borrowed Books:</span>
-                <input 
-                    className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px]"
-                    placeholder="Enter Book's Title to Filter" 
-                    value={filterQuery} 
-                    onChange={e => setFilterQuery(e.target.value)} 
-                />
-            </div>
-
-            <table className="w-full bg-surface rounded-[5px] border-collapse font-semibold mt-2.5">
-                <thead>
-                    <tr>
-                        <th className="bg-table-header p-3 text-left">Book Title</th>
-                        <th className="bg-table-header p-3 text-left">Borrow Date</th>
-                        <th className="bg-table-header p-3 text-left">Return Date (Click to Extend)</th>
-                        <th className="bg-table-header p-3 text-left">Librarian Name</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {filteredBorrows.map(book => (
-                        <tr key={book.copyOfBookId} className="odd:bg-surface-soft even:bg-table-row-alt hover:bg-row-hover">
-                            <td className="p-3 border-b border-border-subtle">{book.title}</td>
-                            <td className="p-3 border-b border-border-subtle">{book.borrowDate}</td>
-                            <td 
-                                className="p-3 border-b border-border-subtle text-accent-text underline cursor-pointer hover:text-accent-text-hover"
-                                onClick={() => handleChangeReturnDate(book)}
-                            >
-                                {book.returnDate}
-                            </td>
-                            <td className="p-3 border-b border-border-subtle">{book.librarianName}</td>
-                        </tr>
+            <section>
+                <h2 className="mb-2 text-lg font-semibold text-primary">Activity</h2>
+                <ul className="max-h-52 overflow-y-auto overscroll-contain rounded-lg bg-surface p-4 text-sm text-secondary">
+                    {activities.length === 0 ? <li>No activity to show.</li> : activities.map((activity, index) => (
+                        <li key={`${activity.activityDateTime}-${activity.type}-${index}`} className="mb-1">
+                            {index + 1}. {formatActivityDate(activity.activityDateTime)} — {activity.type}
+                        </li>
                     ))}
-                </tbody>
-            </table>
+                </ul>
+            </section>
+
+            <section className="flex flex-col gap-3">
+                <label htmlFor="borrowed-book-filter" className="text-base font-semibold text-primary">Borrowed books</label>
+                <input
+                    id="borrowed-book-filter"
+                    className="w-full max-w-md rounded-md border border-border bg-surface px-3.5 py-3 text-base text-primary outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash sm:text-sm"
+                    placeholder="e.g. The Hobbit"
+                    value={filterQuery}
+                    onChange={event => setFilterQuery(event.target.value)}
+                />
+                <div className="overflow-x-auto rounded-lg">
+                    <table className="w-full min-w-[760px] border-collapse bg-surface text-sm font-semibold sm:text-base">
+                        <thead>
+                            <tr>
+                                <th className="bg-table-header p-3 text-start">Book title</th>
+                                <th className="bg-table-header p-3 text-start">Borrow date</th>
+                                <th className="bg-table-header p-3 text-start">Return date (select to change)</th>
+                                <th className="bg-table-header p-3 text-start">Librarian</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredBorrows.length === 0 ? (
+                                <tr><td className="p-4 text-sm text-muted" colSpan={4}>{borrows.length ? 'No borrowed books match this search.' : 'No borrowed books to show.'}</td></tr>
+                            ) : filteredBorrows.map(book => (
+                                <tr key={book.bookCopyId} className="odd:bg-surface-soft even:bg-table-row-alt">
+                                    <td className="border-b border-border-subtle p-3">{book.title}</td>
+                                    <td className="border-b border-border-subtle p-3">{book.borrowDate}</td>
+                                    <td className="border-b border-border-subtle p-3">
+                                        <button type="button" className="text-start text-accent-text underline underline-offset-4 can-hover:text-accent-text-hover" onClick={() => void handleChangeReturnDate(book)}>
+                                            {book.returnDate}
+                                        </button>
+                                    </td>
+                                    <td className="border-b border-border-subtle p-3">{book.librarianName}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </div>
     );
 };

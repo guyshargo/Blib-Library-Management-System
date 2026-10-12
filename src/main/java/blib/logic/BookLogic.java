@@ -309,6 +309,10 @@ public class BookLogic {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     String bookSummary = rs.getString("summary");
+                    String characters = rs.getString("characters");
+                    int pages = rs.getInt("pages");
+                    double orderPrice = rs.getDouble("order_price");
+                    double rating = rs.getDouble("rating");
                     if (bookSummary == null) bookSummary = "";
                     
                     IsOrdered isOrderedEnum = IsOrdered.valueOf(rs.getString("is_ordered").toUpperCase());
@@ -324,6 +328,10 @@ public class BookLogic {
                             rs.getInt("number_of_orders")
                     );
                     book.setBookSummary(bookSummary);
+                    book.setCharacters(characters);
+                    book.setOrderPrice(orderPrice);
+                    book.setRating(rating);
+                    book.setPages(pages);
                     searchResults.add(book);
                 }
             }

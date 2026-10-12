@@ -6,17 +6,24 @@ const Invoice: React.FC = () => {
     const [invoices, setInvoices] = useState<InvoiceMessage[]>([]);
     const [selectedInvoice, setSelectedInvoice] = useState<InvoiceMessage | null>(null);
     const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
-        loadInvoices();
+        void loadInvoices();
     }, []);
 
     const loadInvoices = async () => {
+        setLoading(true);
+        setErrorMessage('');
         try {
             const data = await invoiceService.getInvoices();
             setInvoices(data);
         } catch (error) {
             console.error("Failed to load invoices", error);
+            setErrorMessage('Unable to load messages. Check your connection and try again.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -26,9 +33,10 @@ const Invoice: React.FC = () => {
         if (!invoice.isRead) {
             try {
                 await invoiceService.markAsRead(invoice.msgId);
-                await loadInvoices(); // Refresh the list to remove the unread highlight
+                await loadInvoices();
             } catch (error) {
                 console.error("Failed to mark as read", error);
+                setErrorMessage('Unable to mark this message as read. Try again.');
             }
         }
     };
@@ -38,10 +46,20 @@ const Invoice: React.FC = () => {
         : invoices;
 
     return (
-        <div className="flex flex-col p-[30px] font-sans min-h-screen gap-5">
+        <div className="flex min-h-screen flex-col gap-5 p-4 font-sans sm:p-6 lg:p-8">
             <h2 className="text-[23px] font-bold text-primary self-center">Invoice Messages</h2>
 
-            <table className="w-full bg-surface rounded-[5px] border-collapse font-semibold">
+            {errorMessage && (
+                <div className="flex flex-wrap items-center justify-between gap-3 border-l-4 border-danger-border bg-danger-subtle p-4 text-danger-text" role="alert">
+                    <p>{errorMessage}</p>
+                    <button className="rounded-md border border-danger-border px-4 py-2 text-sm font-semibold" onClick={() => void loadInvoices()}>
+                        Retry
+                    </button>
+                </div>
+            )}
+
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[640px] border-collapse rounded-[5px] bg-surface font-semibold">
                 <thead>
                     <tr>
                         <th className="bg-table-header p-3 text-left">Subject</th>
@@ -51,22 +69,27 @@ const Invoice: React.FC = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {displayedInvoices.map(inv => (
+                    {loading ? (
+                        <tr><td className="p-4 text-sm text-muted" colSpan={4}>Loading messages…</td></tr>
+                    ) : displayedInvoices.length === 0 ? (
+                        <tr><td className="p-4 text-sm text-muted" colSpan={4}>{invoices.length === 0 ? 'No messages to show.' : 'No unread messages. Turn off the unread filter to view all messages.'}</td></tr>
+                    ) : displayedInvoices.map(inv => (
                         <tr 
                             key={inv.msgId} 
                             onClick={() => handleInvoiceClick(inv)}
-                            className={!inv.isRead ? 'bg-info-subtle hover:bg-info-border cursor-pointer' : 'odd:bg-surface-soft even:bg-table-row-alt hover:bg-row-hover cursor-pointer'}
+                            className={!inv.isRead ? 'bg-info-subtle can-hover:bg-info-border cursor-pointer' : 'odd:bg-surface-soft even:bg-table-row-alt can-hover:bg-row-hover cursor-pointer'}
                         >
                             <td className="p-3 border-b border-border-subtle">{inv.subject}</td>
-                            <td className="p-3 border-b border-border-subtle">{inv.userName}</td>
-                            <td className="p-3 border-b border-border-subtle">{inv.fullName || inv.userName}</td>
-                            <td className="p-3 border-b border-border-subtle">{new Date(inv.date).toLocaleDateString()}</td>
+                            <td className="p-3 border-b border-border-subtle">{inv.username}</td>
+                            <td className="p-3 border-b border-border-subtle">{inv.fullName || inv.username}</td>
+                            <td className="p-3 border-b border-border-subtle">{new Intl.DateTimeFormat(navigator.language, { dateStyle: 'medium' }).format(new Date(inv.date))}</td>
                         </tr>
                     ))}
                 </tbody>
             </table>
+            </div>
 
-            <div className="flex items-center justify-center gap-5 mt-5">
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-5">
                 <span className="text-base font-bold text-primary">Show:</span>
                 <div className="flex items-center gap-2">
                     <input 
@@ -80,25 +103,25 @@ const Invoice: React.FC = () => {
                 </div>
             </div>
 
-            <div className="flex items-end gap-[15px] bg-transparent">
-                <div className="flex flex-col gap-1">
+            <div className="flex flex-col items-stretch gap-4 bg-transparent sm:flex-row sm:items-end">
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="text-base font-bold text-primary">From:</span>
-                    <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px] bg-neutral text-secondary cursor-not-allowed" readOnly value={selectedInvoice?.fullName || ''} />
+                    <input className="min-w-0 rounded-[5px] border border-border bg-neutral px-[15px] py-2.5 text-base text-secondary outline-none sm:text-sm" readOnly value={selectedInvoice?.fullName || ''} />
                 </div>
-                <div className="flex flex-col gap-1">
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="text-base font-bold text-primary">Subject:</span>
-                    <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px] bg-neutral text-secondary cursor-not-allowed" readOnly value={selectedInvoice?.subject || ''} />
+                    <input className="min-w-0 rounded-[5px] border border-border bg-neutral px-[15px] py-2.5 text-base text-secondary outline-none sm:text-sm" readOnly value={selectedInvoice?.subject || ''} />
                 </div>
-                <div className="flex flex-col gap-1">
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="text-base font-bold text-primary">Date:</span>
-                    <input className="rounded-[5px] text-sm px-[15px] py-2.5 border border-border outline-none min-w-[200px] bg-neutral text-secondary cursor-not-allowed" readOnly value={selectedInvoice ? new Date(selectedInvoice.date).toLocaleDateString() : ''} />
+                    <input className="min-w-0 rounded-[5px] border border-border bg-neutral px-[15px] py-2.5 text-base text-secondary outline-none sm:text-sm" readOnly value={selectedInvoice ? new Intl.DateTimeFormat(navigator.language, { dateStyle: 'medium' }).format(new Date(selectedInvoice.date)) : ''} />
                 </div>
             </div>
 
-            <div className="flex flex-col gap-1 flex-1">
+            <div className="flex flex-1 flex-col gap-1">
                 <textarea 
                     readOnly 
-                    className="rounded-[5px] px-[15px] py-2.5 border border-border outline-none bg-neutral text-secondary cursor-not-allowed min-h-[150px] text-[18px] resize-none"
+                    className="min-h-[150px] resize-none rounded-[5px] border border-border bg-neutral px-[15px] py-2.5 text-base text-secondary outline-none sm:text-lg"
                     value={selectedInvoice?.content || ''}
                 />
             </div>

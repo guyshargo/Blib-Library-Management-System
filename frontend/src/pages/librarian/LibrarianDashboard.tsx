@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 const LibrarianDashboard: React.FC = () => {
     const navigate = useNavigate();
 
-    const btnClass = "bg-accent-subtle rounded-full text-primary font-semibold border-2 border-transparent cursor-pointer transition-all duration-200 hover:bg-accent-subtle-hover hover:shadow-[inset_0_3px_8px_rgba(0,0,0,0.3)] h-[75px] text-[23px] px-[25px]";
+    const btnClass = "min-h-16 w-full rounded-md bg-accent-solid px-4 py-4 text-base font-semibold text-inverse transition-colors can-hover:bg-accent-solid-hover sm:text-lg";
 
     return (
-        <div className="flex flex-col p-[30px] font-sans min-h-screen gap-5 items-center justify-center">
-            <div className="relative z-10 grid grid-cols-3 gap-[30px] mb-10">
+        <div className="flex min-h-screen flex-col items-center justify-center gap-5 p-4 font-sans sm:p-6 lg:p-8">
+            <div className="relative z-10 mb-4 grid w-full max-w-4xl grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 xl:grid-cols-3 xl:gap-6">
                 <button className={btnClass} onClick={() => navigate('/catalog')}>Search Book</button>
                 <button className={btnClass} onClick={() => navigate('/manage-members')}>Manage Member</button>
                 <button className={btnClass} onClick={() => navigate('/register-member')}>Register Member</button>
@@ -19,7 +19,7 @@ const LibrarianDashboard: React.FC = () => {
             </div>
 
             <div className="opacity-50">
-                <img src="/images/computerbook.png" alt="Library Graphic" className="max-w-[450px]" />
+                <img src="/images/computerbook.png" alt="Library graphic" className="w-full max-w-[450px]" />
             </div>
         </div>
     );
