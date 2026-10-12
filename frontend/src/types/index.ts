@@ -17,16 +17,20 @@ export interface Activity {
 }
 
 export interface Book {
+    bookId: number;
     title: string;
-    author?: string;
+    author: string;
     genre: BookGenre;
     copiesNum: number;
-    borrowedCopiesNum: number;
+    borrowedNum: number;
     keywords: string;
     isOrdered: IsOrdered;
-    bookId: number;
     ordersNum: number;
     summary?: string;
+    characters: string;
+    pages: number;
+    orderPrice: number;
+    rating: number;
 }
 
 export interface BorrowedBook {

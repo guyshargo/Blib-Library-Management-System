@@ -31,9 +31,9 @@ const MemberHome: React.FC = () => {
 
     // slider categories
     const currentlyReading = books.slice(0, 2);
-    const trending = books.slice(2, 6);
-    const topRated = books.filter((_, i) => i % 2 === 0);
-    const latestArrivals = books.filter((_, i) => i % 2 !== 0);
+    const trending = books.filter(book => book.rating >= 4.10 && book.rating < 4.30).slice(0, 15);
+    const topRated = [...books].filter(book => book.rating >= 4.30).sort((a, b) => b.rating - a.rating).slice(0, 15);
+    const latestArrivals = [...books].sort((a, b) => b.bookId - a.bookId).slice(0, 15);
 
     return (
         <div className="flex flex-col gap-8 px-4 py-6 sm:gap-10 sm:px-8 sm:py-8">

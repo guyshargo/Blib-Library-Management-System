@@ -43,9 +43,9 @@ const LibraryExplorer: React.FC = () => {
             case 'trending':
                 return sorted.sort((a, b) => b.ordersNum - a.ordersNum);
             case 'most-read':
-                return sorted.sort((a, b) => b.borrowedCopiesNum - a.borrowedCopiesNum);
+                return sorted.sort((a, b) => b.borrowedNum - a.borrowedNum);
             case 'least-read':
-                return sorted.sort((a, b) => a.borrowedCopiesNum - b.borrowedCopiesNum);
+                return sorted.sort((a, b) => a.borrowedNum - b.borrowedNum);
             case 'random':
                 // Simple seeded-ish random sort
                 return sorted.sort(() => (Math.random() > 0.5 ? 1 : -1));
