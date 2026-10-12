@@ -5,6 +5,43 @@ import { catalogService } from '../../services/catalogService';
 import { borrowService } from '../../services/borrowService';
 import type { Book, Member } from '../../types';
 import BookShelf from '../../components/BookShelf';
+import FeatureCard, { type FeatureCardProps } from '../../components/FeatureCard';
+
+const homeFeatures: FeatureCardProps[] = [
+    {
+        title: 'Browse the Virtual Shelves',
+        description: 'Check live copy availability, shelf locations, and summaries across every genre.',
+        to: '/catalog',
+        icon: (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+                <path d="M8 7h8M8 11h6" />
+            </svg>
+        ),
+    },
+    {
+        title: 'Order & Join Waitlists',
+        description: 'Purchase permanent copies or get notified as soon as checked-out titles return.',
+        to: '/trending',
+        icon: (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <path d="M16 2v4M8 2v4M3 10h18" />
+                <path d="m9 16 2 2 4-4" />
+            </svg>
+        ),
+    },
+    {
+        title: 'Track Your Bookshelf',
+        description: 'Manage your active borrows, check due dates, and review your reading history.',
+        to: '/my-books',
+        icon: (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 5h6v14H4zM10 7h6v12h-6zM16 4h4v15h-4z" />
+            </svg>
+        ),
+    },
+];
 
 const MemberHome: React.FC = () => {
     const [books, setBooks] = useState<Book[]>([]);
@@ -77,8 +114,20 @@ const MemberHome: React.FC = () => {
                     <Link className="mt-4 inline-block font-semibold text-accent-text underline underline-offset-4" to="/catalog">Browse the catalog</Link>
                 </div>
             )}
-            {!loading && !error && (
+            {!loading && !error && books.length > 0 && (
                 <>
+                    {/* Explanatory Feature Cards Above Shelves */}
+                    <section aria-labelledby="welcome-heading">
+                        <h2 id="welcome-heading" className="mb-3 text-lg font-bold text-primary">
+                            Welcome to Blib Library
+                        </h2>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            {homeFeatures.map(feature => (
+                                <FeatureCard key={feature.title} {...feature} />
+                            ))}
+                        </div>
+                    </section>
+
                     {currentlyReading.length > 0 && (
                         <BookShelf title="Currently reading" books={currentlyReading} />
                     )}

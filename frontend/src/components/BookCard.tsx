@@ -1,10 +1,21 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Book } from '../types';
+import { Tag } from './Tag';
 
 interface BookCardProps {
     book: Book;
 }
+
+const formatGenreLabel = (genre: string): string => {
+    if (!genre) return '';
+    if (genre === 'SCI_FI') return 'Sci-Fi';
+    return genre
+        .toLowerCase()
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+};
 
 const BookCard: React.FC<BookCardProps> = ({ book }) => {
     const navigate = useNavigate();
@@ -23,17 +34,32 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
                 src={`/images/covers/${book.bookId}.jpg`} 
                 alt={book.title}
                 onError={handleImageError}
-                className="book-cover-image relative w-[120px] h-[180px] object-cover rounded-[2px] shadow-[3px_5px_10px_rgba(0,0,0,0.35)]"
+                className="book-cover-image relative h-[180px] w-[120px] rounded-[2px] object-cover shadow-[3px_5px_10px_rgba(0,0,0,0.35)]"
             />
 
-            <div className="mt-2 w-full truncate px-1 text-center font-sans text-sm font-extrabold text-primary">
+            {/* Book Title */}
+            <div
+                title={book.title}
+                className="mt-2 w-full truncate px-1 text-center font-sans text-sm font-extrabold text-primary"
+            >
                 {book.title}
             </div>
 
-            {/* Using genre since author isn't in your Book interface yet */}
-            <div className="w-full truncate px-1 text-center font-sans text-xs text-secondary">
-                {book.genre}
+            {/* Author Byline */}
+            <div
+                title={book.author}
+                className="mt-0.5 mb-1.5 w-full truncate px-1 text-center font-sans text-xs font-medium text-secondary"
+            >
+                {book.author || 'Unknown Author'}
             </div>
+
+            {/* Reusable Genre Tag */}
+            {book.genre && (
+                <Tag
+                    label={formatGenreLabel(book.genre)}
+                    variant="accent"
+                />
+            )}
         </div>
     );
 };

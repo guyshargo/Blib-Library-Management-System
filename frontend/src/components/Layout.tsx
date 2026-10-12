@@ -1,6 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
+import SearchModal from './SearchModal';
 
 type ColorTheme = 'wood' | 'botanical' | 'coastal';
 type BrowseIconName = 'dashboard' | 'memberList' | 'addMember' | 'borrow' | 'return' | 'reports' | 'invoice' | 'catalog' | 'genres' | 'trending';
@@ -27,9 +28,10 @@ const getColorTheme = (value: string | null): ColorTheme => {
 const Layout: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [browseOpen, setBrowseOpen] = useState(false);
     const [colorTheme, setColorTheme] = useState<ColorTheme>(() => getColorTheme(localStorage.getItem('blib-color-theme')));
     const browseMenuRef = useRef<HTMLDivElement>(null);
+    const [browseOpen, setBrowseOpen] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
 
     const userStr = localStorage.getItem('currentUser');
     const userType = localStorage.getItem('userType');
@@ -234,9 +236,26 @@ const Layout: React.FC = () => {
                     </div>
 
                     <div className="flex shrink-0 items-center gap-3">
-                        <div className="flex w-[200px] items-center rounded-full bg-surface px-4 py-1">
-                            <input type="text" className="w-full bg-transparent text-base text-primary outline-none sm:text-sm" placeholder="Search by Title\Author" />
-                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setSearchOpen(true)}
+                            className="flex w-[220px] items-center justify-between rounded-lg border border-border bg-surface px-3.5 py-1.5 text-sm text-secondary transition-colors can-hover:border-accent-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border"
+                        >
+                            <span>Search</span>
+                            <svg
+                                aria-hidden="true"
+                                viewBox="0 0 24 24"
+                                className="h-4 w-4 text-muted"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.3-4.3" />
+                            </svg>
+                        </button>
 
                         {user && (
                             <button className="flex shrink-0 items-center gap-3 rounded-full px-3 py-1 can-hover:bg-accent-wash" onClick={() => navigate('/personal-info')}>
@@ -260,7 +279,8 @@ const Layout: React.FC = () => {
             <main className="mx-auto my-4 w-[calc(100%-2rem)] max-w-6xl flex-grow rounded-xl bg-surface shadow-[0_8px_28px_rgba(var(--color-shadow),0.08)]">
                 <Outlet />
             </main>
-
+            
+            <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
         </div>
     );
 };

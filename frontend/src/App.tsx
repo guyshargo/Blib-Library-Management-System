@@ -6,6 +6,7 @@ import Layout from './components/Layout';
 import Login from './pages/auth/Login';
 
 import LibraryExplorer from './pages/catalog/LibraryExplorer';
+import SearchCatalog from './pages/catalog/SearchCatalog';
 import BookDetails from './pages/catalog/BookDetails';
 import Genres from './pages/catalog/Genres';
 import Trending from './pages/catalog/Trending';
@@ -45,6 +46,7 @@ function App() {
         {/* Core System Pages - Wrapped in Main Layout */}
         <Route element={<Layout />}>
             <Route path="/catalog" element={<LibraryExplorer />} />
+            <Route path="/search" element={<SearchCatalog />} />
             <Route path="/genres" element={<Genres />} />
             <Route path="/trending" element={<Trending />} />
             <Route path="/book-details" element={<BookDetails />} />

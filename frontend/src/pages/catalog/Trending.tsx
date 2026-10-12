@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { catalogService } from '../../services/catalogService';
 import type { Book } from '../../types';
 import type { BookGenre } from '../../types/enums';
-import BookShelf from '../../components/BookShelf';
+import HorizontalBookCard from '../../components/HorizontalBookCard';
 import { Tag } from '../../components/Tag';
 
 const formatGenreLabel = (genre: string): string => {
@@ -17,6 +16,7 @@ const formatGenreLabel = (genre: string): string => {
 
 const Trending: React.FC = () => {
     const [books, setBooks] = useState<Book[]>([]);
+    const [selectedTab, setSelectedTab] = useState<string>('ALL');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
@@ -38,115 +38,90 @@ const Trending: React.FC = () => {
         void fetchCatalog();
     }, []);
 
-    const scrollToGenre = (genre: string) => {
-        const el = document.getElementById(`trending-${genre}`);
-        if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-    };
+    const sortByTrending = (list: Book[]) =>
+        [...list].sort(
+            (a, b) =>
+                b.ordersNum * 2 + b.borrowedNum + b.rating -
+                (a.ordersNum * 2 + a.borrowedNum + a.rating)
+        );
 
-    // Overall trending sorted by ordersNum / borrowedNum / rating
-    const overallTrending = [...books]
-        .sort((a, b) => (b.ordersNum * 2 + b.borrowedNum + b.rating) - (a.ordersNum * 2 + a.borrowedNum + a.rating))
-        .slice(0, 15);
+    const activeGenres = Array.from(new Set(books.map(b => b.genre))).filter(Boolean) as BookGenre[];
 
-    // Genres with books
-    const genresWithBooks = Array.from(new Set(books.map(b => b.genre))).filter(Boolean) as BookGenre[];
+    const displayedBooks =
+        selectedTab === 'ALL'
+            ? sortByTrending(books).slice(0, 20)
+            : sortByTrending(books.filter(b => b.genre === selectedTab));
 
-    // Trending books grouped and sorted per genre
-    const trendingByGenre = genresWithBooks.reduce<Record<string, Book[]>>((acc, genre) => {
-        const genreBooks = books.filter(b => b.genre === genre);
-        const sortedGenreBooks = genreBooks.sort((a, b) => (b.ordersNum * 2 + b.borrowedNum + b.rating) - (a.ordersNum * 2 + a.borrowedNum + a.rating));
-        if (sortedGenreBooks.length > 0) {
-            acc[genre] = sortedGenreBooks;
-        }
-        return acc;
-    }, {});
-
-    const activeGenres = Object.keys(trendingByGenre) as BookGenre[];
+    const activeTitle =
+        selectedTab === 'ALL' ? 'Now' : formatGenreLabel(selectedTab);
 
     return (
-        <div className="flex flex-col gap-8 px-4 py-6 sm:gap-10 sm:px-8 sm:py-8">
+        <div className="flex flex-col gap-6 px-4 py-6 sm:px-8 sm:py-8">
+            {/* Header */}
             <div>
-                <h1 className="text-3xl font-extrabold text-primary">Trending Now</h1>
-                <p className="mt-1 text-sm text-muted">Discover the most popular and frequently borrowed books across the library and in every genre.</p>
+                <h1 className="text-3xl font-extrabold text-primary">
+                    Trending Books: {activeTitle}
+                </h1>
+                <p className="mt-1 text-sm text-muted">
+                    See what readers from the community are adding to their bookshelves
+                </p>
             </div>
 
-            {loading && <p className="text-sm text-muted" role="status">Loading trending books…</p>}
+            {/* Filter Bar Using Tag Component */}
+            {!loading && !error && books.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 border-b border-border-subtle pb-4">
+                    <Tag
+                        label="Now"
+                        variant={selectedTab === 'ALL' ? 'accent' : 'character'}
+                        onClick={() => setSelectedTab('ALL')}
+                    />
+                    {activeGenres.map(genre => (
+                        <Tag
+                            key={genre}
+                            label={formatGenreLabel(genre)}
+                            variant={selectedTab === genre ? 'accent' : 'character'}
+                            onClick={() => setSelectedTab(genre)}
+                        />
+                    ))}
+                </div>
+            )}
+
+            {loading && (
+                <p className="text-sm text-muted" role="status">
+                    Loading trending books…
+                </p>
+            )}
+
             {error && (
-                <div className="flex flex-col items-start gap-3 border-l-4 border-danger-border bg-danger-subtle p-4 text-danger-text" role="alert">
+                <div
+                    className="flex flex-col items-start gap-3 border-l-4 border-danger-border bg-danger-subtle p-4 text-danger-text"
+                    role="alert"
+                >
                     <p>Unable to load trending books. Check your connection and try again.</p>
-                    <button className="rounded-md border border-danger-border px-4 py-2 text-sm font-semibold" onClick={() => void fetchCatalog()}>
+                    <button
+                        className="rounded-md border border-danger-border px-4 py-2 text-sm font-semibold"
+                        onClick={() => void fetchCatalog()}
+                    >
                         Retry
                     </button>
                 </div>
             )}
 
-            {!loading && !error && books.length > 0 && (
-                <>
-                    {/* Quick-Jump Chips Bar using Tag component */}
-                    <div className="flex flex-wrap gap-2">
-                        <Tag
-                            label="Top Trending Overall"
-                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                        />
-                        {activeGenres.map(genre => (
-                            <Tag
-                                key={genre}
-                                label={formatGenreLabel(genre)}
-                                onClick={() => scrollToGenre(genre)}
-                            />
-                        ))}
-                    </div>
-
-                    {/* Overall Trending Shelf */}
-                    {overallTrending.length > 0 && (
-                        <section>
-                            <div className="mb-2.5 flex items-center justify-between">
-                                <h2 className="text-[22px] font-extrabold text-accent-text">
-                                    Most Popular in Library
-                                </h2>
-                                <Link
-                                    to="/catalog?sort=trending"
-                                    className="text-sm font-semibold text-accent-text hover:underline"
-                                >
-                                    Explore all &rarr;
-                                </Link>
-                            </div>
-                            <BookShelf title="" books={overallTrending} />
-                        </section>
-                    )}
-
-                    {/* Trending by Genre Shelves */}
-                    <div className="flex flex-col gap-8">
-                        {activeGenres.map(genre => {
-                            const genreBooks = trendingByGenre[genre] || [];
-                            if (genreBooks.length === 0) return null;
-                            return (
-                                <section key={genre} id={`trending-${genre}`} className="scroll-mt-6">
-                                    <div className="mb-2.5 flex items-center justify-between">
-                                        <h2 className="text-[22px] font-extrabold text-accent-text">
-                                            Trending in {formatGenreLabel(genre)}
-                                        </h2>
-                                        <Link
-                                            to={`/catalog?genre=${encodeURIComponent(genre)}&sort=trending`}
-                                            className="text-sm font-semibold text-accent-text hover:underline"
-                                        >
-                                            Explore all {formatGenreLabel(genre)} &rarr;
-                                        </Link>
-                                    </div>
-                                    <BookShelf title="" books={genreBooks} />
-                                </section>
-                            );
-                        })}
-                    </div>
-                </>
+            {/* Vertical List of Horizontal Book Cards */}
+            {!loading && !error && displayedBooks.length > 0 && (
+                <div className="flex flex-col gap-4">
+                    {displayedBooks.map(book => (
+                        <HorizontalBookCard key={book.bookId} book={book} />
+                    ))}
+                </div>
             )}
 
-            {!loading && !error && books.length === 0 && (
-                <div className="bg-surface p-6 text-primary">
+            {!loading && !error && displayedBooks.length === 0 && (
+                <div className="rounded-lg border border-border-subtle bg-surface p-6 text-primary">
                     <h2 className="text-lg font-semibold">No trending books available</h2>
-                    <p className="mt-2 text-sm text-muted">Check back later as library activity grows.</p>
+                    <p className="mt-2 text-sm text-muted">
+                        Check back later as library activity grows.
+                    </p>
                 </div>
             )}
         </div>
