@@ -2,18 +2,23 @@ import React from 'react';
 
 interface TagProps {
     label: string;
-    variant?: 'character' | 'topic';
+    variant?: 'character' | 'topic' | 'info' | 'success' | 'warning' | 'danger' | 'accent';
     icon?: React.ReactNode;
     onClick?: () => void;
 }
 
 export const Tag: React.FC<TagProps> = ({ label, variant = 'topic', icon, onClick }) => {
-    const isCharacter = variant === 'character';
-
-    const baseClasses = "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1 text-xs font-medium transition-colors duration-150";
-    const variantClasses = isCharacter
-        ? "border-border-subtle bg-surface-soft text-secondary can-hover:border-accent-border can-hover:text-primary"
-        : "border-border-subtle bg-surface text-muted can-hover:border-accent-border can-hover:text-primary";
+    const baseClasses = "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider transition-colors duration-150";
+    
+    const variantClasses = {
+        character: "border-border-subtle bg-surface-soft text-secondary can-hover:border-accent-border can-hover:text-primary font-medium normal-case tracking-normal rounded-lg",
+        topic: "border-border-subtle bg-surface text-muted can-hover:border-accent-border can-hover:text-primary font-medium normal-case tracking-normal rounded-lg",
+        info: "border-info-border bg-info-subtle text-info-text",
+        success: "border-success-dark bg-success-subtle text-success-dark",
+        warning: "border-warning-border bg-warning-subtle text-warning-text",
+        danger: "border-danger-border bg-danger-subtle text-danger-text",
+        accent: "border-accent-border bg-accent-wash text-accent-text",
+    }[variant];
 
     const content = (
         <>
@@ -40,3 +45,5 @@ export const Tag: React.FC<TagProps> = ({ label, variant = 'topic', icon, onClic
         </span>
     );
 };
+
+export default Tag;

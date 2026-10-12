@@ -111,8 +111,8 @@ const MyBooks: React.FC = () => {
             try {
                 await borrowService.addActivity({
                     memberId: member.memberId,
-                    activityType: 'extendBorrow',
-                    entityId: selectedBook.bookId,
+                    type: 'EXTEND',
+                    affectedEntityId: selectedBook.bookId,
                 });
             } catch (error) {
                 console.error('Extension succeeded, but its activity could not be recorded', error);
@@ -151,8 +151,8 @@ const MyBooks: React.FC = () => {
                 await orderService.updateOrderStatus(book.bookId, book.ordersNum, false);
                 await orderService.addActivity({
                     memberId: member.memberId,
-                    activityType: 'cancelOrder',
-                    entityId: selectedOrder.bookId,
+                    type: 'CANCEL_ORDER',
+                    affectedEntityId: selectedOrder.bookId,
                 });
             } catch (error) {
                 console.error('Order cancelled, but follow-up data could not be updated', error);

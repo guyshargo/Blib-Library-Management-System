@@ -17,6 +17,7 @@ interface DataTableProps<T> {
     errorMessage?: ReactNode;
     getRowClassName?: (row: T, index: number) => string;
     tableClassName?: string;
+    onRowClick?: (row: T) => void;
 }
 
 const DataTable = <T,>({
@@ -28,38 +29,39 @@ const DataTable = <T,>({
     errorMessage,
     getRowClassName,
     tableClassName = '',
+    onRowClick,
 }: DataTableProps<T>) => (
-    <div className="overflow-x-auto border border-border-subtle">
+    <div className="overflow-x-auto rounded-xl border border-border-subtle bg-surface shadow-sm">
         <table className={`w-full min-w-[38rem] border-collapse text-start text-sm sm:text-base ${tableClassName}`}>
             <thead>
-                <tr>
+                <tr className="border-b-2 border-border bg-surface-soft text-primary">
                     {columns.map(column => (
                         <th
                             key={column.key}
                             scope="col"
-                            className={`bg-table-header p-3 text-start font-semibold ${column.headerClassName ?? ''}`}
+                            className={`px-6 py-4 text-xs font-bold uppercase tracking-wider text-center ${column.headerClassName ?? ''}`}
                         >
                             {column.header}
                         </th>
                     ))}
                 </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border-subtle/60">
                 {loadingMessage ? (
                     <tr>
-                        <td colSpan={columns.length} className="border-t border-border-subtle p-4 text-center text-muted" role="status">
+                        <td colSpan={columns.length} className="p-8 text-center text-muted text-sm" role="status">
                             {loadingMessage}
                         </td>
                     </tr>
                 ) : errorMessage ? (
                     <tr>
-                        <td colSpan={columns.length} className="border-t border-border-subtle p-4 text-center text-danger-text" role="alert">
+                        <td colSpan={columns.length} className="p-8 text-center text-danger-text text-sm" role="alert">
                             {errorMessage}
                         </td>
                     </tr>
                 ) : rows.length === 0 ? (
                     <tr>
-                        <td colSpan={columns.length} className="border-t border-border-subtle p-4 text-center text-muted">
+                        <td colSpan={columns.length} className="p-8 text-center text-muted text-sm">
                             {emptyMessage}
                         </td>
                     </tr>
@@ -67,12 +69,13 @@ const DataTable = <T,>({
                     rows.map((row, index) => (
                         <tr
                             key={getRowKey(row)}
-                            className={getRowClassName?.(row, index) ?? (index % 2 === 0 ? 'bg-surface-soft' : 'bg-surface')}
+                            onClick={() => onRowClick?.(row)}
+                            className={getRowClassName?.(row, index) ?? (index % 2 === 0 ? 'bg-surface transition-colors duration-150 can-hover:hover:bg-surface-soft/80' : 'bg-surface-soft/30 transition-colors duration-150 can-hover:hover:bg-surface-soft/80')}
                         >
                             {columns.map(column => (
                                 <td
                                     key={column.key}
-                                    className={`break-words border-t border-border-subtle p-3 ${column.cellClassName ?? ''}`}
+                                    className={`break-words px-6 py-4 text-primary text-center ${column.cellClassName ?? ''}`}
                                 >
                                     {column.render(row, index)}
                                 </td>

@@ -97,6 +97,12 @@ const BorrowBook: React.FC = () => {
                 return;
             }
 
+            const alreadyBorrowed = borrows.some(b => b.bookId === copyOfBook.bookId);
+            if (alreadyBorrowed) {
+                alert("The member has already borrowed a copy of this book.");
+                return;
+            }
+
             const librarianUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
 
             const payload = {
@@ -110,8 +116,8 @@ const BorrowBook: React.FC = () => {
 
             await borrowService.addActivity({
                 memberId: member.memberId,
-                activityType: "borrow",
-                entityId: copyOfBook.copyId
+                type: "BORROW",
+                affectedEntityId: copyOfBook.copyId
             });
 
             alert("Book borrowed.");

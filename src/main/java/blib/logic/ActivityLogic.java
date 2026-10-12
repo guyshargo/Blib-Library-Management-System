@@ -21,10 +21,21 @@ public class ActivityLogic {
         try (Connection connection = dbConnector.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(query)) {
 
+            ActivityType type = activity.getType() != null
+                    ? activity.getType()
+                    : ActivityType.DEFAULT;
+
+            int affectedEntityId;
+            if(type == ActivityType.REGISTRATION || type == ActivityType.FREEZE_STATUS){
+                affectedEntityId = activity.getMemberId();
+            } else{
+                affectedEntityId = activity.getAffectedEntityId();
+            }
+
             // Set parameters for the prepared statement
             pstmt.setInt(1, activity.getMemberId());
-            pstmt.setString(2, activity.getActivityType().getDBValue());
-            pstmt.setInt(3, activity.getAffectedEntityId());
+            pstmt.setString(2, type.name());
+            pstmt.setInt(3, affectedEntityId);
             pstmt.setTimestamp(4, Timestamp.valueOf(activity.getActivityDateTime()));
 
             // Execute the insert query
@@ -47,7 +58,13 @@ public class ActivityLogic {
             
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    ActivityType activityType = this.generateActivityType(rs.getString("activity_name"));
+                    String rawType = rs.getString("activity_name");
+                    ActivityType activityType;
+                    try {
+                        activityType = rawType != null ? ActivityType.valueOf(rawType) : ActivityType.DEFAULT;
+                    } catch (IllegalArgumentException e) {
+                        activityType = ActivityType.DEFAULT;
+                    }
 
                     // Map the database row to an Activity object
                     Activity currActivity = new Activity(
@@ -65,36 +82,4 @@ public class ActivityLogic {
         return activityList;
     }
 
-    public ActivityType generateActivityType(String value) {
-        ActivityType activityType;
-        switch (value) {
-            case "registerMember":
-                activityType = ActivityType.REGISTRATION;
-                break;
-            case "borrow":
-                activityType = ActivityType.BORROW;
-                break;
-            case "returning":
-                activityType = ActivityType.RETURN;
-                break;
-            case "freezeStatus":
-                activityType = ActivityType.FREEZE_STATUS;
-                break;
-            case "extendBorrow":
-                activityType = ActivityType.EXTEND;
-                break;
-            case "order":
-                activityType = ActivityType.ORDER;
-                break;
-            case "cancelOrder":
-                activityType = ActivityType.CANCEL_ORDER;
-                break;
-            case "lateBookReturn":
-                activityType = ActivityType.LATE_BOOK_RETURN;
-                break;
-            default:
-                activityType = ActivityType.DEFAULT;
-        }
-        return activityType;
-    }
 }

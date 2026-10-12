@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import DataTable, { type DataTableColumn } from '../../components/DataTable';
+import Tag from '../../components/Tag';
 import { memberService } from '../../services/memberService';
+import { catalogService } from '../../services/catalogService';
+import { borrowService } from '../../services/borrowService';
+import { orderService } from '../../services/orderService';
 import type { Activity, Member } from '../../types';
 
 type MemberWithBackendFields = Member & {
@@ -11,6 +15,8 @@ type MemberWithBackendFields = Member & {
 const PersonalInfo: React.FC = () => {
     const [member, setMember] = useState<Member | null>(null);
     const [activities, setActivities] = useState<Activity[]>([]);
+    const [bookTitleMap, setBookTitleMap] = useState<Map<number, string>>(new Map());
+    const [copyTitleMap, setCopyTitleMap] = useState<Map<number, string>>(new Map());
     const [activitiesLoading, setActivitiesLoading] = useState(true);
     const [activitiesError, setActivitiesError] = useState(false);
 
@@ -24,7 +30,7 @@ const PersonalInfo: React.FC = () => {
                 email: storedMember.email ?? storedMember.emailAddress ?? '',
             };
             setMember(currentMember);
-            loadActivities(currentMember.memberId);
+            void loadActivities(currentMember.memberId);
         } else {
             setActivitiesLoading(false);
         }
@@ -34,8 +40,51 @@ const PersonalInfo: React.FC = () => {
         setActivitiesLoading(true);
         setActivitiesError(false);
         try {
-            const data = await memberService.getActivities(memberId);
-            setActivities(data);
+            const [acts, catalogBooks, borrows, orders] = await Promise.all([
+                memberService.getActivities(memberId),
+                catalogService.searchBooks('is empty', 'is empty', 'is empty').catch(() => []),
+                borrowService.getMemberBorrows(memberId).catch(() => []),
+                orderService.getMemberOrders(memberId).catch(() => []),
+            ]);
+
+            const booksMap = new Map<number, string>();
+            const copiesMap = new Map<number, string>();
+
+            catalogBooks.forEach(b => {
+                if (b.bookId && b.title) booksMap.set(b.bookId, b.title);
+            });
+            borrows.forEach(b => {
+                if (b.bookId && b.title) booksMap.set(b.bookId, b.title);
+                if (b.bookCopyId && b.title) copiesMap.set(b.bookCopyId, b.title);
+            });
+            orders.forEach(o => {
+                if (o.bookId && o.title) booksMap.set(o.bookId, o.title);
+            });
+
+            await Promise.all(
+                acts.map(async act => {
+                    const id = act.affectedEntityId;
+                    if (id && !booksMap.has(id) && !copiesMap.has(id)) {
+                        try {
+                            const book = await borrowService.getBookDetails(id);
+                            if (book?.title) {
+                                booksMap.set(id, book.title);
+                            }
+                        } catch {
+                            // ignore if not a valid book ID
+                        }
+                    }
+                })
+            );
+
+            setBookTitleMap(booksMap);
+            setCopyTitleMap(copiesMap);
+
+            const sortedActs = [...acts].sort(
+                (a, b) => new Date(b.activityDateTime).getTime() - new Date(a.activityDateTime).getTime()
+            );
+
+            setActivities(sortedActs);
         } catch (error) {
             console.error('Data Error: Could not load activities', error);
             setActivitiesError(true);
@@ -92,25 +141,102 @@ const PersonalInfo: React.FC = () => {
     const inputClass = "w-full min-w-0 border border-border-subtle bg-surface px-3.5 py-3 text-base text-primary read-only:bg-surface-soft read-only:text-secondary";
     const btnClass = "inline-flex min-h-11 shrink-0 items-center justify-center border border-accent-border bg-surface px-4 py-2.5 text-sm font-semibold text-accent-text transition-colors can-hover:bg-accent-solid can-hover:text-inverse focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2";
     const isFrozen = member.freezeStatus === 'FROZEN';
+
+    const formatActivityDescription = (activity: Activity) => {
+        const type = (activity.type || '').toLowerCase();
+        const entityId = activity.affectedEntityId;
+        const isOrderActivity = type.includes('order') || type.includes('cancel');
+
+        const resolvedTitle = isOrderActivity
+            ? bookTitleMap.get(entityId)
+            : (copyTitleMap.get(entityId) ?? bookTitleMap.get(entityId));
+        const title = resolvedTitle || (entityId ? `Book #${entityId}` : '');
+
+        if (type.includes('borrow')) {
+            return title ? `Borrowed "${title}"` : 'Borrowed book';
+        }
+        if (type.includes('return') && !type.includes('late')) {
+            return title ? `Returned "${title}"` : 'Returned book';
+        }
+        if (type.includes('late')) {
+            return title ? `Returned "${title}" late` : 'Returned book late';
+        }
+        if (type.includes('extend')) {
+            return title ? `Extended borrow period for "${title}"` : 'Extended book borrow';
+        }
+        if (type.includes('cancel')) {
+            return title ? `Cancelled order for "${title}"` : 'Cancelled book order';
+        }
+        if (type.includes('order')) {
+            return title ? `Ordered "${title}"` : 'Ordered book';
+        }
+        if (type.includes('registration') || type.includes('register')) {
+            return 'Completed account registration';
+        }
+        if (type.includes('freeze')) {
+            return 'Membership status updated';
+        }
+        return title ? `${activity.type}: "${title}"` : activity.type;
+    };
+
+    const renderActivityBadge = (type: string) => {
+        const lower = (type || '').toLowerCase();
+        let variant: 'info' | 'success' | 'warning' | 'danger' | 'accent' | 'topic' = 'topic';
+        let label = type;
+
+        if (lower.includes('borrow')) {
+            variant = 'info';
+            label = 'Borrow';
+        } else if (lower.includes('return') && !lower.includes('late')) {
+            variant = 'success';
+            label = 'Return';
+        } else if (lower.includes('late')) {
+            variant = 'danger';
+            label = 'Late Return';
+        } else if (lower.includes('extend')) {
+            variant = 'accent';
+            label = 'Extension';
+        } else if (lower.includes('cancel')) {
+            variant = 'danger';
+            label = 'Cancelled Order';
+        } else if (lower.includes('order')) {
+            variant = 'warning';
+            label = 'Order';
+        } else if (lower.includes('register') || lower.includes('registration')) {
+            variant = 'topic';
+            label = 'Registration';
+        } else if (lower.includes('freeze') || lower.includes('status')) {
+            variant = 'danger';
+            label = 'Account Status';
+        } else if (lower.includes('default')) {
+            variant = 'topic';
+            label = 'Activity';
+        }
+
+        return <Tag label={label} variant={variant} />;
+    };
+
     const activityColumns: DataTableColumn<Activity>[] = [
         {
-            key: 'date-time',
-            header: 'Date & time',
-            headerClassName: 'w-[38%] border-e border-border-subtle',
-            cellClassName: 'border-e border-border-subtle',
-            render: activity => new Intl.DateTimeFormat(navigator.language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(activity.activityDateTime)),
-        },
-        {
-            key: 'activity-type',
+            key: 'type',
             header: 'Activity type',
-            headerClassName: 'w-[28%] border-e border-border-subtle',
-            cellClassName: 'border-e border-border-subtle',
-            render: activity => activity.type,
+            headerClassName: 'w-[25%]',
+            cellClassName: 'w-[25%]',
+            render: activity => renderActivityBadge(activity.type),
         },
         {
             key: 'description',
-            header: 'Description (entity ID)',
-            render: activity => activity.affectedEntityId,
+            header: 'Details',
+            headerClassName: 'w-[45%]',
+            cellClassName: 'w-[45%] font-medium',
+            render: activity => formatActivityDescription(activity),
+        },
+        {
+            key: 'date-time',
+            header: 'Date & time',
+            headerClassName: 'w-[30%]',
+            cellClassName: 'w-[30%] text-muted text-sm',
+            render: activity => new Intl.DateTimeFormat(navigator.language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(activity.activityDateTime)),
         },
     ];
 

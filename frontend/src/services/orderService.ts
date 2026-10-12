@@ -2,19 +2,10 @@ import api from './api';
 import type { OrderedBook, Book, OrderRequest, ActivityRequest } from '../types';
 import type { ArrivalStatus } from '../types/enums';
 
-type OrderedBookResponse = Omit<OrderedBook, 'title' | 'memberId'> & {
-    bookTitle: string;
-    membershipNumber: number;
-};
-
 export const orderService = {
     getMemberOrders: async (memberId: number): Promise<OrderedBook[]> => {
-        const response = await api.get<OrderedBookResponse[]>(`/orders/member/${memberId}`);
-        return response.data.map(({ bookTitle, membershipNumber, ...order }) => ({
-            ...order,
-            title: bookTitle,
-            memberId: membershipNumber,
-        }));
+        const response = await api.get<OrderedBook[]>(`/orders/member/${memberId}`);
+        return response.data;
     },
 
     getBookDetails: async (bookId: number): Promise<Book> => {

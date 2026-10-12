@@ -44,8 +44,8 @@ const ViewMember: React.FC = () => {
             await librarianService.updateFreezeStatus(member.memberId, newStatus, today);
             await borrowService.addActivity({
                 memberId: member.memberId,
-                activityType: 'freezeStatus',
-                entityId: member.memberId,
+                type: 'FREEZE_STATUS',
+                affectedEntityId: member.memberId,
             });
             setMember({ ...member, freezeStatus: newStatus as Member['freezeStatus'] });
             alert('Membership status updated.');

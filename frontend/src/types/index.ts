@@ -175,6 +175,6 @@ export interface RegisterRequest {
 
 export interface ActivityRequest {
     memberId: number;
-    activityType: string;
-    entityId: number;
+    type: ActivityType;
+    affectedEntityId: number;
 }

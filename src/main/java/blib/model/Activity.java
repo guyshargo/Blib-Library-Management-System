@@ -29,8 +29,8 @@ public class Activity implements Serializable {
     public int getMemberId() { return memberId; }
     public void setMemberId(int memberId) { this.memberId = memberId; }
 
-    public ActivityType getActivityType() { return type; }
-    public void setActivityType(ActivityType activityType) { this.type = activityType; }
+    public ActivityType getType() { return type; }
+    public void setType(ActivityType activityType) { this.type = activityType; }
 
     public int getAffectedEntityId() {return affectedEntityId; }
     public void setAffectedEntityId(int affectedEntityId) { this.affectedEntityId = affectedEntityId; }
@@ -41,7 +41,7 @@ public class Activity implements Serializable {
     @Override
     public String toString() {
         return String.format("Name: %s, Target ID: %d, Date: %s",
-                type.getValue(), affectedEntityId, activityDateTime.format(formatter));
+                type, affectedEntityId, activityDateTime.format(formatter));
     }
 
 
@@ -53,7 +53,7 @@ public class Activity implements Serializable {
         Activity activity = (Activity) obj;
 
         if (memberId != activity.memberId) return false;
-        if (!type.getValue().equals(activity.getActivityType().getValue())) return false;
+        if (!type.name().equals(activity.getType().name())) return false;
         return activityDateTime.equals(activity.activityDateTime);
     }
 

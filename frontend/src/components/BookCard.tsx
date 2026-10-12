@@ -16,7 +16,7 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
 
     return (
         <div 
-            onClick={() => navigate(`/book-details`, { state: { selectedBook: book } })}
+            onClick={() => navigate(`/book-details?id=${book.bookId}`, { state: { selectedBook: book } })}
             className="flex min-w-[120px] max-w-[120px] shrink-0 cursor-pointer flex-col items-center bg-transparent"
         >
             <img 

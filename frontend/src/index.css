@@ -114,6 +114,7 @@
   --color-info-border: #9bc2ce;
   --color-info: #5ca5e0;
   --color-info-strong: #6ab7f6;
+  --color-info-text: #1b4965;
   --color-success-subtle: #a0dba0;
   --color-success-bright: #50cc50;
   --color-success-dark: #1b5e20;
@@ -121,6 +122,9 @@
   --color-warning-strong: #edc915;
   --color-warning-soft: #e6a749;
   --color-warning-bright: #ffba52;
+  --color-warning-text: #594200;
+  --color-warning-border: #d4b412;
+  --color-warning-subtle: #fef8e7;
 }
 
 @layer base {

@@ -3,6 +3,8 @@ package blib.model;
 import java.io.Serializable;
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import blib.enums.ArrivalStatus;
 
 
@@ -39,66 +41,45 @@ public class OrderedBook implements Serializable {
     public OrderedBook() {}
 
 
-    public int getOrderId() {
-        return this.orderId;
-    }
+    public int getOrderId() { return this.orderId; }
+    public void setOrderId(int orderId) { this.orderId = orderId; }
+
+    public String getMemberPhone() { return this.memberPhone; }
+    public void setMemberPhone(String memberPhone) { this.memberPhone = memberPhone; }
+
+    public String getMemberName() { return this.memberName; }
+    public void setMemberName(String memberName) { this.memberName = memberName; }
+
+    public String getMemberEmail() { return this.memberEmail; }
+    public void setMemberEmail(String memberEmail) { this.memberEmail = memberEmail; }
+
+    public int getMemberId() { return this.memberId; }
+    public void setMemberId(int memberId) { this.memberId = memberId; }
+
+    public LocalDate getOrderDate() { return this.orderDate; }
+    public void setOrderDate(LocalDate orderDate) { this.orderDate = orderDate; }
+
+    public ArrivalStatus getArrivalStatus() { return this.arrivalStatus; }
+    public void setArrivalStatus(ArrivalStatus arrivalStatus) { this.arrivalStatus = arrivalStatus; }
+
+    @JsonProperty("title")
+    public String getBookTitle() { return this.title; }
+    public void setBookTitle(String title) { this.title = title; }
+
+    public String getAuthor() { return this.author; }
+    public void setAuthor(String author) { this.author = author; }
 
 
-    public String getMemberName() {
-        return this.memberName;
-    }
+    public int getBookId() { return this.bookId; }
+    public void setBookId(int bookId) { this.bookId = bookId; }
 
-
-    public String getMemberEmail() {
-        return this.memberEmail;
-    }
-
-
-    public int getMembershipNumber() {
-        return this.memberId;
-    }
-
-
-    public LocalDate getOrderDate() {
-        return this.orderDate;
-    }
-
-
-    public ArrivalStatus getArrivalStatus() {
-        return this.arrivalStatus;
-    }
-
-
-    public String getBookTitle() {
-        return this.title;
-    }
-
-    public String getAuthor() {
-        return this.author;
-    }
-
-    public void setAuthor(String author) {
-        this.author = author;
-    }
-
-
-    public int getBookId() {
-        return this.bookId;
-    }
-    
-    public void setBookId(int bookId) {
-        this.bookId = bookId;
-    }
-
-
-    public LocalDate getArrivalDate() {
-        return this.arrivalDate;
-    }
+    public LocalDate getArrivalDate() { return this.arrivalDate; }
+    public void setArrivalDate(LocalDate arrivalDate) { this.arrivalDate = arrivalDate; }
 
 
     public String toString() {
         return "(OrderBook) " + this.getBookTitle() + "(id: " + this.getOrderId() + ", name: " + this.getMemberName() +
-                ", memberID: " + this.memberId + ", bookId: " + this.getBookId() + ", email" +
+                ", memberId: " + this.memberId + ", bookId: " + this.getBookId() + ", email" +
                 this.getMemberEmail() + ", ordered on: " + this.getOrderDate() + ", arrived?:" +
                 this.getArrivalStatus() + ", date of arrival" + this.getArrivalDate() + ")\n";
     }

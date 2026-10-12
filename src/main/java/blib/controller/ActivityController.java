@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import blib.dto.ActivityRequest;
-import blib.enums.ActivityType;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,11 +27,9 @@ public class ActivityController {
     @PostMapping("/")
     public ResponseEntity<String> addActivity(@RequestBody ActivityRequest request) {
         try {
-            // EchoServer generated the enum and the timestamp right before saving
-            ActivityType type = activityLogic.generateActivityType(request.getActivityType());
             Activity activity = new Activity(
                     request.getMemberId(),
-                    type,
+                    request.getType(),
                     request.getAffectedEntityId(),
                     LocalDateTime.now()
             );

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { librarianService } from '../../services/librarianService';
+import { borrowService } from '../../services/borrowService';
 
 const RegisterMember: React.FC = () => {
     const [id, setId] = useState('');
@@ -36,14 +37,23 @@ const RegisterMember: React.FC = () => {
         }
 
         try {
+            const newMemberId = parseInt(id, 10);
+
             await librarianService.registerMember({
-                memberId: parseInt(id),
+                memberId: newMemberId,
                 fullName,
                 userName,
                 password,
                 phone,
                 email
             });
+
+            await borrowService.addActivity({
+                memberId: newMemberId,
+                type: 'REGISTRATION',
+                affectedEntityId: newMemberId
+            });
+
             alert("You have been successfully registered.");
             handleClear();
         } catch (error: any) {

@@ -36,7 +36,7 @@ public class OrderLogic {
             try (Connection connection = dbConnector.getConnection();
                  PreparedStatement ps = connection.prepareStatement(query)) {
                  
-                ps.setString(1, "Arrived");
+                ps.setString(1, ArrivalStatus.ARRIVED.name());
                 ps.setDate(2, currentDate);
                 ps.setInt(3, found.getOrderId());
                 return ps.executeUpdate() > 0;
@@ -60,7 +60,7 @@ public class OrderLogic {
             
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    ArrivalStatus arrival_status = "Arrived".equals(rs.getString("arrival_status")) ? ArrivalStatus.ARRIVED : ArrivalStatus.NOT_ARRIVED;
+                    ArrivalStatus arrival_status = ArrivalStatus.valueOf(rs.getString("arrival_status"));
                     
                     java.sql.Date orderDateSql = rs.getDate("order_date");
                     java.sql.Date arrivalDateSql = rs.getDate("arrival_date");
@@ -97,13 +97,16 @@ public class OrderLogic {
              PreparedStatement ps = con.prepareStatement(query)) {
              
             ps.setInt(1, book_id);
-            ps.setString(2, "notArrived");
+            ps.setString(2, ArrivalStatus.NOT_ARRIVED.name());
             
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    ArrivalStatus arrival_status = "Arrived".equals(rs.getString("arrival_status")) ? ArrivalStatus.ARRIVED : ArrivalStatus.NOT_ARRIVED;
-                    LocalDate order_date = rs.getDate("order_date").toLocalDate();
-                    LocalDate arrival_date = (rs.getDate("arrival_date") != null) ? rs.getDate("arrival_date").toLocalDate() : null;
+                    ArrivalStatus arrival_status = ArrivalStatus.valueOf(rs.getString("arrival_status"));
+                    java.sql.Date orderDateSql = rs.getDate("order_date");
+                    java.sql.Date arrivalDateSql = rs.getDate("arrival_date");
+
+                    LocalDate order_date = (orderDateSql != null) ? orderDateSql.toLocalDate() : null;
+                    LocalDate arrival_date = (arrivalDateSql != null) ? arrivalDateSql.toLocalDate() : null;
                     
                     return new OrderedBook(
                             rs.getInt("order_id"),
@@ -126,13 +129,14 @@ public class OrderLogic {
     }
 
     public synchronized boolean removeOrderForBorrowedBook(BorrowedBook borrowedBook) {
-        String query = "DELETE FROM orders WHERE book_id = ? AND member_id = ? AND arrival_status = 'Arrived'";
+        String query = "DELETE FROM orders WHERE book_id = ? AND member_id = ? AND arrival_status = ?";
         
         try (Connection connection = dbConnector.getConnection();
              PreparedStatement ps = connection.prepareStatement(query)) {
              
             ps.setInt(1, borrowedBook.getBookId());
             ps.setInt(2, borrowedBook.getMemberId());
+            ps.setString(3, ArrivalStatus.ARRIVED.name());
 
             return ps.executeUpdate() > 0;
             
@@ -150,8 +154,7 @@ public class OrderLogic {
              PreparedStatement ps = connection.prepareStatement(query)) {
              
             ps.setInt(1, order_id);
-            ps.executeUpdate();
-            return true;
+            return ps.executeUpdate() > 0;
             
         } catch (SQLException e) {
             e.printStackTrace();
@@ -159,11 +162,10 @@ public class OrderLogic {
         }
     }
 
-
-    public synchronized String orderBook(int bookID, int member_id, String member_name,
+    public synchronized String orderBook(int bookId, int member_id, String member_name,
                                          String member_phone, String member_email) {
         BookLogic bookLogic = new BookLogic();
-        Book book = bookLogic.fetchBook(bookID);
+        Book book = bookLogic.fetchBook(bookId);
         if (book == null) {
             return "book not found";
         }
@@ -172,21 +174,20 @@ public class OrderLogic {
             return "reached maximum ordering to the book";
         }
             
-        Date tempDate = new Date();
-        java.sql.Date currentDate = new java.sql.Date(tempDate.getTime());
+        java.sql.Date currentDate = java.sql.Date.valueOf(LocalDate.now());
         
         String query = "INSERT INTO orders (book_id, order_date, member_id, member_name, member_phone, member_email, arrival_status) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection connection = dbConnector.getConnection();
              PreparedStatement ps = connection.prepareStatement(query)) {
              
-            ps.setInt(1, bookID);
+            ps.setInt(1, bookId);
             ps.setDate(2, currentDate);
             ps.setInt(3, member_id);
             ps.setString(4, member_name);
             ps.setString(5, member_phone);
             ps.setString(6, member_email);
-            ps.setString(7, "notArrived");
+            ps.setString(7, ArrivalStatus.NOT_ARRIVED.name());
             ps.executeUpdate(); 
             
             return "approve";
@@ -208,7 +209,9 @@ public class OrderLogic {
             
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
+                    java.sql.Date orderDateSql = rs.getDate("order_date");
                     java.sql.Date arrivalDateSql = rs.getDate("arrival_date");
+                    LocalDate order_date = (orderDateSql != null) ? orderDateSql.toLocalDate() : null;
                     LocalDate arrival_date = (arrivalDateSql != null) ? arrivalDateSql.toLocalDate() : null;
 
                     orderList.add(new OrderedBook(
@@ -219,8 +222,8 @@ public class OrderLogic {
                             rs.getString("member_email"),
                             rs.getInt("book_id"),
                             rs.getString("title"),
-                            rs.getDate("order_date").toLocalDate(),
-                            ArrivalStatus.valueOf(rs.getString("arrival_status").toUpperCase()),
+                            order_date,
+                            ArrivalStatus.valueOf(rs.getString("arrival_status")),
                             arrival_date
                     ));
                 }
