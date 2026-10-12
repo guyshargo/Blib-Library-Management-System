@@ -1,39 +1,86 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { catalogService } from '../../services/catalogService';
 import BookCard from '../../components/BookCard';
 import type { Book } from '../../types';
+import type { BookGenre } from '../../types/enums';
 
 type SortOption = 'alphabetical' | 'trending' | 'most-read' | 'least-read' | 'random';
 
+const formatGenreLabel = (genre: string): string => {
+    if (genre === 'SCI_FI') return 'Sci-Fi';
+    return genre
+        .toLowerCase()
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+};
+
 const LibraryExplorer: React.FC = () => {
+    const [searchParams] = useSearchParams();
+    const urlGenre = searchParams.get('genre') || '';
+    const urlSort = (searchParams.get('sort') as SortOption) || 'alphabetical';
+
     const [name, setName] = useState('');
-    const [genre, setGenre] = useState('');
+    const [genre, setGenre] = useState(urlGenre);
     const [freeText, setFreeText] = useState('');
     const [books, setBooks] = useState<Book[]>([]);
+    const [allGenres, setAllGenres] = useState<BookGenre[]>([]);
     const [hasSearched, setHasSearched] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const [sortBy, setSortBy] = useState<SortOption>('alphabetical');
+    const [sortBy, setSortBy] = useState<SortOption>(urlSort);
     const [randomSeed, setRandomSeed] = useState(Math.random());
 
-    const handleSearch = async (isInitial = false) => {
-        setLoading(true);
-        setErrorMessage('');
-        try {
-            const results = await catalogService.searchBooks(name, genre, freeText);
-            setBooks(results || []);
-            if (!isInitial) setHasSearched(true);
-        } catch (error) {
-            console.error('Failed to search the catalog', error);
-            setErrorMessage('Unable to search the catalog. Check your connection and try again.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
+    // Sync state if URL searchParams change
     useEffect(() => {
-        void handleSearch(true);
+        const g = searchParams.get('genre') || '';
+        const s = searchParams.get('sort') as SortOption;
+        if (g !== genre) setGenre(g);
+        if (s && s !== sortBy) setSortBy(s);
+    }, [searchParams]);
+
+    // Fetch all books initially to populate genres list and initial view
+    useEffect(() => {
+        const initCatalog = async () => {
+            setLoading(true);
+            try {
+                const results = await catalogService.searchBooks('is empty', 'is empty', 'is empty');
+                setBooks(results || []);
+                const uniqueGenres = Array.from(new Set((results || []).map(b => b.genre))).filter(Boolean) as BookGenre[];
+                setAllGenres(uniqueGenres.sort());
+            } catch (error) {
+                console.error('Failed to load catalog', error);
+                setErrorMessage('Unable to load catalog. Check your connection and try again.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        void initCatalog();
     }, []);
+
+    // Real-time reactive search with debounce
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            // Avoid triggering search before initial load completes
+            if (loading && books.length === 0 && !hasSearched) return;
+            
+            setLoading(true);
+            setErrorMessage('');
+            try {
+                const results = await catalogService.searchBooks(name, genre, freeText);
+                setBooks(results || []);
+                setHasSearched(true);
+            } catch (error) {
+                console.error('Failed to search the catalog', error);
+                setErrorMessage('Unable to search the catalog. Check your connection and try again.');
+            } finally {
+                setLoading(false);
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [name, genre, freeText]);
 
     const sortedBooks = useMemo(() => {
         const sorted = [...books];
@@ -47,7 +94,6 @@ const LibraryExplorer: React.FC = () => {
             case 'least-read':
                 return sorted.sort((a, b) => a.borrowedNum - b.borrowedNum);
             case 'random':
-                // Simple seeded-ish random sort
                 return sorted.sort(() => (Math.random() > 0.5 ? 1 : -1));
             default:
                 return sorted;
@@ -64,13 +110,7 @@ const LibraryExplorer: React.FC = () => {
     return (
         <div className="flex min-h-screen flex-col items-center gap-8 p-4 font-sans sm:p-6 lg:p-8">
             <div className="flex w-full max-w-6xl flex-col gap-6">
-                <form
-                    className="grid w-full grid-cols-1 gap-4 rounded-xl bg-surface p-5 shadow-sm sm:grid-cols-2 lg:grid-cols-4"
-                    onSubmit={event => {
-                        event.preventDefault();
-                        void handleSearch();
-                    }}
-                >
+                <div className="grid w-full grid-cols-1 gap-4 rounded-xl bg-surface p-5 shadow-sm sm:grid-cols-3">
                     <label className="flex flex-col gap-2 text-xs font-bold uppercase tracking-wider text-secondary">
                         Book title
                         <input 
@@ -82,12 +122,16 @@ const LibraryExplorer: React.FC = () => {
                     </label>
                     <label className="flex flex-col gap-2 text-xs font-bold uppercase tracking-wider text-secondary">
                         Genre
-                        <input 
-                            className="min-w-0 rounded-md border border-border bg-input px-3.5 py-2.5 text-base font-normal text-primary outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash sm:text-sm" 
-                            placeholder="e.g. Fantasy" 
-                            value={genre} 
-                            onChange={e => setGenre(e.target.value)} 
-                        />
+                        <select 
+                            className="min-w-0 rounded-md border border-border bg-input px-3.5 py-2.5 text-base font-normal text-primary outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash sm:text-sm"
+                            value={genre}
+                            onChange={e => setGenre(e.target.value)}
+                        >
+                            <option value="">All Genres</option>
+                            {allGenres.map(g => (
+                                <option key={g} value={g}>{formatGenreLabel(g)}</option>
+                            ))}
+                        </select>
                     </label>
                     <label className="flex flex-col gap-2 text-xs font-bold uppercase tracking-wider text-secondary">
                         Keywords
@@ -98,18 +142,11 @@ const LibraryExplorer: React.FC = () => {
                             onChange={e => setFreeText(e.target.value)} 
                         />
                     </label>
-                    <button
-                        type="submit"
-                        className="self-end rounded-md bg-accent-solid px-6 py-2.5 text-base font-semibold text-inverse shadow-sm transition-all can-hover:bg-accent-solid-hover enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-                        disabled={loading}
-                    >
-                        {loading ? 'Searching…' : 'Search'}
-                    </button>
-                </form>
+                </div>
 
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <h2 className="text-2xl font-bold tracking-tight text-primary">
-                        {hasSearched ? 'Search Results' : 'Explore Catalog'}
+                        Library Catalog
                         <span className="ml-2 text-sm font-normal text-muted">({books.length} books)</span>
                     </h2>
                     

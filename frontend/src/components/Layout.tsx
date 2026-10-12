@@ -3,7 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
 
 type ColorTheme = 'wood' | 'botanical' | 'coastal';
-type BrowseIconName = 'dashboard' | 'memberList' | 'addMember' | 'borrow' | 'return' | 'reports' | 'invoice' | 'catalog' | 'subjects' | 'trending';
+type BrowseIconName = 'dashboard' | 'memberList' | 'addMember' | 'borrow' | 'return' | 'reports' | 'invoice' | 'catalog' | 'genres' | 'trending';
 
 const BrowseLinkIcon: React.FC<{ name: BrowseIconName }> = ({ name }) => (
     <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -15,7 +15,7 @@ const BrowseLinkIcon: React.FC<{ name: BrowseIconName }> = ({ name }) => (
         {name === 'reports' && <><path d="M4 20V11m5 9V5m5 15v-7m5 7V8" /></>}
         {name === 'invoice' && <><path d="M6 3.5h9l4 4V20H6z" /><path d="M14.5 3.5V8H19M9 12h7m-7 4h7" /></>}
         {name === 'catalog' && <><circle cx="12" cy="12" r="8.5" /><path d="m15.8 8.2-2.5 5.1-5.1 2.5 2.5-5.1z" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2" /></>}
-        {name === 'subjects' && <><path d="m6 18 7.5-7.5" /><path d="m12.5 4 .8 2.2L15.5 7l-2.2.8-.8 2.2-.8-2.2L9.5 7l2.2-.8z" /><path d="m18 12 .6 1.4L20 14l-1.4.6L18 16l-.6-1.4L16 14l1.4-.6z" /><path d="m5 5 .5 1.5L7 7l-1.5.5L5 9l-.5-1.5L3 7l1.5-.5z" /></>}
+        {name === 'genres' && <><path d="m6 18 7.5-7.5" /><path d="m12.5 4 .8 2.2L15.5 7l-2.2.8-.8 2.2-.8-2.2L9.5 7l2.2-.8z" /><path d="m18 12 .6 1.4L20 14l-1.4.6L18 16l-.6-1.4L16 14l1.4-.6z" /><path d="m5 5 .5 1.5L7 7l-1.5.5L5 9l-.5-1.5L3 7l1.5-.5z" /></>}
         {name === 'trending' && <><path d="M4 18 10 12l4 3 6-8" /><path d="M14 7h6v6" /></>}
     </svg>
 );
@@ -87,7 +87,7 @@ const Layout: React.FC = () => {
     }, [browseOpen]);
 
     const handleLogout = async () => {
-        await authService.logout(); // Triggers the DB update and clears session
+        await authService.logout();
         navigate('/login');
     };
 
@@ -103,23 +103,66 @@ const Layout: React.FC = () => {
             { path: '/invoices', label: 'Invoices', description: 'Review system messages and logs', icon: 'invoice' as const }
           ]
         : [
-            { path: '', label: 'Subjects', description: 'Browse books by topic', icon: 'subjects' as const },
-            { path: '', label: 'Trending', description: 'Most popular right now', icon: 'trending' as const },
+            { path: '/genres', label: 'Genres', description: 'Browse different genres', icon: 'genres' as const },
+            { path: '/trending', label: 'Trending', description: 'Most popular right now', icon: 'trending' as const },
             { path: '/catalog', label: 'Library Explorer', description: 'Browse the virtual shelves', icon: 'catalog' as const }
           ];
     const navItemClass = 'nav-item flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-base font-semibold text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border';
 
     return (
         <div className="flex min-h-screen flex-col bg-page font-sans">
-            {/* TOP HEADER */}
-            <header className="flex items-center bg-header px-8 py-4"></header>
+            {/* TOP HEADER WITH THEME PICKER */}
+            <header className="flex items-center justify-between bg-header px-6 py-2.5 text-white sm:px-8">
+                <span className="text-xs font-semibold tracking-wider uppercase opacity-90">
+                    Blib Library System
+                </span>
+                <label className="flex items-center gap-2 text-xs font-semibold text-white cursor-pointer">
+                    <span>Theme</span>
+                    <select
+                        aria-label="Color theme"
+                        className="rounded-md border border-white/20 bg-black/30 px-2.5 py-1 text-xs text-white outline-none transition-colors hover:bg-black/40 focus:ring-1 focus:ring-white"
+                        value={colorTheme}
+                        onChange={event => setColorTheme(getColorTheme(event.currentTarget.value))}
+                    >
+                        <option value="wood" className="bg-slate-900 text-white">Timber (Wood)</option>
+                        <option value="botanical" className="bg-slate-900 text-white">Oak (Botanical)</option>
+                        <option value="coastal" className="bg-slate-900 text-white">Bay (Coastal)</option>
+                    </select>
+                </label>
+            </header>
 
             {/* HORIZONTAL NAV BAR */}
-            <nav className="bg-transparent px-4 pt-4">
-                <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-x-4 gap-y-2">
-                    <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
-                        <button className="shrink-0 whitespace-nowrap font-extrabold text-[26px] text-primary" onClick={() => navigate('/home')}>
-                            Blib Library
+            <nav className="bg-transparent px-4 pt-4 sm:px-8">
+                <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-x-4">
+                    <div className="flex min-w-0 items-center gap-x-4">
+                        <button className="shrink-0 whitespace-nowrap font-extrabold text-[24px] text-primary flex items-center gap-2.5" onClick={() => navigate('/home')}>
+                            {colorTheme === 'botanical' && (
+                                <>
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-7 w-7 text-accent-text shrink-0" fill="currentColor">
+                                        <path d="M17.5 3C14 3 10.5 5 8.5 8c-3 1.5-5 4.5-5 8 0 2.5 1.5 4 4 4 3.5 0 6.5-2 8-5 3-2 5-5.5 5-9 0-1.5-.5-3-1-4-.5-.5-1.5-1-2-1zm-9 14c-1.1 0-2-.9-2-2 0-.3.1-.6.3-.8L12 9.5l2.5 2.5-5.2 5.2c-.2.2-.5.3-.8.3z" />
+                                    </svg>
+                                    <span>Oak Library</span>
+                                </>
+                            )}
+                            {colorTheme === 'coastal' && (
+                                <>
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-7 w-7 text-accent-text shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M2 12c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 7.5 0" />
+                                        <path d="M2 16c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 7.5 0" />
+                                        <path d="M12 2v6" />
+                                    </svg>
+                                    <span>Bay Library</span>
+                                </>
+                            )}
+                            {colorTheme === 'wood' && (
+                                <>
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-7 w-7 text-accent-text shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+                                        <path d="M6 6h12M6 10h12" />
+                                    </svg>
+                                    <span>Timber Library</span>
+                                </>
+                            )}
                         </button>
                     {!isLibrarian && (
                         <button
@@ -190,8 +233,8 @@ const Layout: React.FC = () => {
 
                     </div>
 
-                    <div className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-3">
-                        <div className="flex min-w-[12rem] max-w-[350px] flex-1 basis-48 items-center rounded-full bg-surface px-4 py-1">
+                    <div className="flex shrink-0 items-center gap-3">
+                        <div className="flex w-[200px] items-center rounded-full bg-surface px-4 py-1">
                             <input type="text" className="w-full bg-transparent text-base text-primary outline-none sm:text-sm" placeholder="Search by Title\Author" />
                         </div>
 
@@ -209,19 +252,6 @@ const Layout: React.FC = () => {
                         >
                             {user ? 'Logout' : 'Login'}
                         </button>
-                        <label className="flex shrink-0 items-center gap-2 whitespace-nowrap text-xs font-semibold text-secondary">
-                            Theme
-                            <select
-                                aria-label="Color theme"
-                                className="rounded-md border border-border bg-surface px-2 py-1.5 text-primary"
-                                value={colorTheme}
-                                onChange={event => setColorTheme(getColorTheme(event.currentTarget.value))}
-                            >
-                                <option value="wood">Wood</option>
-                                <option value="botanical">Botanical</option>
-                                <option value="coastal">Coastal</option>
-                            </select>
-                        </label>
                     </div>
                 </div>
             </nav>

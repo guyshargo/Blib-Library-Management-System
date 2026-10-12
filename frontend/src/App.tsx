@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 
 import Layout from './components/Layout';
 
@@ -6,6 +7,8 @@ import Login from './pages/auth/Login';
 
 import LibraryExplorer from './pages/catalog/LibraryExplorer';
 import BookDetails from './pages/catalog/BookDetails';
+import Genres from './pages/catalog/Genres';
+import Trending from './pages/catalog/Trending';
 
 import Home from './pages/catalog/Home';
 import PersonalInfo from './pages/member/PersonalInfo';
@@ -20,9 +23,18 @@ import ManageMember from './pages/librarian/ManageMember';
 import BorrowBook from './pages/librarian/BorrowBook';
 import Invoice from './pages/librarian/Invoice';
 
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
+
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         {/* Standalone Gateway Windows */}
         <Route path="/" element={<Navigate to="/home" replace />} />
@@ -33,6 +45,8 @@ function App() {
         {/* Core System Pages - Wrapped in Main Layout */}
         <Route element={<Layout />}>
             <Route path="/catalog" element={<LibraryExplorer />} />
+            <Route path="/genres" element={<Genres />} />
+            <Route path="/trending" element={<Trending />} />
             <Route path="/book-details" element={<BookDetails />} />
 
             <Route path="/home" element={<Home />} />

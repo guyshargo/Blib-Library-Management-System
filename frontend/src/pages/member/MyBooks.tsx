@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import DataTable, { type DataTableColumn } from '../../components/DataTable';
 import { borrowService } from '../../services/borrowService';
 import { orderService } from '../../services/orderService';
 import type { BorrowedBook, Member, OrderedBook } from '../../types';
@@ -25,6 +24,7 @@ const MyBooks: React.FC = () => {
     const [orderAuthorFilter, setOrderAuthorFilter] = useState('');
     const [isOverdueOnly, setIsOverdueOnly] = useState(false);
     const [selectedCopyId, setSelectedCopyId] = useState<number | null>(null);
+    const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
     const [extending, setExtending] = useState(false);
     const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(null);
     const [feedback, setFeedback] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
@@ -132,23 +132,27 @@ const MyBooks: React.FC = () => {
         }
     };
 
-    const handleCancelOrder = async (order: OrderedBook) => {
-        if (!member || !window.confirm(`Cancel the order for "${order.title}"?`)) return;
+    const selectedOrder = orders.find(order => order.orderId === selectedOrderId);
 
-        setCancellingOrderId(order.orderId);
+    const handleCancelSelectedOrder = async () => {
+        if (!member || !selectedOrder) return;
+        if (!window.confirm(`Cancel the order for "${selectedOrder.title}"?`)) return;
+
+        setCancellingOrderId(selectedOrder.orderId);
         setFeedback(null);
         try {
-            const book = await orderService.getBookDetails(order.bookId);
-            await orderService.cancelOrder(order.orderId, order.bookId, order.arrivalStatus);
+            const book = await orderService.getBookDetails(selectedOrder.bookId);
+            await orderService.cancelOrder(selectedOrder.orderId, selectedOrder.bookId, selectedOrder.arrivalStatus);
+            setSelectedOrderId(null);
             await loadOrders(member.memberId);
-            setFeedback({ kind: 'success', text: `The order for "${order.title}" was cancelled.` });
+            setFeedback({ kind: 'success', text: `The order for "${selectedOrder.title}" was cancelled.` });
 
             try {
                 await orderService.updateOrderStatus(book.bookId, book.ordersNum, false);
                 await orderService.addActivity({
                     memberId: member.memberId,
                     activityType: 'cancelOrder',
-                    entityId: order.bookId,
+                    entityId: selectedOrder.bookId,
                 });
             } catch (error) {
                 console.error('Order cancelled, but follow-up data could not be updated', error);
@@ -185,59 +189,6 @@ const MyBooks: React.FC = () => {
         );
     }
 
-    const borrowedColumns: DataTableColumn<BorrowedBook>[] = [
-        {
-            key: 'select',
-            header: <span className="sr-only">Select</span>,
-            headerClassName: 'w-12',
-            render: book => (
-                <input
-                    type="radio"
-                    name="borrowed-book-selection"
-                    aria-label={`Select ${book.title} for extension`}
-                    checked={selectedCopyId === book.bookCopyId}
-                    onChange={() => setSelectedCopyId(book.bookCopyId)}
-                    className="h-4 w-4 accent-accent-solid"
-                />
-            ),
-        },
-        { key: 'title', header: 'Title', render: book => book.title },
-        { key: 'author', header: 'Author', render: book => book.author || 'Author not listed' },
-        { key: 'borrow-date', header: 'Borrowed', render: book => formatDate(book.borrowDate) },
-        {
-            key: 'due-date',
-            header: 'Due date',
-            render: book => {
-                const isOverdue = today > toLocalDate(book.returnDate);
-                return <>{formatDate(book.returnDate)}{isOverdue ? ' · Overdue' : ''}</>;
-            },
-        },
-    ];
-    const orderColumns: DataTableColumn<OrderedBook>[] = [
-        { key: 'title', header: 'Title', render: order => order.title },
-        { key: 'author', header: 'Author', render: order => order.author || 'Author not listed' },
-        { key: 'order-date', header: 'Order date', render: order => formatDate(order.orderDate) },
-        {
-            key: 'status',
-            header: 'Status',
-            render: order => order.arrivalStatus === 'ARRIVED' ? 'Ready for pickup' : 'On order',
-        },
-        {
-            key: 'action',
-            header: 'Action',
-            render: order => (
-                <button
-                    type="button"
-                    className={buttonClass}
-                    onClick={() => void handleCancelOrder(order)}
-                    disabled={cancellingOrderId !== null}
-                >
-                    {cancellingOrderId === order.orderId ? 'Cancelling...' : 'Cancel order'}
-                </button>
-            ),
-        },
-    ];
-
     return (
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-8 font-sans text-primary sm:px-8 sm:py-10">
             <header>
@@ -261,11 +212,12 @@ const MyBooks: React.FC = () => {
                 </p>
             )}
 
+            {/* Borrowed Books Section */}
             <section className="space-y-4" aria-labelledby="borrowed-books-heading">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                         <h2 id="borrowed-books-heading" className="text-xl font-semibold tracking-tight">Borrowed books</h2>
-                        <p className="mt-1 text-sm text-muted">Select a row to check extension eligibility.</p>
+                        <p className="mt-1 text-sm text-muted">Select a book to check extension eligibility.</p>
                     </div>
                     <div className="grid w-full gap-3 sm:w-auto sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto]">
                         <label className="min-w-48">
@@ -298,33 +250,78 @@ const MyBooks: React.FC = () => {
                     </div>
                 </div>
 
-                <DataTable
-                    columns={borrowedColumns}
-                    rows={filteredBooks}
-                    getRowKey={book => book.bookCopyId}
-                    getRowClassName={(book, index) => {
-                        const isSelected = selectedCopyId === book.bookCopyId;
-                        const isOverdue = today > toLocalDate(book.returnDate);
-                        return `${isSelected ? 'bg-accent-subtle' : index % 2 ? 'bg-surface' : 'bg-surface-soft'} ${isOverdue ? 'text-danger-text' : ''}`;
-                    }}
-                    loadingMessage={borrowedLoading ? 'Loading borrowed books...' : undefined}
-                    errorMessage={borrowedError ? (
-                        <span className="inline-flex flex-wrap items-center justify-center gap-3">
-                            <span>Unable to load borrowed books.</span>
-                            <button type="button" className="underline underline-offset-4" onClick={() => void loadBorrowedBooks(member.memberId)}>Retry</button>
-                        </span>
-                    ) : undefined}
-                    emptyMessage={borrowedBooks.length ? (
-                        <span className="inline-flex flex-wrap items-center justify-center gap-3">
-                            <span>No borrowed books match these filters.</span>
-                            <button type="button" className="underline underline-offset-4" onClick={() => {
-                                setBorrowedTitleFilter('');
-                                setBorrowedAuthorFilter('');
-                                setIsOverdueOnly(false);
-                            }}>Clear filters</button>
-                        </span>
-                    ) : 'You have no borrowed books.'}
-                />
+                {borrowedLoading && <p className="text-sm text-muted" role="status">Loading borrowed books...</p>}
+                {borrowedError && (
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-l-4 border-danger-border bg-danger-subtle p-4 text-danger-text" role="alert">
+                        <span>Unable to load borrowed books.</span>
+                        <button type="button" className="underline underline-offset-4 font-semibold" onClick={() => void loadBorrowedBooks(member.memberId)}>Retry</button>
+                    </div>
+                )}
+
+                {!borrowedLoading && !borrowedError && filteredBooks.length === 0 && (
+                    <div className="rounded-xl border border-border-subtle bg-surface p-8 text-center text-muted">
+                        <p>{borrowedBooks.length ? 'No borrowed books match these filters.' : 'You have no borrowed books.'}</p>
+                        {borrowedBooks.length > 0 && (
+                            <button
+                                type="button"
+                                className="mt-2 text-sm font-semibold text-accent-text underline underline-offset-4"
+                                onClick={() => {
+                                    setBorrowedTitleFilter('');
+                                    setBorrowedAuthorFilter('');
+                                    setIsOverdueOnly(false);
+                                }}
+                            >
+                                Clear filters
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {!borrowedLoading && !borrowedError && filteredBooks.length > 0 && (
+                    <div className="flex flex-col gap-3">
+                        {filteredBooks.map(book => {
+                            const isSelected = selectedCopyId === book.bookCopyId;
+                            const isOverdue = today > toLocalDate(book.returnDate);
+                            return (
+                                <div
+                                    key={book.bookCopyId}
+                                    onClick={() => setSelectedCopyId(book.bookCopyId)}
+                                    className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all ${
+                                        isSelected
+                                            ? 'border-accent-border bg-accent-subtle shadow-sm'
+                                            : 'border-border-subtle bg-surface hover:border-accent-border'
+                                    }`}
+                                >
+                                    <input
+                                        type="radio"
+                                        name="borrowed-book-selection"
+                                        aria-label={`Select ${book.title} for extension`}
+                                        checked={isSelected}
+                                        onChange={() => setSelectedCopyId(book.bookCopyId)}
+                                        className="h-4 w-4 accent-accent-solid"
+                                    />
+                                    <img
+                                        src={`/images/covers/${book.bookId}.jpg`}
+                                        alt={book.title}
+                                        onError={e => { e.currentTarget.src = '/images/book_logo.png'; }}
+                                        className="h-20 w-14 shrink-0 rounded object-cover shadow-sm"
+                                    />
+                                    <div className="flex flex-1 flex-col justify-center min-w-0">
+                                        <h3 className="truncate font-semibold text-primary">{book.title}</h3>
+                                        <p className="text-sm text-secondary">{book.author || 'Author not listed'}</p>
+                                        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted">
+                                            <span>Borrowed: {formatDate(book.borrowDate)}</span>
+                                            <span>•</span>
+                                            <span className={isOverdue ? 'font-semibold text-danger-text' : ''}>
+                                                Due: {formatDate(book.returnDate)} {isOverdue ? '· Overdue' : ''}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className={`text-sm ${extensionIneligibleReason ? 'text-muted' : 'text-success-dark'}`} role="status">
@@ -341,10 +338,11 @@ const MyBooks: React.FC = () => {
                 </div>
             </section>
 
+            {/* Ordered Books Section */}
             <section className="space-y-4" aria-labelledby="ordered-books-heading">
                 <div>
                     <h2 id="ordered-books-heading" className="text-xl font-semibold tracking-tight">Ordered books</h2>
-                    <p className="mt-1 text-sm text-muted">Track books you have ordered and cancel an order if needed.</p>
+                    <p className="mt-1 text-sm text-muted">Select an order to cancel if needed.</p>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -368,27 +366,91 @@ const MyBooks: React.FC = () => {
                     </label>
                 </div>
 
-                <DataTable
-                    columns={orderColumns}
-                    rows={filteredOrders}
-                    getRowKey={order => order.orderId}
-                    loadingMessage={ordersLoading ? 'Loading orders...' : undefined}
-                    errorMessage={ordersError ? (
-                        <span className="inline-flex flex-wrap items-center justify-center gap-3">
-                            <span>Unable to load orders.</span>
-                            <button type="button" className="underline underline-offset-4" onClick={() => void loadOrders(member.memberId)}>Retry</button>
-                        </span>
-                    ) : undefined}
-                    emptyMessage={orders.length ? (
-                        <span className="inline-flex flex-wrap items-center justify-center gap-3">
-                            <span>No ordered books match these filters.</span>
-                            <button type="button" className="underline underline-offset-4" onClick={() => {
-                                setOrderTitleFilter('');
-                                setOrderAuthorFilter('');
-                            }}>Clear filters</button>
-                        </span>
-                    ) : 'You have no ordered books.'}
-                />
+                {ordersLoading && <p className="text-sm text-muted" role="status">Loading orders...</p>}
+                {ordersError && (
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-l-4 border-danger-border bg-danger-subtle p-4 text-danger-text" role="alert">
+                        <span>Unable to load orders.</span>
+                        <button type="button" className="underline underline-offset-4 font-semibold" onClick={() => void loadOrders(member.memberId)}>Retry</button>
+                    </div>
+                )}
+
+                {!ordersLoading && !ordersError && filteredOrders.length === 0 && (
+                    <div className="rounded-xl border border-border-subtle bg-surface p-8 text-center text-muted">
+                        <p>{orders.length ? 'No ordered books match these filters.' : 'You have no ordered books.'}</p>
+                        {orders.length > 0 && (
+                            <button
+                                type="button"
+                                className="mt-2 text-sm font-semibold text-accent-text underline underline-offset-4"
+                                onClick={() => {
+                                    setOrderTitleFilter('');
+                                    setOrderAuthorFilter('');
+                                }}
+                            >
+                                Clear filters
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {!ordersLoading && !ordersError && filteredOrders.length > 0 && (
+                    <div className="flex flex-col gap-3">
+                        {filteredOrders.map(order => {
+                            const isSelected = selectedOrderId === order.orderId;
+                            const isReady = order.arrivalStatus === 'ARRIVED';
+                            return (
+                                <div
+                                    key={order.orderId}
+                                    onClick={() => setSelectedOrderId(order.orderId)}
+                                    className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all ${
+                                        isSelected
+                                            ? 'border-accent-border bg-accent-subtle shadow-sm'
+                                            : 'border-border-subtle bg-surface hover:border-accent-border'
+                                    }`}
+                                >
+                                    <input
+                                        type="radio"
+                                        name="ordered-book-selection"
+                                        aria-label={`Select order for ${order.title}`}
+                                        checked={isSelected}
+                                        onChange={() => setSelectedOrderId(order.orderId)}
+                                        className="h-4 w-4 accent-accent-solid"
+                                    />
+                                    <img
+                                        src={`/images/covers/${order.bookId}.jpg`}
+                                        alt={order.title}
+                                        onError={e => { e.currentTarget.src = '/images/book_logo.png'; }}
+                                        className="h-20 w-14 shrink-0 rounded object-cover shadow-sm"
+                                    />
+                                    <div className="flex flex-1 flex-col justify-center min-w-0">
+                                        <h3 className="truncate font-semibold text-primary">{order.title}</h3>
+                                        <p className="text-sm text-secondary">{order.author || 'Author not listed'}</p>
+                                        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted">
+                                            <span>Ordered: {formatDate(order.orderDate)}</span>
+                                            <span>•</span>
+                                            <span className={`font-medium ${isReady ? 'text-success-dark' : 'text-accent-text'}`}>
+                                                {isReady ? 'Ready for pickup' : 'On order'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-muted" role="status">
+                        {selectedOrder ? `Selected order: "${selectedOrder.title}"` : 'Select an order to cancel.'}
+                    </p>
+                    <button
+                        type="button"
+                        className={buttonClass}
+                        onClick={handleCancelSelectedOrder}
+                        disabled={!selectedOrder || cancellingOrderId !== null}
+                    >
+                        {cancellingOrderId !== null ? 'Cancelling...' : 'Cancel selected order'}
+                    </button>
+                </div>
             </section>
         </div>
     );

@@ -4,6 +4,7 @@ import { catalogService } from '../../services/catalogService';
 import { borrowService } from '../../services/borrowService';
 import { librarianService } from '../../services/librarianService';
 import { orderService } from '../../services/orderService';
+import { waitlistService } from '../../services/waitlistService';
 import { Tag } from '../../components/Tag';
 import type { Book, BorrowRequest, Member, OrderRequest } from '../../types';
 
@@ -92,10 +93,6 @@ const BookDetails: React.FC = () => {
             setFeedback({ kind: 'error', text: 'Your membership is frozen, so you cannot place an order.' });
             return;
         }
-        if (selectedBook.copiesNum <= selectedBook.ordersNum) {
-            setFeedback({ kind: 'error', text: `${selectedBook.title} has reached its order limit.` });
-            return;
-        }
 
         setActionLoading(true);
         setFeedback(null);
@@ -113,14 +110,7 @@ const BookDetails: React.FC = () => {
                 return;
             }
 
-            setFeedback({ kind: 'success', text: `"${selectedBook.title}" has been ordered.` });
-            let followUpFailed = false;
-            try {
-                await orderService.updateOrderStatus(selectedBook.bookId, selectedBook.ordersNum, true);
-            } catch (error) {
-                followUpFailed = true;
-                console.error('Book ordered, but its order count could not be updated', error);
-            }
+            setFeedback({ kind: 'success', text: `"${selectedBook.title}" order/purchase has been registered.` });
             try {
                 await orderService.addActivity({
                     memberId: member.memberId,
@@ -128,18 +118,39 @@ const BookDetails: React.FC = () => {
                     entityId: selectedBook.bookId,
                 });
             } catch (error) {
-                followUpFailed = true;
-                console.error('Book ordered, but its activity could not be recorded', error);
-            }
-            if (followUpFailed) {
-                setFeedback({
-                    kind: 'error',
-                    text: `"${selectedBook.title}" was ordered, but some follow-up details could not be updated.`,
-                });
+                console.error('Order placed, but activity could not be recorded', error);
             }
         } catch (error) {
             console.error('Failed to place book order', error);
             setFeedback({ kind: 'error', text: 'The order could not be placed. Please try again.' });
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleWaitlist = async () => {
+        if (!selectedBook || !member) return;
+        if (member.freezeStatus === 'FROZEN') {
+            setFeedback({ kind: 'error', text: 'Your membership is frozen, so you cannot join the waitlist.' });
+            return;
+        }
+
+        setActionLoading(true);
+        setFeedback(null);
+        try {
+            const orderRequest: OrderRequest = {
+                bookId: selectedBook.bookId,
+                memberId: member.memberId,
+                memberName: member.fullName,
+                memberPhone: member.phoneNum,
+                memberEmail: member.email,
+            };
+            await waitlistService.joinWaitlist(orderRequest);
+            setFeedback({ kind: 'success', text: `You have successfully joined the waitlist for "${selectedBook.title}". We will notify your email (${member.email}) and phone (${member.phoneNum}) when a copy becomes available.` });
+        } catch (error: any) {
+            console.error('Failed to join waitlist', error);
+            const errMsg = error.response?.data || 'You are already on the waitlist or unable to join.';
+            setFeedback({ kind: 'error', text: typeof errMsg === 'string' ? errMsg : 'Failed to join waitlist.' });
         } finally {
             setActionLoading(false);
         }
@@ -247,8 +258,6 @@ const BookDetails: React.FC = () => {
     const keywordList = selectedBook.keywords
         ? selectedBook.keywords.split(',').map(item => item.trim()).filter(Boolean)
         : [];
-
-    const isOrderLimitReached = selectedBook.copiesNum <= selectedBook.ordersNum;
 
     return (
         <div className="mx-auto max-w-6xl p-4 font-sans text-primary sm:p-6 lg:p-8">
@@ -397,7 +406,7 @@ const BookDetails: React.FC = () => {
                                 </svg>
                             </div>
                             <div>
-                                <span className="block text-xs font-medium text-muted">Order Price</span>
+                                <span className="block text-xs font-medium text-muted">Purchase Price</span>
                                 <span className="text-base font-bold text-primary">
                                     {selectedBook.orderPrice != null ? `$${Number(selectedBook.orderPrice).toFixed(2)}` : 'Free'}
                                 </span>
@@ -405,7 +414,7 @@ const BookDetails: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Unified Library Holdings & Circulation Panel (Replaces copies, borrowed, orders boxes) */}
+                    {/* Unified Library Holdings & Circulation Panel */}
                     <div className="mt-6 rounded-xl border border-border-subtle bg-surface p-5 shadow-sm w-full">
                         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-subtle pb-3.5">
                             <div className="flex items-center gap-2">
@@ -460,14 +469,11 @@ const BookDetails: React.FC = () => {
                                 <span className="text-[11px] text-muted">In branch</span>
                             </div>
                             <div className="rounded-lg bg-surface-soft p-3">
-                                <span className="block text-xs text-muted">Active Orders</span>
-                                <div className="flex items-baseline gap-1 mt-0.5">
-                                    <span className={`text-lg font-bold ${isOrderLimitReached ? 'text-amber-600' : 'text-primary'}`}>
-                                        {selectedBook.ordersNum}
-                                    </span>
-                                    <span className="text-xs text-muted">/ {selectedBook.copiesNum} max</span>
-                                </div>
-                                <span className="text-[11px] text-muted">{isOrderLimitReached ? 'Limit reached' : 'Waitlist count'}</span>
+                                <span className="block text-xs text-muted">Status</span>
+                                <span className="mt-0.5 block text-sm font-bold text-primary truncate">
+                                    {availableCopies > 0 ? 'On Shelf' : 'Waitlist Active'}
+                                </span>
+                                <span className="text-[11px] text-muted">{availableCopies > 0 ? 'Ready' : 'Queue open'}</span>
                             </div>
                         </div>
                     </div>
@@ -519,30 +525,47 @@ const BookDetails: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Action Hub (Member Order / Librarian Borrow) */}
-                    {userType === 'MEMBER' && (
+                    {/* Action Hub (Member Purchase/Order OR Member Waitlist OR Librarian Borrow) */}
+                    {userType === 'MEMBER' && availableCopies > 0 && (
                         <section className="mt-8 rounded-xl border border-border-subtle bg-surface p-5 sm:p-6 shadow-sm w-full">
                             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
-                                    <h2 className="text-base font-bold text-primary">Order this book</h2>
+                                    <h2 className="text-base font-bold text-primary">Purchase a copy</h2>
                                     <p className="mt-1 text-sm text-secondary">
-                                        Reserve a personal copy through your membership
+                                        Order a permanent copy for your collection
                                         {selectedBook.orderPrice != null ? ` for $${Number(selectedBook.orderPrice).toFixed(2)}` : ''}.
                                     </p>
-                                    {isOrderLimitReached && (
-                                        <p className="mt-1.5 text-xs font-medium text-amber-600">
-                                            This title has reached its order limit ({selectedBook.ordersNum}/{selectedBook.copiesNum}).
-                                        </p>
-                                    )}
                                 </div>
 
                                 <button
                                     type="button"
                                     className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg border border-accent-border bg-accent-solid px-6 py-2.5 text-sm font-semibold text-inverse shadow-sm transition-transform duration-150 ease-out can-hover:bg-accent-solid-hover enabled:active:scale-[0.96] focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                                     onClick={() => void handleOrder()}
-                                    disabled={actionLoading || !member || isOrderLimitReached}
+                                    disabled={actionLoading || !member}
                                 >
-                                    {actionLoading ? 'Processing...' : 'Place Book Order'}
+                                    {actionLoading ? 'Processing...' : 'Purchase Copy'}
+                                </button>
+                            </div>
+                        </section>
+                    )}
+
+                    {userType === 'MEMBER' && availableCopies === 0 && (
+                        <section className="mt-8 rounded-xl border border-border-subtle bg-surface p-5 sm:p-6 shadow-sm w-full">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <h2 className="text-base font-bold text-primary">Join title waitlist</h2>
+                                    <p className="mt-1 text-sm text-secondary">
+                                        All copies are currently checked out. Join the waitlist to be notified via email and phone when a copy is returned.
+                                    </p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg border border-accent-border bg-accent-solid px-6 py-2.5 text-sm font-semibold text-inverse shadow-sm transition-transform duration-150 ease-out can-hover:bg-accent-solid-hover enabled:active:scale-[0.96] focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    onClick={() => void handleWaitlist()}
+                                    disabled={actionLoading || !member}
+                                >
+                                    {actionLoading ? 'Processing...' : 'Join Waitlist'}
                                 </button>
                             </div>
                         </section>
