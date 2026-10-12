@@ -1,4 +1,5 @@
-import type { BookGenre,
+import type { 
+    BookGenre,
     FreezeStatus,
     ActivityType,
     IsOrdered,

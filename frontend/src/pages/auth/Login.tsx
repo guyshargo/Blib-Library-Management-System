@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import type { LoginRole } from '../../types/enums';
 
+type ColorTheme = 'wood' | 'botanical' | 'coastal';
+
+const getColorTheme = (value: string | null): ColorTheme => {
+    return value === 'botanical' || value === 'coastal' ? value : 'wood';
+};
 
 const Login: React.FC = () => {
     const [role, setRole] = useState<LoginRole>('MEMBER');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const [colorTheme, setColorTheme] = useState<ColorTheme>(() => getColorTheme(localStorage.getItem('blib-color-theme')));
 
     const navigate = useNavigate();
+
+    useEffect(() => {
+        document.documentElement.dataset.theme = colorTheme;
+        localStorage.setItem('blib-color-theme', colorTheme);
+    }, [colorTheme]);
 
     const handleRoleChange = (selectedRole: LoginRole) => {
         setRole(selectedRole);
@@ -45,7 +56,24 @@ const Login: React.FC = () => {
     };
 
     return (
-        <main className="flex min-h-dvh flex-col bg-page px-4 py-6 font-sans text-primary sm:px-8 sm:py-10">
+        <main className="relative flex min-h-dvh flex-col items-center justify-center bg-page px-4 py-6 font-sans text-primary sm:px-8 sm:py-10">
+            {/* Theme Picker Corner Widget */}
+            <div className="absolute right-4 top-4 z-10 sm:right-8 sm:top-8">
+                <label className="flex items-center gap-2 rounded-lg border border-border-subtle bg-surface px-3 py-1.5 text-xs font-semibold text-secondary shadow-sm">
+                    <span>Theme</span>
+                    <select
+                        aria-label="Color theme"
+                        className="rounded border border-border bg-input px-2 py-1 text-xs text-primary outline-none focus:ring-1 focus:ring-accent-border"
+                        value={colorTheme}
+                        onChange={event => setColorTheme(getColorTheme(event.currentTarget.value))}
+                    >
+                        <option value="wood">Timber (Wood)</option>
+                        <option value="botanical">Oak (Botanical)</option>
+                        <option value="coastal">Bay (Coastal)</option>
+                    </select>
+                </label>
+            </div>
+
             <div className="mx-auto my-auto flex min-h-[min(760px,calc(100dvh-3rem))] w-full max-w-6xl flex-col overflow-hidden bg-surface shadow-[0_12px_40px_rgba(var(--color-shadow),0.12)] md:min-h-[680px] md:flex-row">
                 <section className="flex w-full flex-col justify-center bg-accent-subtle px-8 py-12 sm:px-12 md:w-[46%] md:px-16 lg:px-20">
                     <div className="max-w-md">
@@ -53,7 +81,7 @@ const Login: React.FC = () => {
                             Your library, wherever you are
                         </p>
                         <h1 className="text-4xl font-semibold tracking-tight text-primary sm:text-5xl">
-                            Blib Library
+                            {colorTheme === 'botanical' ? 'Oak Library' : (colorTheme === 'coastal' ? 'Bay Library' : 'Timber Library')}
                         </h1>
                         <p className="mt-6 max-w-sm text-lg leading-8 text-muted">
                             Sign in to borrow books, manage your reading, and stay connected with your library.
@@ -63,6 +91,7 @@ const Login: React.FC = () => {
                     <div className="mt-12 border-t border-border-subtle pt-6">
                         <p className="text-sm text-muted">Just browsing?</p>
                         <button
+                            type="button"
                             className="mt-2 text-sm font-semibold text-accent-text underline decoration-accent-text underline-offset-4 transition-colors can-hover:text-accent-text"
                             onClick={() => navigate('/home')}
                         >
@@ -75,7 +104,7 @@ const Login: React.FC = () => {
                     <div className="w-full max-w-md">
                         <h2 className="text-3xl font-semibold tracking-tight text-primary">Log in</h2>
                         <p className="mt-2 text-sm leading-6 text-muted">
-                            Enter your account details to access Blib Library.
+                            Enter your account details to access the library.
                         </p>
 
                         <div className="mt-8 flex border-b border-border-subtle" role="tablist" aria-label="Login type">
@@ -148,7 +177,7 @@ const Login: React.FC = () => {
                                 type="submit"
                                 className="w-full bg-accent-solid px-4 py-3 text-base font-semibold text-inverse transition-colors can-hover:bg-accent-solid-hover focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2"
                             >
-                                Log in as {role === 'MEMBER' ? 'Member' : 'Librarian'}
+                                Sign in as {role.toLowerCase()}
                             </button>
                         </form>
                     </div>
