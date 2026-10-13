@@ -6,16 +6,10 @@ public enum IsOrdered {
 
     private final boolean value;
 
-    IsOrdered(boolean value) {
-        this.value = value;
-    }
+    IsOrdered(boolean value) { this.value = value; }
 
     public boolean getValue() { return value; }
 
-    public String toString() {
-        if (value)
-            return "Yes";
-        else
-            return "No";
-    }
+    @Override
+    public String toString() { return this.name(); }
 }

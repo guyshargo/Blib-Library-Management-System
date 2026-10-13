@@ -21,5 +21,10 @@ export const catalogService = {
     getClosestReturnDate: async (bookId: number): Promise<BorrowedBook> => {
         const response = await api.get<BorrowedBook>(`/borrows/book/${bookId}/closest-return-date`);
         return response.data;
+    },
+
+    getBook: async (bookId: number): Promise<Book> => {
+        const response = await api.get<Book>(`/books/${bookId}`);
+        return response.data;
     }
 };

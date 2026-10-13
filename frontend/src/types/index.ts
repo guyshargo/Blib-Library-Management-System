@@ -10,14 +10,8 @@ import type {
     ReportType
  } from './enums';
 
-export interface Activity {
-    memberId: number;
-    type: ActivityType;
-    affectedEntityId: number;
-    activityDateTime: string;
-}
-
-export interface Book {
+ 
+ export interface Book {
     bookId: number;
     title: string;
     author: string;
@@ -173,8 +167,17 @@ export interface RegisterRequest {
     email: string;
 }
 
+export interface Activity {
+    memberId: number;
+    type: ActivityType;
+    affectedEntityId: number;
+    activityDateTime: string;
+    librarianId?: number;
+}
+
 export interface ActivityRequest {
     memberId: number;
-    activityType: string;
-    entityId: number;
+    type: ActivityType;
+    affectedEntityId: number;
+    librarianId?: number;
 }

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { catalogService } from '../../services/catalogService';
 import { borrowService } from '../../services/borrowService';
+import { activityService } from '../../services/activityService';
 import { librarianService } from '../../services/librarianService';
 import { orderService } from '../../services/orderService';
 import { waitlistService } from '../../services/waitlistService';
@@ -27,12 +28,17 @@ const BookDetails: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    // Retrieves the book passed from the SearchCatalog table click
-    const selectedBook = location.state?.selectedBook as Book;
+    const searchParams = new URLSearchParams(location.search);
+    const queryBookId = searchParams.get('id') || searchParams.get('bookId');
+
+    // Retrieves the book passed from state or query param
+    const initialBook = location.state?.selectedBook as Book;
+    const [selectedBook, setSelectedBook] = useState<Book | null>(initialBook || null);
+    const [loading, setLoading] = useState(true);
 
     const [shelf, setShelf] = useState('-');
     const [returnDate, setReturnDate] = useState('-');
-    const [copyName, setCopyName] = useState(selectedBook?.title || '');
+    const [copyName, setCopyName] = useState(initialBook?.title || '');
     const [member, setMember] = useState<Member | null>(null);
     const [userType] = useState(localStorage.getItem('userType'));
     const [memberIdInput, setMemberIdInput] = useState('');
@@ -40,9 +46,29 @@ const BookDetails: React.FC = () => {
     const [feedback, setFeedback] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
 
     useEffect(() => {
-        if (!selectedBook) return;
+        const fetchBookAndAvailability = async () => {
+            setLoading(true);
+            let activeBook: Book | null = initialBook || null;
 
-        const fetchAvailability = async () => {
+            try {
+                const bookIdToFetch = initialBook?.bookId || (queryBookId ? Number(queryBookId) : 1);
+                if (bookIdToFetch) {
+                    const fullBook = await catalogService.getBook(bookIdToFetch);
+                    if (fullBook) {
+                        activeBook = fullBook;
+                        setSelectedBook(fullBook);
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch full book details', err);
+            } finally {
+                setLoading(false);
+            }
+
+            if (!activeBook) return;
+
+            setCopyName(activeBook.title);
+
             const userStr = localStorage.getItem('currentUser');
             let memberId = 0;
 
@@ -59,12 +85,12 @@ const BookDetails: React.FC = () => {
                 setMember(null);
             }
 
-            const availableCopies = Math.max(0, (selectedBook.copiesNum || 0) - (selectedBook.borrowedNum || 0));
+            const availableCopies = Math.max(0, (activeBook.copiesNum || 0) - (activeBook.borrowedNum || 0));
 
             if (availableCopies > 0) {
                 try {
-                    const copy = await catalogService.getAvailableCopy(selectedBook.bookId, memberId);
-                    setCopyName(copy.title || selectedBook.title);
+                    const copy = await catalogService.getAvailableCopy(activeBook.bookId, memberId);
+                    setCopyName(copy.title || activeBook.title);
                     setShelf(copy.shelfLocation || 'Main Shelf');
                     setReturnDate('-');
                 } catch {
@@ -73,8 +99,8 @@ const BookDetails: React.FC = () => {
                 }
             } else {
                 try {
-                    const closest = await catalogService.getClosestReturnDate(selectedBook.bookId);
-                    setCopyName(closest.title || selectedBook.title);
+                    const closest = await catalogService.getClosestReturnDate(activeBook.bookId);
+                    setCopyName(closest.title || activeBook.title);
                     setShelf('-');
                     setReturnDate(closest.returnDate);
                 } catch {
@@ -84,8 +110,8 @@ const BookDetails: React.FC = () => {
             }
         };
 
-        void fetchAvailability();
-    }, [selectedBook]);
+        void fetchBookAndAvailability();
+    }, [initialBook?.bookId, queryBookId]);
 
     const handleOrder = async () => {
         if (!selectedBook || !member) return;
@@ -112,10 +138,10 @@ const BookDetails: React.FC = () => {
 
             setFeedback({ kind: 'success', text: `"${selectedBook.title}" order/purchase has been registered.` });
             try {
-                await orderService.addActivity({
+                await activityService.addActivity({
                     memberId: member.memberId,
-                    activityType: 'order',
-                    entityId: selectedBook.bookId,
+                    type: 'ORDER',
+                    affectedEntityId: selectedBook.bookId,
                 });
             } catch (error) {
                 console.error('Order placed, but activity could not be recorded', error);
@@ -157,6 +183,7 @@ const BookDetails: React.FC = () => {
     };
 
     const handleBorrow = async () => {
+        if (!selectedBook) return;
         const memberId = Number(memberIdInput);
         if (!Number.isInteger(memberId) || memberId <= 0) {
             setFeedback({ kind: 'error', text: 'Enter a valid membership number.' });
@@ -191,6 +218,12 @@ const BookDetails: React.FC = () => {
                 return;
             }
 
+            const alreadyBorrowed = currentBorrows.some(book => book.bookId === selectedBook.bookId);
+            if (alreadyBorrowed) {
+                setFeedback({ kind: 'error', text: 'This member has already borrowed a copy of this book.' });
+                return;
+            }
+
             const copy = await borrowService.getAvailableCopyById(selectedBook.bookId, memberId);
             const borrowRequest: BorrowRequest = {
                 memberId,
@@ -201,10 +234,10 @@ const BookDetails: React.FC = () => {
             await borrowService.commitBorrow(borrowRequest);
 
             try {
-                await borrowService.addActivity({
+                await activityService.addActivity({
                     memberId,
-                    activityType: 'borrow',
-                    entityId: copy.copyId,
+                    type: 'BORROW',
+                    affectedEntityId: copy.copyId,
                 });
                 setFeedback({ kind: 'success', text: `"${selectedBook.title}" was borrowed for ${targetMember.fullName}.` });
             } catch (error) {
@@ -221,6 +254,14 @@ const BookDetails: React.FC = () => {
             setActionLoading(false);
         }
     };
+
+    if (loading) {
+        return (
+            <div className="flex min-h-[70vh] flex-col items-center justify-center p-6 text-center font-sans">
+                <p className="text-sm font-medium text-muted">Loading book details...</p>
+            </div>
+        );
+    }
 
     if (!selectedBook) {
         return (
@@ -358,7 +399,7 @@ const BookDetails: React.FC = () => {
                         )}
                     </header>
 
-                    {/* Refined Book Highlights Ribbon (Replaces 3 boxes of rating, pages, price) */}
+                    {/* Refined Book Highlights Ribbon */}
                     <div className="mt-6 flex flex-wrap items-center divide-y divide-border-subtle rounded-xl border border-border-subtle bg-surface-soft/60 sm:divide-y-0 sm:divide-x w-full">
                         {/* Rating */}
                         <div className="flex flex-1 min-w-[130px] items-center gap-3 px-4 py-3">

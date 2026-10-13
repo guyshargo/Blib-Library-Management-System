@@ -2,23 +2,160 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { catalogService } from '../../services/catalogService';
-import type { Book } from '../../types';
+import { borrowService } from '../../services/borrowService';
+import type { Book, Member } from '../../types';
 import BookShelf from '../../components/BookShelf';
+import FeatureCard, { type FeatureCardProps } from '../../components/FeatureCard';
 
-const MemberHome: React.FC = () => {
+const homeFeatures: FeatureCardProps[] = [
+    {
+        title: 'Browse the Virtual Shelves',
+        description: 'Check live copy availability, shelf locations, and summaries across every genre.',
+        to: '/catalog',
+        icon: (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+                <path d="M8 7h8M8 11h6" />
+            </svg>
+        ),
+    },
+    {
+        title: 'Order & Join Waitlists',
+        description: 'Purchase permanent copies or get notified as soon as checked-out titles return.',
+        to: '/trending',
+        icon: (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" />
+                <path d="M16 2v4M8 2v4M3 10h18" />
+                <path d="m9 16 2 2 4-4" />
+            </svg>
+        ),
+    },
+    {
+        title: 'Track Your Bookshelf',
+        description: 'Manage your active borrows, check due dates, and review your reading history.',
+        to: '/my-books',
+        icon: (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 5h6v14H4zM10 7h6v12h-6zM16 4h4v15h-4z" />
+            </svg>
+        ),
+    },
+];
+
+const librarianHomeFeatures: FeatureCardProps[] = [
+    {
+        title: 'Borrow Book',
+        description: 'Issue book copies to members and scan reader barcodes.',
+        to: '/borrow-book',
+        icon: (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 4.5h11a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3z" />
+                <path d="M8 20a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3m4 4h4m-4 4h4" />
+                <path d="m16 14 2 2 3-3" />
+            </svg>
+        ),
+    },
+    {
+        title: 'Return Book',
+        description: 'Process returned books, check inventory, and update stock status.',
+        to: '/return-book',
+        icon: (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 7 4 12l5 5" />
+                <path d="M4 12h10a5 5 0 0 1 5 5v2" />
+            </svg>
+        ),
+    },
+    {
+        title: 'Manage Members',
+        description: 'Search member profiles, inspect borrowing history, and update status.',
+        to: '/manage-members',
+        icon: (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20" />
+                <circle cx="10" cy="8" r="3.5" />
+                <path d="M17 11a3 3 0 1 0 0-6m3 15v-1.5a3.5 3.5 0 0 0-2.5-3.35" />
+            </svg>
+        ),
+    },
+    {
+        title: 'Register Member',
+        description: 'Create new library member accounts securely.',
+        to: '/register-member',
+        icon: (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="9" cy="8" r="3.5" />
+                <path d="M3 20v-1.5A3.5 3.5 0 0 1 6.5 15h5a3.5 3.5 0 0 1 3.5 3.5V20M19 8v6m-3-3h6" />
+            </svg>
+        ),
+    },
+    {
+        title: 'Catalog Explorer',
+        description: 'Browse virtual shelves, check availability, and search books.',
+        to: '/catalog',
+        icon: (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+                <path d="M8 7h8M8 11h6" />
+            </svg>
+        ),
+    },
+    {
+        title: 'Reports & Analytics',
+        description: 'View monthly charts, activity metrics, and borrow statistics.',
+        to: '/reports',
+        icon: (
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 20V11m5 9V5m5 15v-7m5 7V8" />
+            </svg>
+        ),
+    },
+];
+
+const Home: React.FC = () => {
+    const userType = localStorage.getItem('userType');
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const isLibrarian = userType === 'LIBRARIAN';
 
     const [books, setBooks] = useState<Book[]>([]);
+    const [currentlyReading, setCurrentlyReading] = useState<Book[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
 
-    const fetchCatalog = async () => {
+    const fetchData = async () => {
         setLoading(true);
         setError(false);
         try {
             const results = await catalogService.searchBooks('is empty', 'is empty', 'is empty');
             setBooks(results);
+
+            const userStr = localStorage.getItem('currentUser');
+            const uType = localStorage.getItem('userType');
+            if (userStr && uType === 'MEMBER') {
+                const currentMember: Member = JSON.parse(userStr);
+                if (currentMember?.memberId) {
+                    const borrows = await borrowService.getMemberBorrows(currentMember.memberId);
+                    const borrowedBooks: Book[] = borrows.map(b => ({
+                        bookId: b.bookId,
+                        title: b.title,
+                        author: b.author || '',
+                        genre: 'FICTION' as any,
+                        copiesNum: 1,
+                        borrowedNum: 1,
+                        keywords: '',
+                        isOrdered: 'NO' as any,
+                        ordersNum: 0,
+                        characters: '',
+                        pages: 0,
+                        orderPrice: 0,
+                        rating: 4.5,
+                    }));
+                    setCurrentlyReading(borrowedBooks);
+                }
+            }
         } catch (error) {
-            console.error('Failed to load catalog', error);
+            console.error('Failed to load books', error);
             setError(true);
         } finally {
             setLoading(false);
@@ -26,11 +163,10 @@ const MemberHome: React.FC = () => {
     };
 
     useEffect(() => {
-        void fetchCatalog();
+        void fetchData();
     }, []);
 
     // slider categories
-    const currentlyReading = books.slice(0, 2);
     const trending = books.filter(book => book.rating >= 4.10 && book.rating < 4.30).slice(0, 15);
     const topRated = [...books].filter(book => book.rating >= 4.30).sort((a, b) => b.rating - a.rating).slice(0, 15);
     const latestArrivals = [...books].sort((a, b) => b.bookId - a.bookId).slice(0, 15);
@@ -41,7 +177,7 @@ const MemberHome: React.FC = () => {
             {error && (
                 <div className="flex flex-col items-start gap-3 border-l-4 border-danger-border bg-danger-subtle p-4 text-danger-text" role="alert">
                     <p>Unable to load books. Check your connection and try again.</p>
-                    <button className="rounded-md border border-danger-border px-4 py-2 text-sm font-semibold" onClick={() => void fetchCatalog()}>
+                    <button className="rounded-md border border-danger-border px-4 py-2 text-sm font-semibold" onClick={() => void fetchData()}>
                         Retry
                     </button>
                 </div>
@@ -55,7 +191,21 @@ const MemberHome: React.FC = () => {
             )}
             {!loading && !error && books.length > 0 && (
                 <>
-                    <BookShelf title="Currently reading" books={currentlyReading} />
+                    {/* Explanatory Feature Cards Above Shelves */}
+                    <section aria-labelledby="welcome-heading">
+                        <h2 id="welcome-heading" className="mb-3 text-lg font-bold text-primary">
+                            {isLibrarian ? `Welcome back, ${currentUser.fullName || 'Librarian'} — Librarian Portal` : 'Welcome to Blib Library'}
+                        </h2>
+                        <div className={`grid grid-cols-1 gap-4 ${isLibrarian ? 'md:grid-cols-3 lg:grid-cols-3' : 'md:grid-cols-3'}`}>
+                            {(isLibrarian ? librarianHomeFeatures : homeFeatures).map(feature => (
+                                <FeatureCard key={feature.title} {...feature} />
+                            ))}
+                        </div>
+                    </section>
+
+                    {!isLibrarian && currentlyReading.length > 0 && (
+                        <BookShelf title="Currently reading" books={currentlyReading} />
+                    )}
                     <BookShelf title="Trending" books={trending} />
                     <BookShelf title="Top rated books" books={topRated} />
                     <BookShelf title="Latest arrivals" books={latestArrivals} />
@@ -65,4 +215,4 @@ const MemberHome: React.FC = () => {
     );
 };
 
-export default MemberHome;
+export default Home;

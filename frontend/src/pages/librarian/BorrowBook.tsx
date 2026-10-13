@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { librarianService } from '../../services/librarianService';
 import { borrowService } from '../../services/borrowService';
+import { activityService } from '../../services/activityService';
 import type { Member } from '../../types';
+import FormField from '../../components/FormField';
+import Button from '../../components/Button';
 
 const BorrowBook: React.FC = () => {
     // Member State
@@ -20,13 +23,24 @@ const BorrowBook: React.FC = () => {
             return;
         }
         try {
-            const member = await librarianService.getMember(parseInt(memberIdInput));
-            if (member.freezeStatus === 'FROZEN') {
+            const fetchedMember = await librarianService.getMember(parseInt(memberIdInput));
+            if (fetchedMember.freezeStatus === 'FROZEN') {
                 alert("Member Status Is Frozen.");
                 setMember(null);
                 return;
             }
-            setMember(member);
+            setMember(fetchedMember);
+
+            // If book ID is already entered, try resolving copy for this member
+            if (bookIdInput.trim()) {
+                try {
+                    const bookIdNum = parseInt(bookIdInput);
+                    const copy = await borrowService.getAvailableCopyById(bookIdNum, fetchedMember.memberId);
+                    setCopyOfBook(copy);
+                } catch {
+                    // ignore if copy not available
+                }
+            }
         } catch (error) {
             setMember(null);
             alert("No member found with the given ID.");
@@ -38,28 +52,48 @@ const BorrowBook: React.FC = () => {
         if (!barcode || !barcode.trim()) return;
 
         try {
-            const member = await librarianService.getMemberByBarcode(barcode.trim());
-            setMemberIdInput(member.memberId.toString());
-            setMember(member);
+            const fetchedMember = await librarianService.getMemberByBarcode(barcode.trim());
+            setMemberIdInput(fetchedMember.memberId.toString());
+            setMember(fetchedMember);
+
+            if (bookIdInput.trim()) {
+                try {
+                    const bookIdNum = parseInt(bookIdInput);
+                    const copy = await borrowService.getAvailableCopyById(bookIdNum, fetchedMember.memberId);
+                    setCopyOfBook(copy);
+                } catch {
+                    // ignore
+                }
+            }
         } catch (error) {
             alert("No member found with barcode.");
         }
     };
 
     const handleFindBook = async () => {
-        if (!bookIdInput.trim() || !member) {
-            alert("Book ID cannot be empty and a member must be selected.");
+        if (!bookIdInput.trim() || !/^\d+$/.test(bookIdInput)) {
+            alert("Book ID cannot be empty and must contain only digits.");
             return;
         }
         try {
-            const copy = await borrowService.getAvailableCopyById(parseInt(bookIdInput), member.memberId);
-            setCopyOfBook(copy);
-            setBookName(copy.title);
-
-            const bookDetails = await borrowService.getBookDetails(copy.bookId);
+            const bookIdNum = parseInt(bookIdInput);
+            // Fetch book details directly to show title and available copies immediately
+            const bookDetails = await borrowService.getBookDetails(bookIdNum);
+            setBookName(bookDetails.title);
             setAvailableCopies((bookDetails.copiesNum - bookDetails.borrowedNum).toString());
+
+            if (member) {
+                try {
+                    const copy = await borrowService.getAvailableCopyById(bookIdNum, member.memberId);
+                    setCopyOfBook(copy);
+                } catch {
+                    setCopyOfBook({ bookId: bookIdNum, title: bookDetails.title });
+                }
+            } else {
+                setCopyOfBook({ bookId: bookIdNum, title: bookDetails.title });
+            }
         } catch (error) {
-            alert("No available copy of the book found.");
+            alert("No book found with the given ID.");
             setCopyOfBook(null);
             setBookName('');
             setAvailableCopies('');
@@ -67,26 +101,56 @@ const BorrowBook: React.FC = () => {
     };
 
     const handleScanBook = async () => {
-        if (!member) return;
         const barcode = window.prompt("Scan Barcode\nPlease enter the barcode to scan:");
         if (!barcode || !barcode.trim()) return;
 
         try {
-            const copy = await borrowService.getAvailableCopyByBarcode(barcode.trim(), member.memberId);
-            setCopyOfBook(copy);
-            setBookIdInput(copy.bookId.toString());
-            setBookName(copy.CopyOfBookName);
+            const bookIdNum = parseInt(barcode.trim());
+            if (isNaN(bookIdNum)) {
+                alert("Invalid barcode.");
+                return;
+            }
+            setBookIdInput(barcode.trim());
+            const bookDetails = await borrowService.getBookDetails(bookIdNum);
+            setBookName(bookDetails.title);
+            setAvailableCopies((bookDetails.copiesNum - bookDetails.borrowedNum).toString());
+
+            if (member) {
+                try {
+                    const copy = await borrowService.getAvailableCopyById(bookIdNum, member.memberId);
+                    setCopyOfBook(copy);
+                } catch {
+                    setCopyOfBook({ bookId: bookIdNum, title: bookDetails.title });
+                }
+            } else {
+                setCopyOfBook({ bookId: bookIdNum, title: bookDetails.title });
+            }
         } catch (error) {
-            alert("The copy is not available.");
+            alert("The book or copy could not be found.");
             setCopyOfBook(null);
             setBookName('');
+            setAvailableCopies('');
         }
     };
 
     const handleCommitBorrow = async () => {
-        if (!member || !copyOfBook) return;
+        if (!member) {
+            alert("Please find or scan a member first.");
+            return;
+        }
+        if (!bookIdInput.trim()) {
+            alert("Please enter or scan a book ID.");
+            return;
+        }
 
         try {
+            const bookIdNum = parseInt(bookIdInput);
+            let targetCopy = copyOfBook;
+            if (!targetCopy || !targetCopy.copyId) {
+                targetCopy = await borrowService.getAvailableCopyById(bookIdNum, member.memberId);
+                setCopyOfBook(targetCopy);
+            }
+
             // Check for late books before borrowing
             const borrows = await borrowService.getMemberBorrows(member.memberId);
             const lateBooks = borrows.filter(b => new Date(b.returnDate) < new Date());
@@ -97,24 +161,31 @@ const BorrowBook: React.FC = () => {
                 return;
             }
 
+            const alreadyBorrowed = borrows.some(b => b.bookId === bookIdNum);
+            if (alreadyBorrowed) {
+                alert("The member has already borrowed a copy of this book.");
+                return;
+            }
+
             const librarianUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
 
             const payload = {
                 memberId: member.memberId,
-                bookCopyId: copyOfBook.copyId,
+                bookCopyId: targetCopy.copyId,
                 librarianId: librarianUser.librarianId || 101,
                 librarianName: librarianUser.fullName || "Librarian"
             };
 
             await borrowService.commitBorrow(payload);
 
-            await borrowService.addActivity({
+            await activityService.addActivity({
                 memberId: member.memberId,
-                activityType: "borrow",
-                entityId: copyOfBook.copyId
+                type: "BORROW",
+                affectedEntityId: targetCopy.copyId,
+                librarianId: librarianUser.librarianId
             });
 
-            alert("Book borrowed.");
+            alert("Book borrowed successfully.");
 
             // Reset state
             setMember(null); setMemberIdInput('');
@@ -124,58 +195,108 @@ const BorrowBook: React.FC = () => {
         }
     };
 
-    const baseBtn = "w-full whitespace-nowrap rounded-md px-4 py-3 text-base font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto";
+    const isReadyToBorrow = Boolean(member && bookIdInput.trim() && bookName);
 
     return (
-        <div className="flex min-h-screen flex-col items-center gap-5 p-4 font-sans sm:p-6 lg:p-8">
-            <h2 className="text-xl font-bold text-primary sm:text-2xl">Library member information</h2>
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 font-sans sm:px-8 sm:py-10">
+            <header className="border-b border-border-subtle pb-5">
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent-text">Circulation</p>
+                <h1 className="mt-2 text-3xl font-semibold tracking-tight text-primary">Borrow Book</h1>
+            </header>
 
-            <div className="flex w-full max-w-2xl flex-col gap-5 rounded-lg bg-surface p-4 shadow-sm sm:p-5">
-                <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-end sm:gap-5">
-                    <div className="flex min-w-0 flex-1 flex-col gap-1">
-                        <span className="text-base font-bold text-primary">Membership Number:</span>
-                        <input className="min-w-0 rounded-md border border-border px-3.5 py-3 text-base outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash sm:text-sm" value={memberIdInput} onChange={e => setMemberIdInput(e.target.value)} />
-                    </div>
-                    <button className={`${baseBtn} border border-border bg-surface text-primary can-hover:bg-surface-soft`} onClick={handleScanMemberCard}>Scan reader card</button>
-                </div>
-                <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-end sm:gap-5">
-                    <div className="flex min-w-0 flex-1 flex-col gap-1">
-                        <span className="text-base font-bold text-primary">Full Name:</span>
-                        <input className="min-w-0 rounded-md border border-border bg-surface-soft px-3.5 py-3 text-base text-secondary outline-none sm:text-sm" readOnly value={member?.fullName || ''} />
-                    </div>
-                    <button className={`${baseBtn} bg-accent-solid text-inverse can-hover:bg-accent-solid-hover`} onClick={handleFindMember}>Find member</button>
-                </div>
+            {/* Instruction Banner */}
+            <div className="flex items-center gap-3 rounded-xl border border-accent-border bg-accent-subtle p-4 text-sm text-primary">
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-accent-text" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="M12 16v-4M12 8h.01" />
+                </svg>
+                <span><strong>Instruction:</strong> Scan or enter a book ID to load book details, and enter or scan a member card to verify membership. Complete borrow when both are ready.</span>
             </div>
 
-            <hr className="w-full border-t border-border my-5" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                {/* Member Information Section */}
+                <section className="space-y-4 rounded-2xl border border-border-subtle bg-surface p-6 shadow-sm">
+                    <h2 className="text-lg font-semibold text-primary">1. Library member information</h2>
 
-            <h2 className="text-xl font-bold text-primary sm:text-2xl">Book information</h2>
+                    <FormField
+                        label="Membership Number"
+                        placeholder="Enter or scan membership ID"
+                        value={memberIdInput}
+                        onChange={e => setMemberIdInput(e.target.value)}
+                        labelClassName="text-sm font-semibold text-secondary"
+                        actionButton={
+                            <div className="flex gap-2">
+                                <Button variant="primary" onClick={handleFindMember}>
+                                    Find member
+                                </Button>
+                                <Button variant="secondary" onClick={handleScanMemberCard}>
+                                    Scan card
+                                </Button>
+                            </div>
+                        }
+                    />
 
-            <div className="flex w-full max-w-2xl flex-col gap-5 rounded-lg bg-surface p-4 shadow-sm sm:p-5">
-                <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-end sm:gap-5">
-                    <div className="flex min-w-0 flex-1 flex-col gap-1">
-                        <span className="text-base font-bold text-primary">Book ID:</span>
-                        <input className="min-w-0 rounded-md border border-border px-3.5 py-3 text-base outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash disabled:bg-surface-soft disabled:cursor-not-allowed sm:text-sm" value={bookIdInput} onChange={e => setBookIdInput(e.target.value)} disabled={!member} />
+                    <FormField
+                        label="Full Name"
+                        value={member?.fullName || ''}
+                        readOnly
+                        placeholder="Member name will appear here"
+                        labelClassName="text-sm font-semibold text-secondary"
+                    />
+                </section>
+
+                {/* Book Information Section */}
+                <section className="space-y-4 rounded-2xl border border-border-subtle bg-surface p-6 shadow-sm">
+                    <h2 className="text-lg font-semibold text-primary">2. Book information</h2>
+
+                    <FormField
+                        label="Book ID / Barcode"
+                        placeholder="Enter or scan book ID"
+                        value={bookIdInput}
+                        onChange={e => setBookIdInput(e.target.value)}
+                        labelClassName="text-sm font-semibold text-secondary"
+                        actionButton={
+                            <div className="flex gap-2">
+                                <Button variant="primary" onClick={handleFindBook}>
+                                    Find book
+                                </Button>
+                                <Button variant="secondary" onClick={handleScanBook}>
+                                    Scan book
+                                </Button>
+                            </div>
+                        }
+                    />
+
+                    <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+                        <FormField
+                            label="Book Title"
+                            value={bookName}
+                            readOnly
+                            placeholder="Book title"
+                            labelClassName="text-sm font-semibold text-secondary"
+                        />
+                        <FormField
+                            label="Available Copies"
+                            value={availableCopies}
+                            readOnly
+                            placeholder="0"
+                            labelClassName="text-sm font-semibold text-secondary"
+                        />
                     </div>
-                    <button className={`${baseBtn} border border-border bg-surface text-primary can-hover:bg-surface-soft`} onClick={handleScanBook} disabled={!member}>Scan book</button>
-                </div>
-                <div className="flex w-full flex-col gap-4 sm:flex-row sm:gap-5">
-                    <div className="flex min-w-0 flex-[2] flex-col gap-1">
-                        <span className="text-base font-bold text-primary">Book Name:</span>
-                        <input className="min-w-0 rounded-md border border-border bg-surface-soft px-3.5 py-3 text-base text-secondary outline-none sm:text-sm" readOnly value={bookName} />
-                    </div>
-                    <div className="flex min-w-0 flex-1 flex-col gap-1">
-                        <span className="text-base font-bold text-primary">Copies:</span>
-                        <input className="min-w-0 rounded-md border border-border bg-surface-soft px-3.5 py-3 text-base text-secondary outline-none sm:text-sm" readOnly value={availableCopies} />
-                    </div>
-                </div>
+                </section>
             </div>
 
-            <div className="mt-3 flex w-full max-w-2xl flex-col gap-3 sm:flex-row sm:gap-4">
-                <button className={`${baseBtn} border border-accent-border bg-surface text-accent-text can-hover:bg-accent-wash`} onClick={handleFindBook} disabled={!member || !bookIdInput}>Find book</button>
-                <button className={`${baseBtn} bg-accent-solid text-inverse can-hover:bg-accent-solid-hover`} onClick={handleCommitBorrow} disabled={!member || !copyOfBook}>
-                    Borrow book
-                </button>
+            {/* Commit Actions */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end rounded-2xl border border-border-subtle bg-surface p-6 shadow-sm">
+                <Button
+                    variant="primary"
+                    size="lg"
+                    className="w-full sm:w-auto px-8"
+                    onClick={handleCommitBorrow}
+                    disabled={!isReadyToBorrow}
+                >
+                    Complete borrow
+                </Button>
             </div>
         </div>
     );

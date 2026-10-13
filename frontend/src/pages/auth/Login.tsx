@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import type { LoginRole } from '../../types/enums';
 
-type ColorTheme = 'wood' | 'botanical' | 'coastal';
+type ColorTheme = 'wood' | 'botanical' | 'coastal' | 'clementine' | 'amethyst';
 
 const getColorTheme = (value: string | null): ColorTheme => {
-    return value === 'botanical' || value === 'coastal' ? value : 'wood';
+    return value === 'botanical' || value === 'coastal' || value === 'clementine' || value === 'amethyst' ? value : 'wood';
 };
 
 const Login: React.FC = () => {
@@ -40,7 +40,7 @@ const Login: React.FC = () => {
             } else {
                 const librarian = await authService.loginLibrarian(username, password);
                 alert(`Welcome back, ${librarian.fullName}!`);
-                navigate('/librarian-dashboard');
+                navigate('/home');
             }
         } catch (error: any) {
             if (error.response?.status === 401 || error.response?.status === 404) {
@@ -70,6 +70,8 @@ const Login: React.FC = () => {
                         <option value="wood">Timber (Wood)</option>
                         <option value="botanical">Oak (Botanical)</option>
                         <option value="coastal">Bay (Coastal)</option>
+                        <option value="clementine">Clementine (Citrus)</option>
+                        <option value="amethyst">Amethyst (Berry)</option>
                     </select>
                 </label>
             </div>
@@ -81,22 +83,42 @@ const Login: React.FC = () => {
                             Your library, wherever you are
                         </p>
                         <h1 className="text-4xl font-semibold tracking-tight text-primary sm:text-5xl">
-                            {colorTheme === 'botanical' ? 'Oak Library' : (colorTheme === 'coastal' ? 'Bay Library' : 'Timber Library')}
+                            {colorTheme === 'botanical' 
+                                ? 'Oak Library' 
+                                : colorTheme === 'coastal' 
+                                    ? 'Bay Library' 
+                                    : colorTheme === 'clementine' 
+                                        ? 'Citrus Library' 
+                                        : colorTheme === 'amethyst' 
+                                            ? 'Amethyst Library' 
+                                            : 'Timber Library'}
                         </h1>
                         <p className="mt-6 max-w-sm text-lg leading-8 text-muted">
                             Sign in to borrow books, manage your reading, and stay connected with your library.
                         </p>
                     </div>
 
-                    <div className="mt-12 border-t border-border-subtle pt-6">
-                        <p className="text-sm text-muted">Just browsing?</p>
-                        <button
-                            type="button"
-                            className="mt-2 text-sm font-semibold text-accent-text underline decoration-accent-text underline-offset-4 transition-colors can-hover:text-accent-text"
-                            onClick={() => navigate('/home')}
-                        >
-                            Continue as a guest
-                        </button>
+                    <div className="mt-12 border-t border-border-subtle pt-6 space-y-4">
+                        <div>
+                            <p className="text-sm text-muted">New to the library?</p>
+                            <button
+                                type="button"
+                                className="mt-1 text-sm font-semibold text-accent-text underline decoration-accent-text underline-offset-4 transition-colors can-hover:text-accent-text"
+                                onClick={() => navigate('/register')}
+                            >
+                                Create an account
+                            </button>
+                        </div>
+                        <div>
+                            <p className="text-sm text-muted">Just browsing?</p>
+                            <button
+                                type="button"
+                                className="mt-1 text-sm font-semibold text-accent-text underline decoration-accent-text underline-offset-4 transition-colors can-hover:text-accent-text"
+                                onClick={() => navigate('/home')}
+                            >
+                                Continue as a guest
+                            </button>
+                        </div>
                     </div>
                 </section>
 
@@ -148,7 +170,8 @@ const Login: React.FC = () => {
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     required
-                                    className="w-full border border-border-subtle bg-surface px-3.5 py-3 text-base text-primary outline-none transition focus:border-accent-border focus:ring-2 focus:ring-accent-wash"
+                                    className="w-full rounded-lg border border-border bg-input px-4 py-2.5 text-sm text-primary outline-none focus:border-accent-border focus:ring-1 focus:ring-accent-border"
+                                    placeholder="Enter your username"
                                 />
                             </div>
 
@@ -163,21 +186,22 @@ const Login: React.FC = () => {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    className="w-full border border-border-subtle bg-surface px-3.5 py-3 text-base text-primary outline-none transition focus:border-accent-border focus:ring-2 focus:ring-accent-wash"
+                                    className="w-full rounded-lg border border-border bg-input px-4 py-2.5 text-sm text-primary outline-none focus:border-accent-border focus:ring-1 focus:ring-accent-border"
+                                    placeholder="Enter your password"
                                 />
                             </div>
 
                             {errorMessage && (
-                                <div className="border-l-4 border-danger-border bg-danger-subtle px-3 py-2.5 text-sm text-danger-text" role="alert">
+                                <p className="rounded-lg border border-danger-border bg-danger-subtle p-3 text-sm text-danger-text" role="alert">
                                     {errorMessage}
-                                </div>
+                                </p>
                             )}
 
                             <button
                                 type="submit"
-                                className="w-full bg-accent-solid px-4 py-3 text-base font-semibold text-inverse transition-colors can-hover:bg-accent-solid-hover focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2"
+                                className="w-full rounded-lg bg-accent-solid px-6 py-3 text-sm font-bold text-inverse shadow-sm transition-opacity can-hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border"
                             >
-                                Sign in as {role.toLowerCase()}
+                                Sign in
                             </button>
                         </form>
                     </div>

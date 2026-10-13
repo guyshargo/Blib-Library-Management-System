@@ -33,7 +33,7 @@ public class Notification {
         MemberLogic memberLogic = new MemberLogic();
         Member sendToSub = memberLogic.fetchMemberById(book.getMemberId());
         //set the receiver email address
-        String to = sendToSub.getEmailAddress();
+        String to = sendToSub.getEmail();
         // Construct the email content
         String formattedReturnDate = returnDate.format(formatter);
         String emailContent = String.format(
@@ -55,9 +55,9 @@ public class Notification {
     public static void sendArrivedBookOrderReminderByEmail(OrderedBook book, LocalDate reservationExpiryDate) {
         // Get Member's information
         MemberLogic memberLogic = new MemberLogic();
-        Member sendToSub = memberLogic.fetchMemberById(book.getMembershipNumber());
+        Member sendToSub = memberLogic.fetchMemberById(book.getMemberId());
         // Set the receiver's email address
-        String to = sendToSub.getEmailAddress();
+        String to = sendToSub.getEmail();
         // Construct the email content
         String formattedExpiryDate = reservationExpiryDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
         String emailContent = String.format(
@@ -80,9 +80,9 @@ public class Notification {
     public static void sendCanceledBookOrderNotificationByEmail(OrderedBook book, LocalDate cancellationDate) {
         // Get Member's information
         MemberLogic memberLogic = new MemberLogic();
-        Member sendToSub = memberLogic.fetchMemberById(book.getMembershipNumber());
+        Member sendToSub = memberLogic.fetchMemberById(book.getMemberId());
         // Set the receiver's email address
-        String to = sendToSub.getEmailAddress();
+        String to = sendToSub.getEmail();
         // Construct the email content
         String formattedCancellationDate = cancellationDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
         String emailContent = String.format(

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { borrowService } from '../../services/borrowService';
 import { orderService } from '../../services/orderService';
+import { activityService } from '../../services/activityService';
 import type { BorrowedBook, Member, OrderedBook } from '../../types';
 
 const toLocalDate = (value: string) => {
@@ -109,10 +110,10 @@ const MyBooks: React.FC = () => {
             setFeedback({ kind: 'success', text: `"${selectedBook.title}" was extended by two weeks.` });
 
             try {
-                await borrowService.addActivity({
+                await activityService.addActivity({
                     memberId: member.memberId,
-                    activityType: 'extendBorrow',
-                    entityId: selectedBook.bookId,
+                    type: 'EXTEND',
+                    affectedEntityId: selectedBook.bookId,
                 });
             } catch (error) {
                 console.error('Extension succeeded, but its activity could not be recorded', error);
@@ -141,24 +142,22 @@ const MyBooks: React.FC = () => {
         setCancellingOrderId(selectedOrder.orderId);
         setFeedback(null);
         try {
-            const book = await orderService.getBookDetails(selectedOrder.bookId);
             await orderService.cancelOrder(selectedOrder.orderId, selectedOrder.bookId, selectedOrder.arrivalStatus);
             setSelectedOrderId(null);
             await loadOrders(member.memberId);
             setFeedback({ kind: 'success', text: `The order for "${selectedOrder.title}" was cancelled.` });
 
             try {
-                await orderService.updateOrderStatus(book.bookId, book.ordersNum, false);
-                await orderService.addActivity({
+                await activityService.addActivity({
                     memberId: member.memberId,
-                    activityType: 'cancelOrder',
-                    entityId: selectedOrder.bookId,
+                    type: 'CANCEL_ORDER',
+                    affectedEntityId: selectedOrder.bookId,
                 });
             } catch (error) {
-                console.error('Order cancelled, but follow-up data could not be updated', error);
+                console.error('Order cancelled, but its activity could not be recorded', error);
                 setFeedback({
                     kind: 'error',
-                    text: 'The order was cancelled, but its activity or book order count could not be updated.',
+                    text: 'The order was cancelled, but its activity could not be recorded.',
                 });
             }
         } catch (error) {

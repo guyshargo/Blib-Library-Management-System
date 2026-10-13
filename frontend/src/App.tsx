@@ -6,6 +6,7 @@ import Layout from './components/Layout';
 import Login from './pages/auth/Login';
 
 import LibraryExplorer from './pages/catalog/LibraryExplorer';
+import SearchCatalog from './pages/catalog/SearchCatalog';
 import BookDetails from './pages/catalog/BookDetails';
 import Genres from './pages/catalog/Genres';
 import Trending from './pages/catalog/Trending';
@@ -17,7 +18,6 @@ import MyBooks from './pages/member/MyBooks';
 import ReturnBook from './pages/librarian/ReturnBook';
 import ViewMember from './pages/librarian/ViewMember';
 import Reports from './pages/librarian/Reports';
-import LibrarianDashboard from './pages/librarian/LibrarianDashboard';
 import RegisterMember from './pages/librarian/RegisterMember';
 import ManageMember from './pages/librarian/ManageMember';
 import BorrowBook from './pages/librarian/BorrowBook';
@@ -39,12 +39,15 @@ function App() {
         {/* Standalone Gateway Windows */}
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<RegisterMember />} />
+        <Route path="/register-member" element={<Navigate to="/register" replace />} />
         <Route path="/login/member" element={<Navigate to="/login" replace />} />
         <Route path="/login/librarian" element={<Navigate to="/login" replace />} />
 
         {/* Core System Pages - Wrapped in Main Layout */}
         <Route element={<Layout />}>
             <Route path="/catalog" element={<LibraryExplorer />} />
+            <Route path="/search" element={<SearchCatalog />} />
             <Route path="/genres" element={<Genres />} />
             <Route path="/trending" element={<Trending />} />
             <Route path="/book-details" element={<BookDetails />} />
@@ -58,8 +61,7 @@ function App() {
             <Route path="/return-book" element={<ReturnBook />} />
             <Route path="/view-member" element={<ViewMember />} />
             <Route path="/reports" element={<Reports />} />
-            <Route path="/librarian-dashboard" element={<LibrarianDashboard />} />
-            <Route path="/register-member" element={<RegisterMember />} />
+            <Route path="/librarian-dashboard" element={<Navigate to="/home" replace />} />
             <Route path="/manage-members" element={<ManageMember />} />
             <Route path="/borrow-book" element={<BorrowBook />} />
             <Route path="/invoices" element={<Invoice />} />

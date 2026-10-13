@@ -261,8 +261,20 @@ public class BookLogic {
                     }
                     int numberOfOrders = resultSet.getInt("number_of_orders");
                     IsOrdered is_ordered = IsOrdered.valueOf(resultSet.getString("is_ordered").toUpperCase());
+                    String bookSummary = resultSet.getString("summary");
+                    String characters = resultSet.getString("characters");
+                    int pages = resultSet.getInt("pages");
+                    double orderPrice = resultSet.getDouble("order_price");
+                    double rating = resultSet.getDouble("rating");
+                    if (bookSummary == null) bookSummary = "";
 
-                    return new Book(title, author, genre, numberOfCopies, borrowedCopies, keywords, is_ordered, book_id, numberOfOrders);
+                    Book book = new Book(title, author, genre, numberOfCopies, borrowedCopies, keywords, is_ordered, book_id, numberOfOrders);
+                    book.setBookSummary(bookSummary);
+                    book.setCharacters(characters);
+                    book.setOrderPrice(orderPrice);
+                    book.setRating(rating);
+                    book.setPages(pages);
+                    return book;
                 }
             }
         } catch (SQLException e) {
