@@ -216,11 +216,11 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
                                 </div>
                                 <ul className="divide-y divide-border-subtle">
                                     {recentSearches.map(term => (
-                                        <li key={term}>
+                                        <li key={term} className="flex items-center justify-between px-4 py-2.5 transition-colors can-hover:bg-surface-soft">
                                             <button
                                                 type="button"
                                                 onClick={() => setQuery(term)}
-                                                className="flex w-full items-center gap-3 px-4 py-2.5 text-start text-sm text-primary transition-colors can-hover:bg-surface-soft"
+                                                className="flex min-w-0 flex-1 items-center gap-3 text-start text-sm text-primary"
                                             >
                                                 <svg
                                                     aria-hidden="true"
@@ -236,6 +236,30 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
                                                     <path d="M12 7v5l3 2" />
                                                 </svg>
                                                 <span className="truncate font-medium">{term}</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                aria-label={`Remove "${term}" from recent searches`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    const updated = recentSearches.filter(item => item !== term);
+                                                    setRecentSearches(updated);
+                                                    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+                                                }}
+                                                className="ml-2 rounded p-1 text-muted transition-colors can-hover:bg-surface-soft can-hover:text-primary"
+                                            >
+                                                <svg
+                                                    aria-hidden="true"
+                                                    viewBox="0 0 24 24"
+                                                    className="h-4 w-4"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                >
+                                                    <path d="M18 6 6 18M6 6l12 12" />
+                                                </svg>
                                             </button>
                                         </li>
                                     ))}

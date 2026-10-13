@@ -40,7 +40,7 @@ const Login: React.FC = () => {
             } else {
                 const librarian = await authService.loginLibrarian(username, password);
                 alert(`Welcome back, ${librarian.fullName}!`);
-                navigate('/librarian-dashboard');
+                navigate('/home');
             }
         } catch (error: any) {
             if (error.response?.status === 401 || error.response?.status === 404) {

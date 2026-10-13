@@ -18,7 +18,6 @@ import MyBooks from './pages/member/MyBooks';
 import ReturnBook from './pages/librarian/ReturnBook';
 import ViewMember from './pages/librarian/ViewMember';
 import Reports from './pages/librarian/Reports';
-import LibrarianDashboard from './pages/librarian/LibrarianDashboard';
 import RegisterMember from './pages/librarian/RegisterMember';
 import ManageMember from './pages/librarian/ManageMember';
 import BorrowBook from './pages/librarian/BorrowBook';
@@ -60,7 +59,7 @@ function App() {
             <Route path="/return-book" element={<ReturnBook />} />
             <Route path="/view-member" element={<ViewMember />} />
             <Route path="/reports" element={<Reports />} />
-            <Route path="/librarian-dashboard" element={<LibrarianDashboard />} />
+            <Route path="/librarian-dashboard" element={<Navigate to="/home" replace />} />
             <Route path="/register-member" element={<RegisterMember />} />
             <Route path="/manage-members" element={<ManageMember />} />
             <Route path="/borrow-book" element={<BorrowBook />} />

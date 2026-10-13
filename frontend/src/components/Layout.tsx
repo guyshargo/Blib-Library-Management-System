@@ -4,11 +4,10 @@ import { authService } from '../services/authService';
 import SearchModal from './SearchModal';
 
 type ColorTheme = 'wood' | 'botanical' | 'coastal';
-type BrowseIconName = 'dashboard' | 'memberList' | 'addMember' | 'borrow' | 'return' | 'reports' | 'invoice' | 'catalog' | 'genres' | 'trending';
+type BrowseIconName = 'memberList' | 'addMember' | 'borrow' | 'return' | 'reports' | 'invoice' | 'catalog' | 'genres' | 'trending';
 
 const BrowseLinkIcon: React.FC<{ name: BrowseIconName }> = ({ name }) => (
     <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        {name === 'dashboard' && <><rect x="4" y="4" width="6" height="6" rx="1" /><rect x="14" y="4" width="6" height="6" rx="1" /><rect x="4" y="14" width="6" height="6" rx="1" /><rect x="14" y="14" width="6" height="6" rx="1" /></>}
         {name === 'memberList' && <><path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20" /><circle cx="10" cy="8" r="3.5" /><path d="M17 11a3 3 0 1 0 0-6m3 15v-1.5a3.5 3.5 0 0 0-2.5-3.35" /></>}
         {name === 'addMember' && <><circle cx="9" cy="8" r="3.5" /><path d="M3 20v-1.5A3.5 3.5 0 0 1 6.5 15h5a3.5 3.5 0 0 1 3.5 3.5V20M19 8v6m-3-3h6" /></>}
         {name === 'borrow' && <><path d="M5 4.5h11a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3z" /><path d="M8 20a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3m4 4h4m-4 4h4" /><path d="m16 14 2 2 3-3" /></>}
@@ -96,7 +95,6 @@ const Layout: React.FC = () => {
     const isLibrarian = userType === 'LIBRARIAN';
     const browseLinks = isLibrarian
         ? [
-            { path: '/librarian-dashboard', label: 'Dashboard', description: 'Overview of library operations', icon: 'dashboard' as const },
             { path: '/manage-members', label: 'Manage Members', description: 'Search and view member profiles', icon: 'memberList' as const },
             { path: '/register-member', label: 'Register Member', description: 'Create a new member account', icon: 'addMember' as const },
             { path: '/borrow-book', label: 'Borrow Book', description: 'Issue a book copy to a member', icon: 'borrow' as const },
@@ -256,6 +254,21 @@ const Layout: React.FC = () => {
                                 <path d="m21 21-4.3-4.3" />
                             </svg>
                         </button>
+
+                        {user && (
+                            <button
+                                type="button"
+                                aria-label="Mailbox / Invoices"
+                                onClick={() => navigate('/invoices')}
+                                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-secondary transition-colors can-hover:bg-surface-soft can-hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border"
+                                title="Mailbox / Messages"
+                            >
+                                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                    <path d="m22 6-10 7L2 6" />
+                                </svg>
+                            </button>
+                        )}
 
                         {user && (
                             <button className="flex shrink-0 items-center gap-3 rounded-full px-3 py-1 can-hover:bg-accent-wash" onClick={() => navigate('/personal-info')}>

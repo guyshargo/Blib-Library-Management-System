@@ -190,6 +190,8 @@ public class OrderLogic {
             ps.setString(7, ArrivalStatus.NOT_ARRIVED.name());
             ps.executeUpdate(); 
             
+            bookLogic.changeBookOrderStatus(bookId, book.getNumberOforders(), true);
+
             return "approve";
         } catch (SQLException e) {
             e.printStackTrace();

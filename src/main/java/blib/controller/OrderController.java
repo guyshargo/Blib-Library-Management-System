@@ -48,13 +48,16 @@ public class OrderController {
     // cancel a book order
     @DeleteMapping("/{orderId}")
     public ResponseEntity<String> cancelOrder(@PathVariable int orderId, @RequestParam int bookId, @RequestParam ArrivalStatus arrivalStatus){
+        blib.model.Book book = bookLogic.fetchBook(bookId);
         boolean isCanceled = orderLogic.cancelOrder(orderId);
 
-        if(isCanceled && arrivalStatus == ArrivalStatus.ARRIVED){
-            orderLogic.changeArrivalStatus(bookId);
-        }
-
         if(isCanceled){
+            if (book != null && book.getNumberOforders() > 0) {
+                bookLogic.changeBookOrderStatus(bookId, book.getNumberOforders(), false);
+            }
+            if(arrivalStatus == ArrivalStatus.ARRIVED){
+                orderLogic.changeArrivalStatus(bookId);
+            }
             return ResponseEntity.ok("Order successfully canceled.");
         }
         return ResponseEntity.badRequest().body("Failed to cancel order.");

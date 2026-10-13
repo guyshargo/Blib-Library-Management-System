@@ -151,6 +151,7 @@ public class BorrowController {
                 BookCopy delBookCopyId = bookLogic.findCopyOfBook(copyOfBookId);
                 delBookCopyId.setBorrowStatus(BorrowStatus.NOT_BORROWED);
                 bookLogic.changeBookCopyBorrowStatus(delBookCopyId);
+                bookLogic.decreaseBorrowedCopies(book.getBookId());
 
                 reportLogic.updateBorrowTracking(new BorrowTracking(LocalDate.now(), -1, 0));
                 reportLogic.updateActualReturnDate(memberId, copyOfBookId, book.getBorrowDate(), LocalDate.now());
