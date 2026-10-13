@@ -24,6 +24,12 @@ public class ActivityController {
         return ResponseEntity.ok(activityList);
     }
 
+    @GetMapping("/librarian/{librarianId}")
+    public ResponseEntity<List<Activity>> getLibrarianActivities(@PathVariable int librarianId) {
+        List<Activity> activityList = activityLogic.fetchAllActivitiesForLibrarian(librarianId);
+        return ResponseEntity.ok(activityList);
+    }
+
     @PostMapping("/")
     public ResponseEntity<String> addActivity(@RequestBody ActivityRequest request) {
         try {
@@ -31,7 +37,8 @@ public class ActivityController {
                     request.getMemberId(),
                     request.getType(),
                     request.getAffectedEntityId(),
-                    LocalDateTime.now()
+                    LocalDateTime.now(),
+                    request.getLibrarianId()
             );
 
             boolean isAdded = activityLogic.addActivity(activity);

@@ -27,6 +27,7 @@ CREATE TABLE `activities` (
   `activity_name` enum('DEFAULT','BORROW','RETURN','FREEZE_STATUS','EXTEND','ORDER','CANCEL_ORDER','REGISTRATION','LATE_BOOK_RETURN') NOT NULL DEFAULT 'DEFAULT',
   `affected_entity_id` int DEFAULT NULL,
   `activity_date` datetime NOT NULL,
+  `librarian_id` int DEFAULT NULL,
   PRIMARY KEY (`activity_name`,`member_id`,`activity_date`),
   KEY `fk_activities_member_id_idx` (`member_id`),
   CONSTRAINT `fk_activities_member_id` FOREIGN KEY (`member_id`) REFERENCES `members` (`member_id`)
@@ -39,7 +40,7 @@ CREATE TABLE `activities` (
 
 LOCK TABLES `activities` WRITE;
 /*!40000 ALTER TABLE `activities` DISABLE KEYS */;
-INSERT INTO `activities` VALUES (101,'BORROW',1,'2026-09-01 18:22:27'),(101,'BORROW',7,'2026-09-01 18:22:34'),(103,'BORROW',4,'2026-09-11 18:22:54'),(104,'BORROW',7,'2026-09-05 18:22:38'),(104,'BORROW',10,'2026-09-15 21:57:31'),(104,'BORROW',6,'2026-09-26 20:21:43'),(104,'BORROW',10,'2026-09-27 00:10:41'),(105,'BORROW',3,'2026-09-11 18:22:46'),(108,'BORROW',1,'2026-09-21 18:23:09'),(109,'BORROW',6,'2026-09-20 18:23:01'),(109,'BORROW',9,'2026-09-28 01:25:21'),(101,'RETURN',1,'2026-09-15 18:28:03'),(104,'RETURN',7,'2026-09-19 18:28:27'),(109,'RETURN',6,'2026-09-28 01:22:40'),(101,'FREEZE_STATUS',101,'2026-09-23 19:25:10'),(107,'FREEZE_STATUS',107,'2026-09-26 20:04:08'),(102,'ORDER',10,'2026-09-27 00:12:02'),(103,'ORDER',10,'2026-09-27 00:13:23'),(104,'ORDER',10,'2026-09-27 00:15:30'),(104,'ORDER',10,'2026-10-11 21:16:59'),(104,'ORDER',10,'2026-10-12 16:41:42'),(105,'ORDER',10,'2026-09-27 00:11:29'),(105,'ORDER',6,'2026-09-28 01:17:23'),(102,'CANCEL_ORDER',10,'2026-09-27 00:13:05'),(104,'CANCEL_ORDER',10,'2026-10-11 21:17:08'),(104,'CANCEL_ORDER',10,'2026-10-12 16:24:24'),(105,'CANCEL_ORDER',10,'2026-09-27 00:15:13'),(110,'REGISTRATION',110,'2026-09-07 20:03:05'),(101,'LATE_BOOK_RETURN',7,'2026-09-24 18:28:06'),(103,'LATE_BOOK_RETURN',4,'2026-09-26 18:28:14'),(105,'LATE_BOOK_RETURN',3,'2026-09-26 18:28:36');
+INSERT INTO `activities` VALUES (101,'BORROW',1,'2026-09-01 18:22:27',1),(101,'BORROW',7,'2026-09-01 18:22:34',1),(103,'BORROW',4,'2026-09-11 18:22:54',1),(104,'BORROW',7,'2026-09-05 18:22:38',1),(104,'BORROW',10,'2026-09-15 21:57:31',1),(104,'BORROW',6,'2026-09-26 20:21:43',1),(104,'BORROW',10,'2026-09-27 00:10:41',1),(105,'BORROW',3,'2026-09-11 18:22:46',1),(108,'BORROW',1,'2026-09-21 18:23:09',1),(109,'BORROW',6,'2026-09-20 18:23:01',1),(109,'BORROW',9,'2026-09-28 01:25:21',1),(101,'RETURN',1,'2026-09-15 18:28:03',1),(104,'RETURN',7,'2026-09-19 18:28:27',1),(109,'RETURN',6,'2026-09-28 01:22:40',1),(101,'FREEZE_STATUS',101,'2026-09-23 19:25:10',1),(107,'FREEZE_STATUS',107,'2026-09-26 20:04:08',1),(102,'ORDER',10,'2026-09-27 00:12:02',NULL),(103,'ORDER',10,'2026-09-27 00:13:23',NULL),(104,'ORDER',10,'2026-09-27 00:15:30',NULL),(104,'ORDER',10,'2026-10-11 21:16:59',NULL),(104,'ORDER',10,'2026-10-12 16:41:42',NULL),(105,'ORDER',10,'2026-09-27 00:11:29',NULL),(105,'ORDER',6,'2026-09-28 01:17:23',NULL),(102,'CANCEL_ORDER',10,'2026-09-27 00:13:05',NULL),(104,'CANCEL_ORDER',10,'2026-10-11 21:17:08',NULL),(104,'CANCEL_ORDER',10,'2026-10-12 16:24:24',NULL),(105,'CANCEL_ORDER',10,'2026-09-27 00:15:13',NULL),(104,'REGISTRATION',104,'2026-09-01 10:00:00',1),(110,'REGISTRATION',110,'2026-09-07 20:03:05',1),(101,'LATE_BOOK_RETURN',7,'2026-09-24 18:28:06',1),(103,'LATE_BOOK_RETURN',4,'2026-09-26 18:28:14',1),(105,'LATE_BOOK_RETURN',3,'2026-09-26 18:28:36',1);
 /*!40000 ALTER TABLE `activities` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -324,7 +325,7 @@ CREATE TABLE `members` (
 
 LOCK TABLES `members` WRITE;
 /*!40000 ALTER TABLE `members` DISABLE KEYS */;
-INSERT INTO `members` VALUES (101,'Omri Spitzer','omrisimo1','123','Frozen','2026-09-23','omrisimo1@gmail.com','0587577241','MTAxfE9tcmkgU3BpdHplcg==',0),(102,'Stav Avraham','stav1','123','NotFrozen',NULL,'stav.a2008@gmail.com','0522222222','MTAyfFN0YXYgQXZyYWhhbQ==',0),(103,'Yarden Nahum','yarden','123','NotFrozen',NULL,'yardennahum2@gmail.com','0526532245','MTAzfFlhcmRlbiBOYWh1bQ==',0),(104,'Guy Shargorodsky','guy','123','NotFrozen',NULL,'shargo501@gmail.com','05000000000','MTA0fEd1eSBTaGFyZ29kc2t5',0),(105,'Adan Ibrahim','adan','123','NotFrozen',NULL,'adan@gmail.com','0544444444','MTA1fEFkYW4gSWJyYWhpbQ==',0),(106,'David Smith','david','123','NotFrozen',NULL,'david.smith@gmail.com','0577777777','MTA2fERhdmlkIFNtaXRo',0),(107,'Michelle Davis','michelle1','123','NotFrozen','2026-09-03','michelle1@gmail.com','0566666666','MTA3fE1pY2hlbGxlIERhdmlz',0),(108,'Nir Levi','nir','123','NotFrozen',NULL,'nir.levi@gmail.com','0599999999','MTA4fE5pciBMZXZp',0),(109,'Shahar Dov','Shahar','123','NotFrozen',NULL,'shahar@gmail.com','02022222','MTIzNHxzaHVoaQ==',0),(110,'Tony Curtis','tony','123','NotFrozen',NULL,'tony@gmail.com','0540587245','MTEwfFRvbnkgQ3VydGlz',0);
+INSERT INTO `members` VALUES (101,'Omri Spitzer','omrisimo1','123','Frozen','2026-09-23','omrisimo1@gmail.com','0587577241','MTAxfE9tcmkgU3BpdHplcg==',0),(102,'Stav Avraham','stav1','123','NotFrozen',NULL,'stav.a2008@gmail.com','0522222222','MTAyfFN0YXYgQXZyYWhhbQ==',0),(103,'Yarden Nahum','yarden','123','NotFrozen',NULL,'yardennahum2@gmail.com','0526532245','MTAzfFlhcmRlbiBOYWh1bQ==',0),(104,'Guy Shargorodsky','guy','123','NotFrozen',NULL,'shargo501@gmail.com','05000000000','MTA0fEd1eSBTaGFyZ29kc2t5',1),(105,'Adan Ibrahim','adan','123','NotFrozen',NULL,'adan@gmail.com','0544444444','MTA1fEFkYW4gSWJyYWhpbQ==',0),(106,'David Smith','david','123','NotFrozen',NULL,'david.smith@gmail.com','0577777777','MTA2fERhdmlkIFNtaXRo',0),(107,'Michelle Davis','michelle1','123','NotFrozen','2026-09-03','michelle1@gmail.com','0566666666','MTA3fE1pY2hlbGxlIERhdmlz',0),(108,'Nir Levi','nir','123','NotFrozen',NULL,'nir.levi@gmail.com','0599999999','MTA4fE5pciBMZXZp',0),(109,'Shahar Dov','Shahar','123','NotFrozen',NULL,'shahar@gmail.com','02022222','MTIzNHxzaHVoaQ==',0),(110,'Tony Curtis','tony','123','NotFrozen',NULL,'tony@gmail.com','0540587245','MTEwfFRvbnkgQ3VydGlz',0);
 /*!40000 ALTER TABLE `members` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -456,4 +457,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-12 19:15:27
+-- Dump completed on 2026-10-13 22:31:10

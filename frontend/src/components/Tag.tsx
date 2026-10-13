@@ -1,8 +1,10 @@
 import React from 'react';
 
+export type TagVariant = 'character' | 'topic' | 'info' | 'success' | 'warning' | 'danger' | 'accent';
+
 interface TagProps {
     label: string;
-    variant?: 'character' | 'topic' | 'info' | 'success' | 'warning' | 'danger' | 'accent';
+    variant?: TagVariant;
     icon?: React.ReactNode;
     onClick?: () => void;
 }

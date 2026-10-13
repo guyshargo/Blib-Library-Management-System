@@ -1,27 +1,15 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services/authService';
 import SearchModal from './SearchModal';
+import DropdownOption from './DropdownOption';
+import BrowseIcon from './BrowseIcon';
+import { librarianLinks, memberLinks } from '../config/navigationConfig';
 
-type ColorTheme = 'wood' | 'botanical' | 'coastal';
-type BrowseIconName = 'memberList' | 'addMember' | 'borrow' | 'return' | 'reports' | 'invoice' | 'catalog' | 'genres' | 'trending';
-
-const BrowseLinkIcon: React.FC<{ name: BrowseIconName }> = ({ name }) => (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        {name === 'memberList' && <><path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20" /><circle cx="10" cy="8" r="3.5" /><path d="M17 11a3 3 0 1 0 0-6m3 15v-1.5a3.5 3.5 0 0 0-2.5-3.35" /></>}
-        {name === 'addMember' && <><circle cx="9" cy="8" r="3.5" /><path d="M3 20v-1.5A3.5 3.5 0 0 1 6.5 15h5a3.5 3.5 0 0 1 3.5 3.5V20M19 8v6m-3-3h6" /></>}
-        {name === 'borrow' && <><path d="M5 4.5h11a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3z" /><path d="M8 20a3 3 0 0 1-3-3V7.5a3 3 0 0 1 3-3m4 4h4m-4 4h4" /><path d="m16 14 2 2 3-3" /></>}
-        {name === 'return' && <><path d="M9 7 4 12l5 5" /><path d="M4 12h10a5 5 0 0 1 5 5v2" /></>}
-        {name === 'reports' && <><path d="M4 20V11m5 9V5m5 15v-7m5 7V8" /></>}
-        {name === 'invoice' && <><path d="M6 3.5h9l4 4V20H6z" /><path d="M14.5 3.5V8H19M9 12h7m-7 4h7" /></>}
-        {name === 'catalog' && <><circle cx="12" cy="12" r="8.5" /><path d="m15.8 8.2-2.5 5.1-5.1 2.5 2.5-5.1z" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2" /></>}
-        {name === 'genres' && <><path d="m6 18 7.5-7.5" /><path d="m12.5 4 .8 2.2L15.5 7l-2.2.8-.8 2.2-.8-2.2L9.5 7l2.2-.8z" /><path d="m18 12 .6 1.4L20 14l-1.4.6L18 16l-.6-1.4L16 14l1.4-.6z" /><path d="m5 5 .5 1.5L7 7l-1.5.5L5 9l-.5-1.5L3 7l1.5-.5z" /></>}
-        {name === 'trending' && <><path d="M4 18 10 12l4 3 6-8" /><path d="M14 7h6v6" /></>}
-    </svg>
-);
+type ColorTheme = 'wood' | 'botanical' | 'coastal' | 'clementine' | 'amethyst';
 
 const getColorTheme = (value: string | null): ColorTheme => {
-    return value === 'botanical' || value === 'coastal' ? value : 'wood';
+    return value === 'botanical' || value === 'coastal' || value === 'clementine' || value === 'amethyst' ? value : 'wood';
 };
 
 const Layout: React.FC = () => {
@@ -31,6 +19,7 @@ const Layout: React.FC = () => {
     const browseMenuRef = useRef<HTMLDivElement>(null);
     const [browseOpen, setBrowseOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const userStr = localStorage.getItem('currentUser');
     const userType = localStorage.getItem('userType');
@@ -51,7 +40,6 @@ const Layout: React.FC = () => {
 
             if (currentStr && currentType) {
                 const currentUser = JSON.parse(currentStr);
-
                 const endpoint = currentType === 'LIBRARIAN' 
                     ? `/librarians/${currentUser.librarianId}/login-status`
                     : `/members/${currentUser.memberId}/login-status`;
@@ -93,30 +81,17 @@ const Layout: React.FC = () => {
     };
 
     const isLibrarian = userType === 'LIBRARIAN';
-    const browseLinks = isLibrarian
-        ? [
-            { path: '/manage-members', label: 'Manage Members', description: 'Search and view member profiles', icon: 'memberList' as const },
-            { path: '/register-member', label: 'Register Member', description: 'Create a new member account', icon: 'addMember' as const },
-            { path: '/borrow-book', label: 'Borrow Book', description: 'Issue a book copy to a member', icon: 'borrow' as const },
-            { path: '/return-book', label: 'Return Book', description: 'Process returned book copies', icon: 'return' as const },
-            { path: '/reports', label: 'Reports', description: 'View monthly analytics and charts', icon: 'reports' as const },
-            { path: '/invoices', label: 'Invoices', description: 'Review system messages and logs', icon: 'invoice' as const }
-          ]
-        : [
-            { path: '/genres', label: 'Genres', description: 'Browse different genres', icon: 'genres' as const },
-            { path: '/trending', label: 'Trending', description: 'Most popular right now', icon: 'trending' as const },
-            { path: '/catalog', label: 'Library Explorer', description: 'Browse the virtual shelves', icon: 'catalog' as const }
-          ];
-    const navItemClass = 'nav-item flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-base font-semibold text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border';
+    const browseLinks = isLibrarian ? librarianLinks : memberLinks;
+    const headerButtonClass = 'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-lg border border-border-subtle bg-surface px-3.5 py-2 text-sm font-semibold text-primary shadow-sm transition-colors can-hover:bg-surface-soft can-hover:border-accent-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border';
 
     return (
         <div className="flex min-h-screen flex-col bg-page font-sans">
             {/* TOP HEADER WITH THEME PICKER */}
-            <header className="flex items-center justify-between bg-header px-6 py-2.5 text-white sm:px-8">
-                <span className="text-xs font-semibold tracking-wider uppercase opacity-90">
+            <header className="flex items-center justify-between bg-header px-4 py-2.5 text-white sm:px-8">
+                <span className="text-xs font-semibold tracking-wider uppercase opacity-90 truncate">
                     Blib Library System
                 </span>
-                <label className="flex items-center gap-2 text-xs font-semibold text-white cursor-pointer">
+                <label className="flex items-center gap-2 text-xs font-semibold text-white cursor-pointer shrink-0">
                     <span>Theme</span>
                     <select
                         aria-label="Color theme"
@@ -127,18 +102,21 @@ const Layout: React.FC = () => {
                         <option value="wood" className="bg-slate-900 text-white">Timber (Wood)</option>
                         <option value="botanical" className="bg-slate-900 text-white">Oak (Botanical)</option>
                         <option value="coastal" className="bg-slate-900 text-white">Bay (Coastal)</option>
+                        <option value="clementine" className="bg-slate-900 text-white">Clementine (Citrus)</option>
+                        <option value="amethyst" className="bg-slate-900 text-white">Amethyst (Berry)</option>
                     </select>
                 </label>
             </header>
 
             {/* HORIZONTAL NAV BAR */}
             <nav className="bg-transparent px-4 pt-4 sm:px-8">
-                <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-x-4">
-                    <div className="flex min-w-0 items-center gap-x-4">
-                        <button className="shrink-0 whitespace-nowrap font-extrabold text-[24px] text-primary flex items-center gap-2.5" onClick={() => navigate('/home')}>
+                <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-x-6">
+                    {/* Left Group: Logo + Desktop Nav Items (My Books, Browse) */}
+                    <div className="flex items-center justify-between gap-x-6 lg:justify-start">
+                        <button className="shrink-0 whitespace-nowrap font-extrabold text-[20px] sm:text-[24px] text-primary flex items-center gap-2.5" onClick={() => navigate('/home')}>
                             {colorTheme === 'botanical' && (
                                 <>
-                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-7 w-7 text-accent-text shrink-0" fill="currentColor">
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7 text-accent-text shrink-0" fill="currentColor">
                                         <path d="M17.5 3C14 3 10.5 5 8.5 8c-3 1.5-5 4.5-5 8 0 2.5 1.5 4 4 4 3.5 0 6.5-2 8-5 3-2 5-5.5 5-9 0-1.5-.5-3-1-4-.5-.5-1.5-1-2-1zm-9 14c-1.1 0-2-.9-2-2 0-.3.1-.6.3-.8L12 9.5l2.5 2.5-5.2 5.2c-.2.2-.5.3-.8.3z" />
                                     </svg>
                                     <span>Oak Library</span>
@@ -146,7 +124,7 @@ const Layout: React.FC = () => {
                             )}
                             {colorTheme === 'coastal' && (
                                 <>
-                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-7 w-7 text-accent-text shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7 text-accent-text shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M2 12c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 7.5 0" />
                                         <path d="M2 16c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 7.5 0" />
                                         <path d="M12 2v6" />
@@ -156,88 +134,127 @@ const Layout: React.FC = () => {
                             )}
                             {colorTheme === 'wood' && (
                                 <>
-                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-7 w-7 text-accent-text shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7 text-accent-text shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                         <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
                                         <path d="M6 6h12M6 10h12" />
                                     </svg>
                                     <span>Timber Library</span>
                                 </>
                             )}
-                        </button>
-                    {!isLibrarian && (
-                        <button
-                            className={navItemClass}
-                            onClick={() => navigate('/my-books')}
-                        >
-                            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round">
-                                <path d="M6.5 4.75h11v15l-5.5-3.5-5.5 3.5z" />
-                            </svg>
-                            My Books
-                        </button>
-                    )}
-
-                    <div className="relative" ref={browseMenuRef}>
-                        <button
-                            type="button"
-                            aria-haspopup="menu"
-                            aria-expanded={browseOpen}
-                            className={navItemClass}
-                            onClick={() => setBrowseOpen(open => !open)}
-                        >
-                            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M3 5.5c3.4-.9 6.5-.3 9 1.6v13c-2.5-1.9-5.6-2.5-9-1.6z" />
-                                <path d="M21 5.5c-3.4-.9-6.5-.3-9 1.6v13c2.5-1.9 5.6-2.5 9-1.6z" />
-                                <path d="M12 7.1v13M5.5 9.2c1.8-.3 3.4 0 4.8.7m8.2-.7c-1.8-.3-3.4 0-4.8.7M5.5 12c1.8-.3 3.4 0 4.8.7m8.2-.7c-1.8-.3-3.4 0-4.8.7" />
-                            </svg>
-                            Browse
-                            <svg aria-hidden="true" viewBox="0 0 20 20" className={`h-3.5 w-3.5 transition-transform ${browseOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="1.8">
-                                <path d="m5 7.5 5 5 5-5" />
-                            </svg>
+                            {colorTheme === 'clementine' && (
+                                <>
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7 text-accent-text shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="12" cy="12" r="9" />
+                                        <path d="M12 3v3M12 12l4-4" />
+                                    </svg>
+                                    <span>Citrus Library</span>
+                                </>
+                            )}
+                            {colorTheme === 'amethyst' && (
+                                <>
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7 text-accent-text shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M6 3h12l4 6-10 12L2 9z" />
+                                        <path d="M2 9h20M12 21L9 9M12 21l3-12" />
+                                    </svg>
+                                    <span>Amethyst Library</span>
+                                </>
+                            )}
                         </button>
 
-                        {browseOpen && (
-                            <div className="absolute start-0 top-full z-20 mt-1 w-64 border border-border-subtle bg-surface py-2 shadow-[0_8px_24px_rgba(var(--color-shadow),0.16)]" role="menu" aria-label="Browse pages">
-                                {browseLinks.map(link => {
-                                    const isActive = Boolean(link.path) && location.pathname.startsWith(link.path);
-                                    return (
-                                        <button
-                                            key={link.path}
-                                            role="menuitem"
-                                            className={`flex w-full items-center gap-3 px-4 py-2.5 text-start text-sm transition-colors ${
-                                                isActive
-                                                    ? 'bg-accent-subtle font-semibold text-primary'
-                                                    : 'text-secondary can-hover:bg-surface-soft can-hover:text-primary'
-                                            }`}
-                                            onClick={() => {
-                                                setBrowseOpen(false);
-                                                navigate(link.path);
-                                            }}
-                                        >
-                                            <span className="flex h-9 w-9 flex-none items-center justify-center rounded-md bg-surface-soft text-accent-text">
-                                                <BrowseLinkIcon name={link.icon} />
-                                            </span>
-                                            <span className="flex min-w-0 flex-col">
-                                                <span className="text-sm font-semibold leading-tight text-primary">
-                                                    {link.label}
-                                                </span>
-                                                <span className="mt-0.5 text-xs font-normal leading-snug text-muted">
-                                                    {link.description}
-                                                </span>
-                                            </span>
-                                        </button>
-                                    );
-                                })}
+                        {/* Desktop Nav Items Group (My Books & Browse) */}
+                        <div className="hidden lg:flex items-center gap-x-3">
+                            {!isLibrarian && (
+                                <button
+                                    className={headerButtonClass}
+                                    onClick={() => navigate('/my-books')}
+                                >
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 text-secondary" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round">
+                                        <path d="M6.5 4.75h11v15l-5.5-3.5-5.5 3.5z" />
+                                    </svg>
+                                    My Books
+                                </button>
+                            )}
+
+                            <div className="relative" ref={browseMenuRef}>
+                                <button
+                                    type="button"
+                                    aria-haspopup="menu"
+                                    aria-expanded={browseOpen}
+                                    className={headerButtonClass}
+                                    onClick={() => setBrowseOpen(open => !open)}
+                                >
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 text-secondary" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M3 5.5c3.4-.9 6.5-.3 9 1.6v13c-2.5-1.9-5.6-2.5-9-1.6z" />
+                                        <path d="M21 5.5c-3.4-.9-6.5-.3-9 1.6v13c2.5-1.9 5.6-2.5 9-1.6z" />
+                                        <path d="M12 7.1v13M5.5 9.2c1.8-.3 3.4 0 4.8.7m8.2-.7c-1.8-.3-3.4 0-4.8.7M5.5 12c1.8-.3 3.4 0 4.8.7m8.2-.7c-1.8-.3-3.4 0-4.8.7" />
+                                    </svg>
+                                    Browse
+                                    <svg aria-hidden="true" viewBox="0 0 20 20" className={`h-3.5 w-3.5 text-secondary transition-transform ${browseOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="1.8">
+                                        <path d="m5 7.5 5 5 5-5" />
+                                    </svg>
+                                </button>
+
+                                {browseOpen && (
+                                    <div className="absolute start-0 top-full z-20 mt-1 w-64 border border-border-subtle bg-surface py-2 shadow-[0_8px_24px_rgba(var(--color-shadow),0.16)]" role="menu" aria-label="Browse pages">
+                                        {browseLinks.map(link => {
+                                            const isActive = Boolean(link.path) && location.pathname.startsWith(link.path);
+                                            return (
+                                                <DropdownOption
+                                                    key={link.path}
+                                                    label={link.label}
+                                                    description={link.description}
+                                                    icon={<BrowseIcon name={link.icon} />}
+                                                    isActive={isActive}
+                                                    onClick={() => {
+                                                        setBrowseOpen(false);
+                                                        navigate(link.path);
+                                                    }}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
+
+                        {/* Mobile right controls: Search trigger + Hamburger */}
+                        <div className="flex items-center gap-2 lg:hidden">
+                            <button
+                                type="button"
+                                onClick={() => setSearchOpen(true)}
+                                aria-label="Search books and authors"
+                                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-secondary transition-colors can-hover:border-accent-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border"
+                            >
+                                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 text-muted" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <path d="m21 21-4.3-4.3" />
+                                </svg>
+                            </button>
+
+                            <button
+                                type="button"
+                                aria-label="Toggle navigation menu"
+                                aria-expanded={mobileMenuOpen}
+                                onClick={() => setMobileMenuOpen(open => !open)}
+                                className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-surface text-primary transition-colors can-hover:bg-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border"
+                            >
+                                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    {mobileMenuOpen ? (
+                                        <path d="M18 6L6 18M6 6l12 12" />
+                                    ) : (
+                                        <path d="M4 6h16M4 12h16M4 18h16" />
+                                    )}
+                                </svg>
+                            </button>
+                        </div>
                     </div>
 
-                    </div>
-
-                    <div className="flex shrink-0 items-center gap-3">
+                    {/* Desktop Right Actions */}
+                    <div className="hidden lg:flex shrink-0 items-center gap-3">
                         <button
                             type="button"
                             onClick={() => setSearchOpen(true)}
-                            className="flex w-[220px] items-center justify-between rounded-lg border border-border bg-surface px-3.5 py-1.5 text-sm text-secondary transition-colors can-hover:border-accent-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border"
+                            className="flex w-[180px] xl:w-[220px] items-center justify-between rounded-lg border border-border bg-surface px-3.5 py-2 text-sm text-secondary transition-colors can-hover:border-accent-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border"
                         >
                             <span>Search</span>
                             <svg
@@ -271,7 +288,7 @@ const Layout: React.FC = () => {
                         )}
 
                         {user && (
-                            <button className="flex shrink-0 items-center gap-3 rounded-full px-3 py-1 can-hover:bg-accent-wash" onClick={() => navigate('/personal-info')}>
+                            <button className="flex shrink-0 items-center gap-3 rounded-lg border border-border-subtle bg-surface px-3 py-1.5 can-hover:bg-surface-soft" onClick={() => navigate('/personal-info')}>
                                 <div className="flex flex-col whitespace-nowrap text-start">
                                     <span className="font-extrabold text-sm text-primary">{userName}</span>
                                     <span className="text-xs text-muted">{roleLabel}</span>
@@ -279,12 +296,78 @@ const Layout: React.FC = () => {
                             </button>
                         )}
 
-                        <button className="shrink-0 whitespace-nowrap rounded-full border-[1.2px] border-accent-border px-4 py-1 text-xs font-extrabold text-accent-text transition-colors can-hover:bg-accent-solid can-hover:text-inverse"
+                        <button className="shrink-0 whitespace-nowrap rounded-lg border border-accent-border bg-accent-solid px-4 py-2 text-xs font-bold text-inverse transition-opacity can-hover:opacity-90"
                             onClick={user ? handleLogout : () => navigate('/login')}
                         >
                             {user ? 'Logout' : 'Login'}
                         </button>
                     </div>
+
+                    {/* Mobile Collapsible Navigation Drawer */}
+                    {mobileMenuOpen && (
+                        <div className="flex flex-col gap-2 rounded-xl border border-border-subtle bg-surface p-4 shadow-lg lg:hidden" role="navigation" aria-label="Mobile navigation">
+                            {!isLibrarian && (
+                                <button
+                                    className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-secondary hover:bg-surface-soft text-start"
+                                    onClick={() => { setMobileMenuOpen(false); navigate('/my-books'); }}
+                                >
+                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round">
+                                        <path d="M6.5 4.75h11v15l-5.5-3.5-5.5 3.5z" />
+                                    </svg>
+                                    My Books
+                                </button>
+                            )}
+
+                            <div className="font-bold text-xs uppercase tracking-wider text-muted px-3 pt-2">Browse Catalog</div>
+                            {browseLinks.map(link => (
+                                <button
+                                    key={link.path}
+                                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-semibold text-primary hover:bg-surface-soft text-start"
+                                    onClick={() => { setMobileMenuOpen(false); navigate(link.path); }}
+                                >
+                                    <span className="text-accent-text"><BrowseIcon name={link.icon} /></span>
+                                    {link.label}
+                                </button>
+                            ))}
+
+                            {user && (
+                                <div className="mt-2 border-t border-border-subtle pt-3 flex flex-col gap-3">
+                                    <div className="flex items-center justify-between px-3">
+                                        <div>
+                                            <div className="font-extrabold text-sm text-primary">{userName}</div>
+                                            <div className="text-xs text-muted">{roleLabel}</div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            aria-label="Mailbox / Invoices"
+                                            onClick={() => { setMobileMenuOpen(false); navigate('/invoices'); }}
+                                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-surface text-secondary transition-colors"
+                                        >
+                                            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                                <path d="m22 6-10 7L2 6" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                    <button
+                                        className="rounded-md bg-accent-solid px-4 py-2 text-center text-xs font-bold text-inverse"
+                                        onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
+                                    >
+                                        Logout
+                                    </button>
+                                </div>
+                            )}
+
+                            {!user && (
+                                <button
+                                    className="mt-2 rounded-md bg-accent-solid px-4 py-2 text-center text-xs font-bold text-inverse"
+                                    onClick={() => { setMobileMenuOpen(false); navigate('/login'); }}
+                                >
+                                    Login
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             </nav>
 

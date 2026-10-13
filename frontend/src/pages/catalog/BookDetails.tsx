@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { catalogService } from '../../services/catalogService';
 import { borrowService } from '../../services/borrowService';
+import { activityService } from '../../services/activityService';
 import { librarianService } from '../../services/librarianService';
 import { orderService } from '../../services/orderService';
 import { waitlistService } from '../../services/waitlistService';
@@ -137,7 +138,7 @@ const BookDetails: React.FC = () => {
 
             setFeedback({ kind: 'success', text: `"${selectedBook.title}" order/purchase has been registered.` });
             try {
-                await orderService.addActivity({
+                await activityService.addActivity({
                     memberId: member.memberId,
                     type: 'ORDER',
                     affectedEntityId: selectedBook.bookId,
@@ -233,7 +234,7 @@ const BookDetails: React.FC = () => {
             await borrowService.commitBorrow(borrowRequest);
 
             try {
-                await borrowService.addActivity({
+                await activityService.addActivity({
                     memberId,
                     type: 'BORROW',
                     affectedEntityId: copy.copyId,

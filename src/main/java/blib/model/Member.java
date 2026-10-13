@@ -69,11 +69,11 @@ public class Member implements Serializable {
     public FreezeStatus getFreezeStatus() { return freezeStatus; }
     public void setFreezeStatus(FreezeStatus freezeStatus) { this.freezeStatus = freezeStatus; }
 
-    public String getEmailAddress() { return email; }
-    public void setEmailAddress(String email) { this.email = email; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public String getPhoneNumber() { return phoneNum; }
-    public void setPhoneNumber(String phoneNum) { this.phoneNum = phoneNum; }
+    public String getPhoneNum() { return phoneNum; }
+    public void setPhoneNum(String phoneNum) { this.phoneNum = phoneNum; }
 
     @Override
     public String toString() {

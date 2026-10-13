@@ -39,6 +39,8 @@ function App() {
         {/* Standalone Gateway Windows */}
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<RegisterMember />} />
+        <Route path="/register-member" element={<Navigate to="/register" replace />} />
         <Route path="/login/member" element={<Navigate to="/login" replace />} />
         <Route path="/login/librarian" element={<Navigate to="/login" replace />} />
 
@@ -60,7 +62,6 @@ function App() {
             <Route path="/view-member" element={<ViewMember />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/librarian-dashboard" element={<Navigate to="/home" replace />} />
-            <Route path="/register-member" element={<RegisterMember />} />
             <Route path="/manage-members" element={<ManageMember />} />
             <Route path="/borrow-book" element={<BorrowBook />} />
             <Route path="/invoices" element={<Invoice />} />

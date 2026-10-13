@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { borrowService } from '../../services/borrowService';
 import { orderService } from '../../services/orderService';
+import { activityService } from '../../services/activityService';
 import type { BorrowedBook, Member, OrderedBook } from '../../types';
 
 const toLocalDate = (value: string) => {
@@ -109,7 +110,7 @@ const MyBooks: React.FC = () => {
             setFeedback({ kind: 'success', text: `"${selectedBook.title}" was extended by two weeks.` });
 
             try {
-                await borrowService.addActivity({
+                await activityService.addActivity({
                     memberId: member.memberId,
                     type: 'EXTEND',
                     affectedEntityId: selectedBook.bookId,
@@ -147,7 +148,7 @@ const MyBooks: React.FC = () => {
             setFeedback({ kind: 'success', text: `The order for "${selectedOrder.title}" was cancelled.` });
 
             try {
-                await orderService.addActivity({
+                await activityService.addActivity({
                     memberId: member.memberId,
                     type: 'CANCEL_ORDER',
                     affectedEntityId: selectedOrder.bookId,

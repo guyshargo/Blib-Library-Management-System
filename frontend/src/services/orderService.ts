@@ -1,5 +1,5 @@
 import api from './api';
-import type { OrderedBook, Book, OrderRequest, ActivityRequest } from '../types';
+import type { OrderedBook, Book, OrderRequest } from '../types';
 import type { ArrivalStatus } from '../types/enums';
 
 export const orderService = {
@@ -30,8 +30,4 @@ export const orderService = {
             params: { bookId, numberOfOrders, increase }
         });
     },
-
-    addActivity: async (activityReq: ActivityRequest) => {
-        await api.post('/activities/', activityReq);
-    }
 };

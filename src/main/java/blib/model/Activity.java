@@ -10,18 +10,19 @@ import blib.enums.ActivityType;
 public class Activity implements Serializable {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final long serialVersionUID = 1L;
+
     private int memberId;
     private ActivityType type;
     private int affectedEntityId;
     private LocalDateTime activityDateTime;
+    private Integer librarianId;
 
-
-    public Activity(int memberId, ActivityType type, int affectedEntityId,
-                    LocalDateTime activityDateTime) {
+    public Activity(int memberId, ActivityType type, int affectedEntityId, LocalDateTime activityDateTime, Integer librarianId) {
         this.memberId = memberId;
         this.type = type;
         this.affectedEntityId = affectedEntityId;
         this.activityDateTime = activityDateTime;
+        this.librarianId = librarianId;
     }
 
     public Activity(){};
@@ -37,6 +38,9 @@ public class Activity implements Serializable {
 
     public LocalDateTime getActivityDateTime() { return activityDateTime; }
     public void setActivityDateTime(LocalDateTime activityDateTime) { this.activityDateTime = activityDateTime; }
+
+    public Integer getLibrarianId() { return librarianId; }
+    public void setLibrarianId(Integer librarianId) { this.librarianId = librarianId; }
 
     @Override
     public String toString() {

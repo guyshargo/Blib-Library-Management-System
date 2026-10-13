@@ -72,72 +72,91 @@ const Invoice: React.FC = () => {
     ];
 
     return (
-        <div className="flex min-h-screen flex-col gap-5 p-4 font-sans sm:p-6 lg:p-8">
-            <h2 className="text-[23px] font-bold text-primary self-center">Invoice Messages</h2>
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-8 font-sans sm:px-8 sm:py-10">
+            <header className="border-b border-border-subtle pb-5">
+                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent-text">Management</p>
+                <h1 className="mt-2 text-3xl font-semibold tracking-tight text-primary">Invoice & Communication Messages</h1>
+            </header>
 
             {errorMessage && (
-                <AlertBanner message={errorMessage} onRetry={() => void loadInvoices()} type="error" />
+                <AlertBanner message={errorMessage} type="error" />
             )}
 
-            <DataTable
-                columns={columns}
-                rows={displayedInvoices}
-                getRowKey={inv => inv.msgId}
-                loadingMessage={loading ? "Loading messages…" : undefined}
-                emptyMessage={invoices.length === 0 ? 'No messages to show.' : 'No unread messages. Turn off the unread filter to view all messages.'}
-                onRowClick={handleInvoiceClick}
-                getRowClassName={(inv) => !inv.isRead ? 'bg-info-subtle can-hover:bg-info-border cursor-pointer' : 'odd:bg-surface-soft even:bg-table-row-alt can-hover:bg-row-hover cursor-pointer'}
-                tableClassName="font-semibold"
-            />
+            <div className="flex flex-col gap-6 rounded-2xl border border-border-subtle bg-surface p-6 sm:p-8 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                    <h2 className="text-lg font-semibold text-primary">Messages Inbox</h2>
+                    <div className="flex items-center gap-2.5">
+                        <input 
+                            type="checkbox" 
+                            id="unreadFilter"
+                            checked={showUnreadOnly} 
+                            onChange={e => setShowUnreadOnly(e.target.checked)} 
+                            className="w-4 h-4 cursor-pointer rounded border-border"
+                        />
+                        <label htmlFor="unreadFilter" className="text-sm font-semibold text-primary cursor-pointer">Show unread only</label>
+                    </div>
+                </div>
 
-            <div className="mt-2 flex flex-wrap items-center justify-center gap-5">
-                <span className="text-base font-bold text-primary">Show:</span>
-                <div className="flex items-center gap-2">
-                    <input 
-                        type="checkbox" 
-                        id="unreadFilter"
-                        checked={showUnreadOnly} 
-                        onChange={e => setShowUnreadOnly(e.target.checked)} 
-                        className="w-[18px] h-[18px] cursor-pointer"
-                    />
-                    <label htmlFor="unreadFilter" className="text-base font-bold text-primary cursor-pointer">Unread Messages</label>
-                </div>
-            </div>
-
-            <div className="flex flex-col items-stretch gap-4 bg-transparent sm:flex-row sm:items-end">
-                <div className="flex-1">
-                    <FormField
-                        label="From:"
-                        value={selectedInvoice?.fullName || ''}
-                        readOnly
-                        inputClassName="bg-neutral"
-                    />
-                </div>
-                <div className="flex-1">
-                    <FormField
-                        label="Subject:"
-                        value={selectedInvoice?.subject || ''}
-                        readOnly
-                        inputClassName="bg-neutral"
-                    />
-                </div>
-                <div className="flex-1">
-                    <FormField
-                        label="Date:"
-                        value={selectedInvoice ? new Intl.DateTimeFormat(navigator.language, { dateStyle: 'medium' }).format(new Date(selectedInvoice.date)) : ''}
-                        readOnly
-                        inputClassName="bg-neutral"
+                <div className="overflow-x-auto rounded-xl border border-border-subtle">
+                    <DataTable
+                        columns={columns}
+                        rows={displayedInvoices}
+                        getRowKey={inv => inv.msgId}
+                        loadingMessage={loading ? "Loading messages…" : undefined}
+                        emptyMessage={invoices.length === 0 ? 'No messages to show.' : 'No unread messages. Turn off the unread filter to view all messages.'}
+                        onRowClick={handleInvoiceClick}
+                        getRowClassName={(inv) => !inv.isRead ? 'bg-info-subtle can-hover:bg-info-border cursor-pointer' : 'odd:bg-surface-soft even:bg-table-row-alt can-hover:bg-row-hover cursor-pointer'}
+                        tableClassName="font-semibold"
                     />
                 </div>
             </div>
 
-            <div className="flex flex-1 flex-col gap-1">
-                <textarea 
-                    readOnly 
-                    className="min-h-[150px] resize-none rounded-[5px] border border-border bg-neutral px-[15px] py-2.5 text-base text-secondary outline-none sm:text-lg"
-                    value={selectedInvoice?.content || ''}
-                />
-            </div>
+            {selectedInvoice && (
+                <section className="flex flex-col gap-6 rounded-2xl border border-accent-border bg-surface p-6 sm:p-8 shadow-sm">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-semibold text-primary">Message Details</h2>
+                        <button 
+                            type="button" 
+                            className="text-xs font-semibold text-muted hover:text-primary underline underline-offset-2"
+                            onClick={() => setSelectedInvoice(null)}
+                        >
+                            Close details
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+                        <FormField
+                            label="From"
+                            value={selectedInvoice.fullName || selectedInvoice.username || ''}
+                            readOnly
+                            labelClassName="text-sm font-semibold text-secondary"
+                            inputClassName="bg-surface-soft"
+                        />
+                        <FormField
+                            label="Subject"
+                            value={selectedInvoice.subject || ''}
+                            readOnly
+                            labelClassName="text-sm font-semibold text-secondary"
+                            inputClassName="bg-surface-soft"
+                        />
+                        <FormField
+                            label="Date"
+                            value={new Intl.DateTimeFormat(navigator.language, { dateStyle: 'medium' }).format(new Date(selectedInvoice.date))}
+                            readOnly
+                            labelClassName="text-sm font-semibold text-secondary"
+                            inputClassName="bg-surface-soft"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-sm font-semibold text-secondary">Message Content</label>
+                        <textarea 
+                            readOnly 
+                            className="min-h-[150px] w-full resize-none rounded-md border border-border-subtle bg-surface-soft p-4 text-base text-primary outline-none sm:text-sm"
+                            value={selectedInvoice.content || ''}
+                        />
+                    </div>
+                </section>
+            )}
         </div>
     );
 };

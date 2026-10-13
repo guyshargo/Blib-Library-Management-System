@@ -14,12 +14,10 @@ import blib.database.MysqlConnection;
 import blib.enums.ArrivalStatus;
 
 public class OrderLogic {
-
     private final MysqlConnection dbConnector;
 
     // Singleton database connector
     public OrderLogic() { dbConnector = MysqlConnection.getInstance(); }
-
 
     public synchronized boolean changeArrivalStatus(int book_id) {
         OrderedBook found = importOrderedBooksByBookId(book_id);

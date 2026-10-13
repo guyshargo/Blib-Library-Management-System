@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { reportService } from '../../services/reportService';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import Button from '../../components/Button';
 
 type ReportKind = 'borrow' | 'member_status';
 
@@ -92,9 +93,9 @@ const Reports: React.FC = () => {
             {datesError && (
                 <div className="flex flex-wrap items-center justify-between gap-3 border-l-4 border-danger-border bg-danger-subtle p-4 text-danger-text" role="alert">
                     <p>Unable to load report dates. Check your connection and try again.</p>
-                    <button className="rounded-md border border-danger-border px-4 py-2 text-sm font-semibold" onClick={() => void fetchDates()}>
+                    <Button variant="danger" size="sm" onClick={() => void fetchDates()}>
                         Retry
-                    </button>
+                    </Button>
                 </div>
             )}
 
@@ -149,13 +150,14 @@ const Reports: React.FC = () => {
                     </select>
                 </label>
 
-                <button
+                <Button
                     type="submit"
-                    className="rounded-md bg-accent-solid px-5 py-3 text-base font-semibold text-inverse transition-colors can-hover:bg-accent-solid-hover disabled:cursor-not-allowed disabled:opacity-50"
+                    variant="primary"
+                    size="lg"
                     disabled={reportLoading || datesLoading || datesError}
                 >
                     {reportLoading ? 'Generating…' : 'Generate report'}
-                </button>
+                </Button>
             </form>
 
             {reportError && <p className="border-l-4 border-danger-border bg-danger-subtle p-4 text-danger-text" role="alert">{reportError}</p>}

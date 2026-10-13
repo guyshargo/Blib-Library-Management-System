@@ -1,22 +1,20 @@
 import api from './api';
-import type { ActivityRequest, BorrowedBook, BookCopy, BorrowRequest } from '../types';
+import type { BorrowedBook, BookCopy, BorrowRequest } from '../types';
 
 type BorrowedBookResponse = Omit<BorrowedBook, 'title' | 'bookCopyId'> & {
     title?: string;
     nameOfBook?: string;
     bookCopyId?: number;
     copyOfBookId?: number;
+    copy_id?: number;
 };
 
 export const borrowService = {
     getMemberBorrows: async (memberId: number): Promise<BorrowedBook[]> => {
         const response = await api.get<BorrowedBookResponse[]>(`/borrows/member/${memberId}`);
-        return response.data.map(borrow => {
-            const title = borrow.title ?? borrow.nameOfBook;
-            const bookCopyId = borrow.bookCopyId ?? borrow.copyOfBookId;
-            if (!title || bookCopyId === undefined) {
-                throw new Error('Borrowed book response is missing its title or copy ID.');
-            }
+        return (response.data || []).map(borrow => {
+            const title = borrow.title ?? borrow.nameOfBook ?? `Book #${borrow.bookId || 'Unknown'}`;
+            const bookCopyId = borrow.bookCopyId ?? borrow.copyOfBookId ?? borrow.copy_id ?? 0;
             return { ...borrow, title, bookCopyId };
         });
     },
@@ -24,10 +22,6 @@ export const borrowService = {
     extendBorrow: async (memberId: number, copyId: number) => {
         const response = await api.put(`/borrows/member/${memberId}/book/${copyId}/extend`);
         return response.data;
-    },
-
-    addActivity: async (activityReq: ActivityRequest) => {
-        await api.post('/activities/', activityReq);
     },
 
     getAvailableCopyById: async (bookId: number, memberId: number): Promise<BookCopy> => {

@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { librarianService } from '../../services/librarianService';
 import { borrowService } from '../../services/borrowService';
+import { activityService } from '../../services/activityService';
 import type { Member } from '../../types';
+import FormField from '../../components/FormField';
+import Button from '../../components/Button';
 
 const BorrowBook: React.FC = () => {
     // Member State
@@ -175,10 +178,11 @@ const BorrowBook: React.FC = () => {
 
             await borrowService.commitBorrow(payload);
 
-            await borrowService.addActivity({
+            await activityService.addActivity({
                 memberId: member.memberId,
                 type: "BORROW",
-                affectedEntityId: targetCopy.copyId
+                affectedEntityId: targetCopy.copyId,
+                librarianId: librarianUser.librarianId
             });
 
             alert("Book borrowed successfully.");
@@ -191,15 +195,10 @@ const BorrowBook: React.FC = () => {
         }
     };
 
-    const inputClass = "w-full rounded-md border border-border-subtle bg-surface px-3.5 py-3 text-base text-primary outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash sm:text-sm";
-    const readonlyInputClass = "w-full rounded-md border border-border-subtle bg-surface-soft px-3.5 py-3 text-base text-secondary outline-none sm:text-sm";
-    const buttonClass = "inline-flex min-h-11 shrink-0 items-center justify-center rounded-md border border-accent-border bg-surface px-4 py-2.5 text-sm font-semibold text-accent-text transition-colors can-hover:bg-accent-wash whitespace-nowrap";
-    const primaryButtonClass = "inline-flex min-h-11 shrink-0 items-center justify-center rounded-md bg-accent-solid px-5 py-2.5 text-sm font-semibold text-inverse transition-opacity can-hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap";
-
     const isReadyToBorrow = Boolean(member && bookIdInput.trim() && bookName);
 
     return (
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 py-8 font-sans sm:px-8 sm:py-10">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-8 font-sans sm:px-8 sm:py-10">
             <header className="border-b border-border-subtle pb-5">
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent-text">Circulation</p>
                 <h1 className="mt-2 text-3xl font-semibold tracking-tight text-primary">Borrow Book</h1>
@@ -214,80 +213,90 @@ const BorrowBook: React.FC = () => {
                 <span><strong>Instruction:</strong> Scan or enter a book ID to load book details, and enter or scan a member card to verify membership. Complete borrow when both are ready.</span>
             </div>
 
-            {/* Member Information Section */}
-            <section className="space-y-4 rounded-xl border border-border-subtle bg-surface p-6 shadow-sm">
-                <h2 className="text-lg font-semibold text-primary">1. Library member information</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                {/* Member Information Section */}
+                <section className="space-y-4 rounded-2xl border border-border-subtle bg-surface p-6 shadow-sm">
+                    <h2 className="text-lg font-semibold text-primary">1. Library member information</h2>
 
-                <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-secondary">Membership Number</label>
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                        <input
-                            className={inputClass}
-                            placeholder="Enter or scan membership ID"
-                            value={memberIdInput}
-                            onChange={e => setMemberIdInput(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') void handleFindMember(); }}
+                    <FormField
+                        label="Membership Number"
+                        placeholder="Enter or scan membership ID"
+                        value={memberIdInput}
+                        onChange={e => setMemberIdInput(e.target.value)}
+                        labelClassName="text-sm font-semibold text-secondary"
+                        actionButton={
+                            <div className="flex gap-2">
+                                <Button variant="primary" onClick={handleFindMember}>
+                                    Find member
+                                </Button>
+                                <Button variant="secondary" onClick={handleScanMemberCard}>
+                                    Scan card
+                                </Button>
+                            </div>
+                        }
+                    />
+
+                    <FormField
+                        label="Full Name"
+                        value={member?.fullName || ''}
+                        readOnly
+                        placeholder="Member name will appear here"
+                        labelClassName="text-sm font-semibold text-secondary"
+                    />
+                </section>
+
+                {/* Book Information Section */}
+                <section className="space-y-4 rounded-2xl border border-border-subtle bg-surface p-6 shadow-sm">
+                    <h2 className="text-lg font-semibold text-primary">2. Book information</h2>
+
+                    <FormField
+                        label="Book ID / Barcode"
+                        placeholder="Enter or scan book ID"
+                        value={bookIdInput}
+                        onChange={e => setBookIdInput(e.target.value)}
+                        labelClassName="text-sm font-semibold text-secondary"
+                        actionButton={
+                            <div className="flex gap-2">
+                                <Button variant="primary" onClick={handleFindBook}>
+                                    Find book
+                                </Button>
+                                <Button variant="secondary" onClick={handleScanBook}>
+                                    Scan book
+                                </Button>
+                            </div>
+                        }
+                    />
+
+                    <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
+                        <FormField
+                            label="Book Title"
+                            value={bookName}
+                            readOnly
+                            placeholder="Book title"
+                            labelClassName="text-sm font-semibold text-secondary"
                         />
-                        <button type="button" className={primaryButtonClass} onClick={handleFindMember}>
-                            Find member
-                        </button>
-                        <button type="button" className={buttonClass} onClick={handleScanMemberCard}>
-                            Scan card
-                        </button>
-                    </div>
-                </div>
-
-                <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-secondary">Full Name</label>
-                    <input className={readonlyInputClass} readOnly placeholder="Member name will appear here" value={member?.fullName || ''} />
-                </div>
-            </section>
-
-            {/* Book Information Section */}
-            <section className="space-y-4 rounded-xl border border-border-subtle bg-surface p-6 shadow-sm">
-                <h2 className="text-lg font-semibold text-primary">2. Book information</h2>
-
-                <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-secondary">Book ID / Barcode</label>
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                        <input
-                            className={inputClass}
-                            placeholder="Enter or scan book ID"
-                            value={bookIdInput}
-                            onChange={e => setBookIdInput(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') void handleFindBook(); }}
+                        <FormField
+                            label="Available Copies"
+                            value={availableCopies}
+                            readOnly
+                            placeholder="0"
+                            labelClassName="text-sm font-semibold text-secondary"
                         />
-                        <button type="button" className={primaryButtonClass} onClick={handleFindBook}>
-                            Find book
-                        </button>
-                        <button type="button" className={buttonClass} onClick={handleScanBook}>
-                            Scan book
-                        </button>
                     </div>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
-                    <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-secondary">Book Title</label>
-                        <input className={readonlyInputClass} readOnly placeholder="Book title" value={bookName} />
-                    </div>
-                    <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-secondary">Available Copies</label>
-                        <input className={readonlyInputClass} readOnly placeholder="0" value={availableCopies} />
-                    </div>
-                </div>
-            </section>
+                </section>
+            </div>
 
             {/* Commit Actions */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-                <button
-                    type="button"
-                    className={`${primaryButtonClass} w-full sm:w-auto px-8 py-3.5 text-base`}
+            <div className="flex flex-col gap-3 sm:flex-row sm:justify-end rounded-2xl border border-border-subtle bg-surface p-6 shadow-sm">
+                <Button
+                    variant="primary"
+                    size="lg"
+                    className="w-full sm:w-auto px-8"
                     onClick={handleCommitBorrow}
                     disabled={!isReadyToBorrow}
                 >
                     Complete borrow
-                </button>
+                </Button>
             </div>
         </div>
     );
