@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { borrowService } from '../../services/borrowService';
 import { orderService } from '../../services/orderService';
+import { waitlistService, type WaitlistEntry } from '../../services/waitlistService';
+import { catalogService } from '../../services/catalogService';
 import { activityService } from '../../services/activityService';
 import type { BorrowedBook, Member, OrderedBook } from '../../types';
+
+interface EnrichedWaitlistEntry extends WaitlistEntry {
+    title: string;
+    author?: string;
+}
 
 const toLocalDate = (value: string) => {
     const [year, month, day] = value.slice(0, 10).split('-').map(Number);
@@ -15,19 +22,31 @@ const MyBooks: React.FC = () => {
     const [member, setMember] = useState<Member | null>(null);
     const [borrowedBooks, setBorrowedBooks] = useState<BorrowedBook[]>([]);
     const [orders, setOrders] = useState<OrderedBook[]>([]);
+    const [waitlists, setWaitlists] = useState<EnrichedWaitlistEntry[]>([]);
+
     const [borrowedLoading, setBorrowedLoading] = useState(true);
     const [ordersLoading, setOrdersLoading] = useState(true);
+    const [waitlistsLoading, setWaitlistsLoading] = useState(true);
+
     const [borrowedError, setBorrowedError] = useState(false);
     const [ordersError, setOrdersError] = useState(false);
+    const [waitlistsError, setWaitlistsError] = useState(false);
+
     const [borrowedTitleFilter, setBorrowedTitleFilter] = useState('');
     const [borrowedAuthorFilter, setBorrowedAuthorFilter] = useState('');
     const [orderTitleFilter, setOrderTitleFilter] = useState('');
     const [orderAuthorFilter, setOrderAuthorFilter] = useState('');
+    const [waitlistTitleFilter, setWaitlistTitleFilter] = useState('');
+    const [waitlistAuthorFilter, setWaitlistAuthorFilter] = useState('');
+
     const [isOverdueOnly, setIsOverdueOnly] = useState(false);
     const [selectedCopyId, setSelectedCopyId] = useState<number | null>(null);
     const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+    const [selectedWaitlistId, setSelectedWaitlistId] = useState<number | null>(null);
+
     const [extending, setExtending] = useState(false);
     const [cancellingOrderId, setCancellingOrderId] = useState<number | null>(null);
+    const [leavingWaitlistId, setLeavingWaitlistId] = useState<number | null>(null);
     const [feedback, setFeedback] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
 
     useEffect(() => {
@@ -35,6 +54,7 @@ const MyBooks: React.FC = () => {
         if (!userStr) {
             setBorrowedLoading(false);
             setOrdersLoading(false);
+            setWaitlistsLoading(false);
             return;
         }
 
@@ -42,6 +62,7 @@ const MyBooks: React.FC = () => {
         setMember(currentMember);
         void loadBorrowedBooks(currentMember.memberId);
         void loadOrders(currentMember.memberId);
+        void loadWaitlists(currentMember.memberId);
     }, []);
 
     const loadBorrowedBooks = async (memberId: number) => {
@@ -70,18 +91,58 @@ const MyBooks: React.FC = () => {
         }
     };
 
+    const loadWaitlists = async (memberId: number) => {
+        setWaitlistsLoading(true);
+        setWaitlistsError(false);
+        try {
+            const rawEntries = await waitlistService.getMemberWaitlist(memberId);
+            const enriched = await Promise.all(
+                rawEntries.map(async entry => {
+                    try {
+                        const book = await catalogService.getBook(entry.bookId);
+                        return {
+                            ...entry,
+                            title: book?.title || `Book #${entry.bookId}`,
+                            author: book?.author || 'Author not listed',
+                        };
+                    } catch {
+                        return {
+                            ...entry,
+                            title: `Book #${entry.bookId}`,
+                            author: 'Author not listed',
+                        };
+                    }
+                })
+            );
+            setWaitlists(enriched);
+        } catch (error) {
+            console.error('Failed to load waitlists', error);
+            setWaitlistsError(true);
+        } finally {
+            setWaitlistsLoading(false);
+        }
+    };
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
     const filteredBooks = borrowedBooks.filter(book => {
         const matchesTitle = book.title.toLowerCase().includes(borrowedTitleFilter.trim().toLowerCase());
         const matchesAuthor = (book.author ?? '').toLowerCase().includes(borrowedAuthorFilter.trim().toLowerCase());
         const isOverdue = today > toLocalDate(book.returnDate);
         return matchesTitle && matchesAuthor && (!isOverdueOnly || isOverdue);
     });
+
     const filteredOrders = orders.filter(order =>
         order.title.toLowerCase().includes(orderTitleFilter.trim().toLowerCase())
         && (order.author ?? '').toLowerCase().includes(orderAuthorFilter.trim().toLowerCase())
     );
+
+    const filteredWaitlists = waitlists.filter(entry =>
+        entry.title.toLowerCase().includes(waitlistTitleFilter.trim().toLowerCase())
+        && (entry.author ?? '').toLowerCase().includes(waitlistAuthorFilter.trim().toLowerCase())
+    );
+
     const selectedBook = borrowedBooks.find(book => book.bookCopyId === selectedCopyId);
     const selectedReturnDate = selectedBook ? toLocalDate(selectedBook.returnDate) : null;
     const extensionWindowStart = selectedReturnDate ? new Date(selectedReturnDate) : null;
@@ -168,10 +229,41 @@ const MyBooks: React.FC = () => {
         }
     };
 
+    const selectedWaitlistEntry = waitlists.find(entry => entry.waitlistId === selectedWaitlistId);
+
+    const handleLeaveWaitlist = async () => {
+        if (!member || !selectedWaitlistEntry) return;
+        if (!window.confirm(`Leave waitlist for "${selectedWaitlistEntry.title}"?`)) return;
+
+        setLeavingWaitlistId(selectedWaitlistEntry.waitlistId);
+        setFeedback(null);
+        try {
+            await waitlistService.leaveWaitlist(selectedWaitlistEntry.waitlistId);
+            setSelectedWaitlistId(null);
+            await loadWaitlists(member.memberId);
+            setFeedback({ kind: 'success', text: `You have left the waitlist for "${selectedWaitlistEntry.title}".` });
+
+            try {
+                await activityService.addActivity({
+                    memberId: member.memberId,
+                    type: 'CANCEL_ORDER',
+                    affectedEntityId: selectedWaitlistEntry.bookId,
+                });
+            } catch (error) {
+                console.error('Left waitlist, but activity could not be recorded', error);
+            }
+        } catch (error) {
+            console.error('Failed to leave waitlist', error);
+            setFeedback({ kind: 'error', text: 'Could not leave waitlist. Please try again.' });
+        } finally {
+            setLeavingWaitlistId(null);
+        }
+    };
+
     const inputClass = 'w-full min-w-0 border border-border-subtle bg-surface px-3.5 py-3 text-base text-primary outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash';
     const buttonClass = 'inline-flex min-h-11 items-center justify-center border border-accent-border bg-surface px-4 py-2.5 text-sm font-semibold text-accent-text transition-colors can-hover:bg-accent-solid can-hover:text-inverse focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
 
-    if (!member && (borrowedLoading || ordersLoading)) {
+    if (!member && (borrowedLoading || ordersLoading || waitlistsLoading)) {
         return (
             <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-8 sm:py-10">
                 <p className="text-sm text-muted" role="status">Loading your books...</p>
@@ -183,7 +275,7 @@ const MyBooks: React.FC = () => {
         return (
             <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-8 sm:py-10">
                 <h1 className="text-3xl font-semibold tracking-tight text-primary">My Books</h1>
-                <p className="mt-3 text-sm text-muted">Sign in as a member to see your borrowed books and orders.</p>
+                <p className="mt-3 text-sm text-muted">Sign in as a member to see your borrowed books, orders, and waitlists.</p>
             </div>
         );
     }
@@ -194,7 +286,7 @@ const MyBooks: React.FC = () => {
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent-text">Your library</p>
                 <h1 className="mt-2 text-3xl font-semibold tracking-tight text-primary">My Books</h1>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-                    Review your borrowed books and order status, and manage eligible actions.
+                    Review your borrowed books, active orders, and waitlists, and manage eligible actions.
                 </p>
             </header>
 
@@ -448,6 +540,120 @@ const MyBooks: React.FC = () => {
                         disabled={!selectedOrder || cancellingOrderId !== null}
                     >
                         {cancellingOrderId !== null ? 'Cancelling...' : 'Cancel selected order'}
+                    </button>
+                </div>
+            </section>
+
+            {/* Waitlisted Books Section */}
+            <section className="space-y-4" aria-labelledby="waitlisted-books-heading">
+                <div>
+                    <h2 id="waitlisted-books-heading" className="text-xl font-semibold tracking-tight">Waitlisted books</h2>
+                    <p className="mt-1 text-sm text-muted">Select a waitlist entry to leave the queue if needed.</p>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                    <label>
+                        <span className="sr-only">Filter waitlisted books by title</span>
+                        <input
+                            className={inputClass}
+                            placeholder="Filter by Title"
+                            value={waitlistTitleFilter}
+                            onChange={event => setWaitlistTitleFilter(event.target.value)}
+                        />
+                    </label>
+                    <label>
+                        <span className="sr-only">Filter waitlisted books by author</span>
+                        <input
+                            className={inputClass}
+                            placeholder="Filter by Author"
+                            value={waitlistAuthorFilter}
+                            onChange={event => setWaitlistAuthorFilter(event.target.value)}
+                        />
+                    </label>
+                </div>
+
+                {waitlistsLoading && <p className="text-sm text-muted" role="status">Loading waitlists...</p>}
+                {waitlistsError && (
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-l-4 border-danger-border bg-danger-subtle p-4 text-danger-text" role="alert">
+                        <span>Unable to load waitlists.</span>
+                        <button type="button" className="underline underline-offset-4 font-semibold" onClick={() => void loadWaitlists(member.memberId)}>Retry</button>
+                    </div>
+                )}
+
+                {!waitlistsLoading && !waitlistsError && filteredWaitlists.length === 0 && (
+                    <div className="rounded-xl border border-border-subtle bg-surface p-8 text-center text-muted">
+                        <p>{waitlists.length ? 'No waitlisted books match these filters.' : 'You are not on any waitlists.'}</p>
+                        {waitlists.length > 0 && (
+                            <button
+                                type="button"
+                                className="mt-2 text-sm font-semibold text-accent-text underline underline-offset-4"
+                                onClick={() => {
+                                    setWaitlistTitleFilter('');
+                                    setWaitlistAuthorFilter('');
+                                }}
+                            >
+                                Clear filters
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {!waitlistsLoading && !waitlistsError && filteredWaitlists.length > 0 && (
+                    <div className="flex flex-col gap-3">
+                        {filteredWaitlists.map(entry => {
+                            const isSelected = selectedWaitlistId === entry.waitlistId;
+                            return (
+                                <div
+                                    key={entry.waitlistId}
+                                    onClick={() => setSelectedWaitlistId(entry.waitlistId)}
+                                    className={`flex cursor-pointer items-center gap-4 rounded-xl border p-4 transition-all ${
+                                        isSelected
+                                            ? 'border-accent-border bg-accent-subtle shadow-sm'
+                                            : 'border-border-subtle bg-surface hover:border-accent-border'
+                                    }`}
+                                >
+                                    <input
+                                        type="radio"
+                                        name="waitlist-entry-selection"
+                                        aria-label={`Select waitlist entry for ${entry.title}`}
+                                        checked={isSelected}
+                                        onChange={() => setSelectedWaitlistId(entry.waitlistId)}
+                                        className="h-4 w-4 accent-accent-solid"
+                                    />
+                                    <img
+                                        src={`/images/covers/${entry.bookId}.jpg`}
+                                        alt={entry.title}
+                                        onError={e => { e.currentTarget.src = '/images/book_logo.png'; }}
+                                        className="h-20 w-14 shrink-0 rounded object-cover shadow-sm"
+                                    />
+                                    <div className="flex flex-1 flex-col justify-center min-w-0">
+                                        <h3 className="truncate font-semibold text-primary">{entry.title}</h3>
+                                        <p className="text-sm text-secondary">{entry.author || 'Author not listed'}</p>
+                                        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted">
+                                            <span>Requested: {entry.requestDate ? formatDate(entry.requestDate) : 'N/A'}</span>
+                                            <span>•</span>
+                                            <span className="font-medium text-accent-text">
+                                                Status: {entry.status || 'WAITING'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-muted" role="status">
+                        {selectedWaitlistEntry ? `Selected waitlist: "${selectedWaitlistEntry.title}"` : 'Select a waitlist entry to leave.'}
+                    </p>
+                    <button
+                        type="button"
+                        className={buttonClass}
+                        onClick={handleLeaveWaitlist}
+                        disabled={!selectedWaitlistEntry || leavingWaitlistId !== null}
+                    >
+                        {leavingWaitlistId !== null ? 'Leaving...' : 'Leave selected waitlist'}
                     </button>
                 </div>
             </section>

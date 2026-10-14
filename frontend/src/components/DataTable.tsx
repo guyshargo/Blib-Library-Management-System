@@ -11,7 +11,7 @@ export interface DataTableColumn<T> {
 interface DataTableProps<T> {
     columns: DataTableColumn<T>[];
     rows: T[];
-    getRowKey: (row: T) => Key;
+    getRowKey: (row: T, index: number) => Key;
     emptyMessage: ReactNode;
     loadingMessage?: string;
     errorMessage?: ReactNode;
@@ -68,7 +68,7 @@ const DataTable = <T,>({
                 ) : (
                     rows.map((row, index) => (
                         <tr
-                            key={getRowKey(row)}
+                            key={getRowKey(row, index)}
                             onClick={() => onRowClick?.(row)}
                             className={getRowClassName?.(row, index) ?? (index % 2 === 0 ? 'bg-surface transition-colors duration-150 can-hover:hover:bg-surface-soft/80' : 'bg-surface-soft/30 transition-colors duration-150 can-hover:hover:bg-surface-soft/80')}
                         >

@@ -13,12 +13,10 @@ import blib.enums.IsRead;
 import blib.enums.InvoiceSubject;
 import blib.model.InvoiceMessage;
 
-
 public class InvoiceLogic {
 
     private final MysqlConnection dbConnector;
 
-    // Singleton database connector
     public InvoiceLogic() { dbConnector = MysqlConnection.getInstance(); }
 
     public synchronized List<InvoiceMessage> importMessages() {
@@ -30,8 +28,8 @@ public class InvoiceLogic {
              ResultSet rs = ps.executeQuery()) {
              
             while (rs.next()) {
-                InvoiceSubject subject = this.getSubject(rs.getString("subject"));
-                IsRead is_read = this.getIsRead(rs.getString("is_read"));
+                InvoiceSubject subject = InvoiceSubject.valueOf(rs.getString("subject"));
+                IsRead isRead = IsRead.valueOf(rs.getString("is_read"));
                 
                 InvoiceMessage message = new InvoiceMessage(
                         rs.getInt("message_id"),
@@ -41,22 +39,20 @@ public class InvoiceLogic {
                         subject,
                         rs.getString("content"),
                         rs.getDate("message_date"),
-                        is_read
+                        isRead
                 );
                 list.add(message);
             }
         } catch (SQLException e) {
             System.out.println("Error importing invoice messages: " + e.getMessage());
         }
-        return list; // Returning an empty list on failure
+        return list;
     }
-
 
     public synchronized boolean sendMessage(int member_id, String username, String member_name, InvoiceSubject subject, String content) {
         String query = "INSERT INTO invoices (member_id, username, member_name, subject, content, message_date, is_read) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
-        Date tempDate = new Date();
-        java.sql.Date currentDate = new java.sql.Date(tempDate.getTime());
+        java.sql.Date currentDate = new java.sql.Date(new Date().getTime());
         
         try (Connection connection = dbConnector.getConnection();
              PreparedStatement ps = connection.prepareStatement(query)) {
@@ -64,10 +60,10 @@ public class InvoiceLogic {
             ps.setInt(1, member_id);
             ps.setString(2, username);
             ps.setString(3, member_name);
-            ps.setString(4, subject.toString());
+            ps.setString(4, subject.name());
             ps.setString(5, content);
             ps.setDate(6, currentDate);
-            ps.setString(7, "notRead");
+            ps.setString(7, IsRead.NOT_READ.name());
             
             return ps.executeUpdate() > 0;
             
@@ -77,35 +73,18 @@ public class InvoiceLogic {
         }
     }
 
-
     public synchronized void readMessage(int message_id) {
         String query = "UPDATE invoices SET is_read = ? WHERE message_id = ?";
         
         try (Connection connection = dbConnector.getConnection();
              PreparedStatement ps = connection.prepareStatement(query)) {
              
-            ps.setString(1, "Read");
+            ps.setString(1, IsRead.READ.name());
             ps.setInt(2, message_id);
             ps.executeUpdate();
             
         } catch (SQLException e) {
             System.out.println("Error updating read status: " + e.getMessage());
-        }
-    }
-
-    private synchronized InvoiceSubject getSubject(String subject) {
-        if ("Extension".equals(subject)) {
-            return InvoiceSubject.EXTENSION;
-        } else {
-            return InvoiceSubject.GENERAL_MESSAGE;
-        }
-    }
-
-    private synchronized IsRead getIsRead(String is_read) {
-        if ("Read".equals(is_read)) {
-            return IsRead.READ;
-        } else {
-            return IsRead.NOT_READ;
         }
     }
 }

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { librarianService } from '../../services/librarianService';
 import { borrowService } from '../../services/borrowService';
 import { activityService } from '../../services/activityService';
@@ -7,6 +8,10 @@ import FormField from '../../components/FormField';
 import Button from '../../components/Button';
 
 const BorrowBook: React.FC = () => {
+    const location = useLocation();
+    const passedBook = location.state?.selectedBook as any | undefined;
+    const passedMemberId = location.state?.memberIdInput as string | undefined;
+
     // Member State
     const [memberIdInput, setMemberIdInput] = useState('');
     const [member, setMember] = useState<Member | null>(null);
@@ -16,6 +21,36 @@ const BorrowBook: React.FC = () => {
     const [bookName, setBookName] = useState('');
     const [availableCopies, setAvailableCopies] = useState('');
     const [copyOfBook, setCopyOfBook] = useState<any>(null);
+
+    useEffect(() => {
+        if (passedBook) {
+            setBookIdInput(passedBook.bookId.toString());
+            setBookName(passedBook.title);
+            setAvailableCopies(((passedBook.copiesNum ?? 0) - (passedBook.borrowedNum ?? 0)).toString());
+            setCopyOfBook({ bookId: passedBook.bookId, title: passedBook.title });
+        }
+        if (passedMemberId && /^\d+$/.test(passedMemberId)) {
+            setMemberIdInput(passedMemberId);
+            void (async () => {
+                try {
+                    const fetchedMember = await librarianService.getMember(parseInt(passedMemberId));
+                    if (fetchedMember.freezeStatus !== 'FROZEN') {
+                        setMember(fetchedMember);
+                        if (passedBook) {
+                            try {
+                                const copy = await borrowService.getAvailableCopyById(passedBook.bookId, fetchedMember.memberId);
+                                setCopyOfBook(copy);
+                            } catch {
+                                // ignore
+                            }
+                        }
+                    }
+                } catch {
+                    // ignore
+                }
+            })();
+        }
+    }, [passedBook, passedMemberId]);
 
     const handleFindMember = async () => {
         if (!memberIdInput.trim() || !/^\d+$/.test(memberIdInput)) {

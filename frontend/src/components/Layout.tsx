@@ -6,10 +6,10 @@ import DropdownOption from './DropdownOption';
 import BrowseIcon from './BrowseIcon';
 import { librarianLinks, memberLinks } from '../config/navigationConfig';
 
-type ColorTheme = 'wood' | 'botanical' | 'coastal' | 'clementine' | 'amethyst';
+type ColorTheme = 'wood' | 'botanical' | 'coastal' | 'ruby' | 'amethyst';
 
 const getColorTheme = (value: string | null): ColorTheme => {
-    return value === 'botanical' || value === 'coastal' || value === 'clementine' || value === 'amethyst' ? value : 'wood';
+    return value === 'botanical' || value === 'coastal' || value === 'ruby' || value === 'amethyst' ? value : 'wood';
 };
 
 const Layout: React.FC = () => {
@@ -102,7 +102,7 @@ const Layout: React.FC = () => {
                         <option value="wood" className="bg-slate-900 text-white">Timber (Wood)</option>
                         <option value="botanical" className="bg-slate-900 text-white">Oak (Botanical)</option>
                         <option value="coastal" className="bg-slate-900 text-white">Bay (Coastal)</option>
-                        <option value="clementine" className="bg-slate-900 text-white">Clementine (Citrus)</option>
+                        <option value="ruby" className="bg-slate-900 text-white">Ruby (Crimson)</option>
                         <option value="amethyst" className="bg-slate-900 text-white">Amethyst (Berry)</option>
                     </select>
                 </label>
@@ -141,13 +141,13 @@ const Layout: React.FC = () => {
                                     <span>Timber Library</span>
                                 </>
                             )}
-                            {colorTheme === 'clementine' && (
+                            {colorTheme === 'ruby' && (
                                 <>
                                     <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7 text-accent-text shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <circle cx="12" cy="12" r="9" />
-                                        <path d="M12 3v3M12 12l4-4" />
+                                        <path d="M6 3h12l4 6-10 12L2 9z" />
+                                        <path d="M11 3v18M6 9h12" />
                                     </svg>
-                                    <span>Citrus Library</span>
+                                    <span>Ruby Library</span>
                                 </>
                             )}
                             {colorTheme === 'amethyst' && (

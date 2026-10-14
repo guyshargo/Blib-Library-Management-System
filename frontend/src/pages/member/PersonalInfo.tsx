@@ -184,60 +184,99 @@ const PersonalInfo: React.FC = () => {
 
     return (
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-8 font-sans text-primary sm:px-8 sm:py-10">
-            <header>
-                <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent-text">Your account</p>
-                <h1 className="mt-2 text-3xl font-semibold tracking-tight text-primary">Personal information</h1>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-                    Review your {isLibrarian ? 'librarian' : 'membership'} details and update your contact information.
-                </p>
-            </header>
+            {isLibrarian ? (
+                <>
+                    <header>
+                        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent-text">Staff Profile</p>
+                        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-primary">Librarian Information</h1>
+                        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+                            Review your staff credentials and recent staff activities.
+                        </p>
+                    </header>
 
-            <section className="space-y-5" aria-labelledby="account-details-heading">
-                <h2 id="account-details-heading" className="text-xl font-semibold tracking-tight text-primary">Account details</h2>
-                <div className="grid gap-x-8 gap-y-6 md:grid-cols-2">
-                    <div className="min-w-0 space-y-2">
-                        <label htmlFor="account-number" className="block text-sm font-semibold text-secondary">
-                            {isLibrarian ? 'Librarian ID' : 'Membership number'}
-                        </label>
-                        <output id="account-number" className="flex min-w-0 items-center justify-between gap-3 border border-border-subtle bg-surface px-3.5 py-3 text-base text-primary">
-                            <span>{accountId}</span>
-                            {!isLibrarian && (
-                                <span className={`shrink-0 rounded-md border px-2.5 py-1 text-xs font-semibold ${
-                                    isFrozen
-                                        ? 'border-danger-border bg-danger-subtle text-danger-text'
-                                        : 'border-success-dark bg-success-subtle text-success-dark'
-                                }`}>
-                                    {isFrozen ? 'Frozen' : 'Not Frozen'}
-                                </span>
-                            )}
-                        </output>
-                    </div>
+                    <section className="space-y-5" aria-labelledby="account-details-heading">
+                        <h2 id="account-details-heading" className="text-xl font-semibold tracking-tight text-primary">Staff credentials</h2>
+                        <div className="grid gap-x-8 gap-y-6 md:grid-cols-2">
+                            <div className="min-w-0 space-y-2">
+                                <label htmlFor="account-number" className="block text-sm font-semibold text-secondary">
+                                    Librarian ID
+                                </label>
+                                <output id="account-number" className="flex min-w-0 items-center justify-between gap-3 border border-border-subtle bg-surface px-3.5 py-3 text-base text-primary">
+                                    <span>{accountId}</span>
+                                    <span className="shrink-0 rounded-md border border-accent-border bg-accent-wash px-2.5 py-1 text-xs font-semibold text-accent-text">
+                                        Staff
+                                    </span>
+                                </output>
+                            </div>
 
-                    <div className="min-w-0">
-                        <FormField
-                            label="Phone number"
-                            type="tel"
-                            value={phone}
-                            readOnly
-                            labelClassName="block text-sm font-semibold text-secondary"
-                            id="user-phone"
-                            actionButton={!isLibrarian ? <button type="button" className={btnClass} onClick={handleUpdatePhone}>Update phone number</button> : undefined}
-                        />
-                    </div>
+                            <div className="min-w-0 space-y-2">
+                                <label htmlFor="staff-username" className="block text-sm font-semibold text-secondary">
+                                    Username / Name
+                                </label>
+                                <output id="staff-username" className="flex min-w-0 items-center justify-between gap-3 border border-border-subtle bg-surface px-3.5 py-3 text-base text-primary">
+                                    <span>{user.fullName || user.username}</span>
+                                    <span className="text-xs text-muted">@{user.username}</span>
+                                </output>
+                            </div>
+                        </div>
+                    </section>
+                </>
+            ) : (
+                <>
+                    <header>
+                        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent-text">Your account</p>
+                        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-primary">Personal information</h1>
+                        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+                            Review your membership details and update your contact information.
+                        </p>
+                    </header>
 
-                    <div className="min-w-0">
-                        <FormField
-                            label="Email address"
-                            type="email"
-                            value={email}
-                            readOnly
-                            labelClassName="block text-sm font-semibold text-secondary"
-                            id="user-email"
-                            actionButton={!isLibrarian ? <button type="button" className={btnClass} onClick={handleUpdateEmail}>Update email</button> : undefined}
-                        />
-                    </div>
-                </div>
-            </section>
+                    <section className="space-y-5" aria-labelledby="account-details-heading">
+                        <h2 id="account-details-heading" className="text-xl font-semibold tracking-tight text-primary">Account details</h2>
+                        <div className="grid gap-x-8 gap-y-6 md:grid-cols-2">
+                            <div className="min-w-0 space-y-2">
+                                <label htmlFor="account-number" className="block text-sm font-semibold text-secondary">
+                                    Membership number
+                                </label>
+                                <output id="account-number" className="flex min-w-0 items-center justify-between gap-3 border border-border-subtle bg-surface px-3.5 py-3 text-base text-primary">
+                                    <span>{accountId}</span>
+                                    <span className={`shrink-0 rounded-md border px-2.5 py-1 text-xs font-semibold ${
+                                        isFrozen
+                                            ? 'border-danger-border bg-danger-subtle text-danger-text'
+                                            : 'border-success-dark bg-success-subtle text-success-dark'
+                                    }`}>
+                                        {isFrozen ? 'Frozen' : 'Not Frozen'}
+                                    </span>
+                                </output>
+                            </div>
+
+                            <div className="min-w-0">
+                                <FormField
+                                    label="Phone number"
+                                    type="tel"
+                                    value={phone}
+                                    readOnly
+                                    labelClassName="block text-sm font-semibold text-secondary"
+                                    id="user-phone"
+                                    actionButton={<button type="button" className={btnClass} onClick={handleUpdatePhone}>Update phone number</button>}
+                                />
+                            </div>
+
+                            <div className="min-w-0">
+                                <FormField
+                                    label="Email address"
+                                    type="email"
+                                    value={email}
+                                    readOnly
+                                    labelClassName="block text-sm font-semibold text-secondary"
+                                    id="user-email"
+                                    actionButton={<button type="button" className={btnClass} onClick={handleUpdateEmail}>Update email</button>}
+                                />
+                            </div>
+                        </div>
+                    </section>
+                </>
+            )}
 
             <section className="space-y-4" aria-labelledby="activities-heading">
                 <div>

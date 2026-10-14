@@ -22,7 +22,7 @@ const homeFeatures: FeatureCardProps[] = [
     {
         title: 'Order & Join Waitlists',
         description: 'Purchase permanent copies or get notified as soon as checked-out titles return.',
-        to: '/trending',
+        to: '/my-books',
         icon: (
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="4" width="18" height="18" rx="2" />
@@ -79,25 +79,16 @@ const librarianHomeFeatures: FeatureCardProps[] = [
             </svg>
         ),
     },
+
     {
-        title: 'Register Member',
-        description: 'Create new library member accounts securely.',
-        to: '/register-member',
-        icon: (
-            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="9" cy="8" r="3.5" />
-                <path d="M3 20v-1.5A3.5 3.5 0 0 1 6.5 15h5a3.5 3.5 0 0 1 3.5 3.5V20M19 8v6m-3-3h6" />
-            </svg>
-        ),
-    },
-    {
-        title: 'Catalog Explorer',
+        title: 'Library Explorer',
         description: 'Browse virtual shelves, check availability, and search books.',
         to: '/catalog',
         icon: (
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
-                <path d="M8 7h8M8 11h6" />
+                <circle cx="12" cy="12" r="8.5" />
+                <path d="m15.8 8.2-2.5 5.1-5.1 2.5 2.5-5.1z" />
+                <path d="M12 2v2m0 16v2M2 12h2m16 0h2" />
             </svg>
         ),
     },

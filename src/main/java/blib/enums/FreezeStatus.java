@@ -1,8 +1,8 @@
 package blib.enums;
 
 public enum FreezeStatus {
-    FROZEN("Frozen"), 
-    NOT_FROZEN("NotFrozen");
+    FROZEN("FROZEN"), 
+    NOT_FROZEN("NOT_FROZEN");
 
     private final String dbValue;
 

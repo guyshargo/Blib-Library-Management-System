@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import type { LoginRole } from '../../types/enums';
 
-type ColorTheme = 'wood' | 'botanical' | 'coastal' | 'clementine' | 'amethyst';
+type ColorTheme = 'wood' | 'botanical' | 'coastal' | 'ruby' | 'amethyst';
 
 const getColorTheme = (value: string | null): ColorTheme => {
-    return value === 'botanical' || value === 'coastal' || value === 'clementine' || value === 'amethyst' ? value : 'wood';
+    return value === 'botanical' || value === 'coastal' || value === 'ruby' || value === 'amethyst' ? value : 'wood';
 };
 
 const Login: React.FC = () => {
@@ -70,7 +70,7 @@ const Login: React.FC = () => {
                         <option value="wood">Timber (Wood)</option>
                         <option value="botanical">Oak (Botanical)</option>
                         <option value="coastal">Bay (Coastal)</option>
-                        <option value="clementine">Clementine (Citrus)</option>
+                        <option value="ruby">Ruby (Crimson)</option>
                         <option value="amethyst">Amethyst (Berry)</option>
                     </select>
                 </label>
@@ -87,8 +87,8 @@ const Login: React.FC = () => {
                                 ? 'Oak Library' 
                                 : colorTheme === 'coastal' 
                                     ? 'Bay Library' 
-                                    : colorTheme === 'clementine' 
-                                        ? 'Citrus Library' 
+                                    : colorTheme === 'ruby' 
+                                        ? 'Ruby Library' 
                                         : colorTheme === 'amethyst' 
                                             ? 'Amethyst Library' 
                                             : 'Timber Library'}
@@ -98,9 +98,9 @@ const Login: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="mt-12 border-t border-border-subtle pt-6 space-y-4">
+                    <div className="mt-12 border-t border-border-subtle pt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <div>
-                            <p className="text-sm text-muted">New to the library?</p>
+                            <p className="text-xs font-medium text-muted">New to the library?</p>
                             <button
                                 type="button"
                                 className="mt-1 text-sm font-semibold text-accent-text underline decoration-accent-text underline-offset-4 transition-colors can-hover:text-accent-text"
@@ -110,7 +110,7 @@ const Login: React.FC = () => {
                             </button>
                         </div>
                         <div>
-                            <p className="text-sm text-muted">Just browsing?</p>
+                            <p className="text-xs font-medium text-muted">Just browsing?</p>
                             <button
                                 type="button"
                                 className="mt-1 text-sm font-semibold text-accent-text underline decoration-accent-text underline-offset-4 transition-colors can-hover:text-accent-text"

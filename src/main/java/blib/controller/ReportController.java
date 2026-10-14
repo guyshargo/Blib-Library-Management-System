@@ -1,5 +1,6 @@
 package blib.controller;
 
+import blib.enums.ReportType;
 import blib.logic.ReportLogic;
 import blib.model.Report;
 
@@ -13,13 +14,14 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reports")
+@CrossOrigin
 public class ReportController {
 
     private final ReportLogic reportLogic = new ReportLogic();
 
     @GetMapping("/generate")
     public ResponseEntity<Report> generateReport(
-            @RequestParam String reportType,
+            @RequestParam ReportType reportType,
             @RequestParam int monthNumber,
             @RequestParam int year) {
         
@@ -42,11 +44,9 @@ public class ReportController {
     @GetMapping("/available-dates")
     public ResponseEntity<Map<String, List<Integer>>> fetchAvailableDates() {
         try {
-            // Fetch available years and months from the database
             List<Integer> years = reportLogic.getAvailableReportYears();
             List<Integer> months = reportLogic.getAvailableReportMonths();
             
-            // Map them into a clean JSON structure instead of a raw Object array
             Map<String, List<Integer>> datesData = new HashMap<>();
             datesData.put("years", years);
             datesData.put("months", months);

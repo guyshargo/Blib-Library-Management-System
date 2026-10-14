@@ -5,10 +5,10 @@ import { activityService } from '../../services/activityService';
 import FormField from '../../components/FormField';
 import Button from '../../components/Button';
 
-type ColorTheme = 'wood' | 'botanical' | 'coastal' | 'clementine' | 'amethyst';
+type ColorTheme = 'wood' | 'botanical' | 'coastal' | 'ruby' | 'amethyst';
 
 const getColorTheme = (value: string | null): ColorTheme => {
-    return value === 'botanical' || value === 'coastal' || value === 'clementine' || value === 'amethyst' ? value : 'wood';
+    return value === 'botanical' || value === 'coastal' || value === 'ruby' || value === 'amethyst' ? value : 'wood';
 };
 
 const RegisterMember: React.FC = () => {
@@ -94,7 +94,7 @@ const RegisterMember: React.FC = () => {
                         <option value="wood">Timber (Wood)</option>
                         <option value="botanical">Oak (Botanical)</option>
                         <option value="coastal">Bay (Coastal)</option>
-                        <option value="clementine">Clementine (Citrus)</option>
+                        <option value="ruby">Ruby (Crimson)</option>
                         <option value="amethyst">Amethyst (Berry)</option>
                     </select>
                 </label>
