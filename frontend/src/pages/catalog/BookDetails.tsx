@@ -1,27 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { catalogService } from '../../services/catalogService';
-import { borrowService } from '../../services/borrowService';
 import { activityService } from '../../services/activityService';
-import { librarianService } from '../../services/librarianService';
 import { orderService } from '../../services/orderService';
 import { waitlistService } from '../../services/waitlistService';
 import { Tag } from '../../components/Tag';
-import type { Book, BorrowRequest, Member, OrderRequest } from '../../types';
+import { Button, BookActionCard } from '../../components/Button';
+import type { Book, Member, OrderRequest } from '../../types';
 
 type MemberWithBackendFields = Member & {
     phoneNumber?: string;
     emailAddress?: string;
-};
-
-type LibrarianSession = {
-    librarianId?: number;
-    fullName?: string;
-};
-
-const toLocalDate = (value: string) => {
-    const [year, month, day] = value.slice(0, 10).split('-').map(Number);
-    return new Date(year, month - 1, day);
 };
 
 const BookDetails: React.FC = () => {
@@ -41,7 +30,6 @@ const BookDetails: React.FC = () => {
     const [copyName, setCopyName] = useState(initialBook?.title || '');
     const [member, setMember] = useState<Member | null>(null);
     const [userType] = useState(localStorage.getItem('userType'));
-    const [memberIdInput, setMemberIdInput] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
     const [feedback, setFeedback] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
 
@@ -136,7 +124,7 @@ const BookDetails: React.FC = () => {
                 return;
             }
 
-            setFeedback({ kind: 'success', text: `"${selectedBook.title}" order/purchase has been registered.` });
+            setFeedback({ kind: 'success', text: `"${selectedBook.title}" order has been registered.` });
             try {
                 await activityService.addActivity({
                     memberId: member.memberId,
@@ -177,79 +165,6 @@ const BookDetails: React.FC = () => {
             console.error('Failed to join waitlist', error);
             const errMsg = error.response?.data || 'You are already on the waitlist or unable to join.';
             setFeedback({ kind: 'error', text: typeof errMsg === 'string' ? errMsg : 'Failed to join waitlist.' });
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    const handleBorrow = async () => {
-        if (!selectedBook) return;
-        const memberId = Number(memberIdInput);
-        if (!Number.isInteger(memberId) || memberId <= 0) {
-            setFeedback({ kind: 'error', text: 'Enter a valid membership number.' });
-            return;
-        }
-
-        const sessionStr = localStorage.getItem('currentUser');
-        const librarian = sessionStr ? JSON.parse(sessionStr) as LibrarianSession : null;
-        if (!librarian?.librarianId || !librarian.fullName) {
-            setFeedback({ kind: 'error', text: 'Sign in as a librarian to record a borrow.' });
-            return;
-        }
-
-        setActionLoading(true);
-        setFeedback(null);
-        try {
-            const targetMember = await librarianService.getMember(memberId);
-            if (targetMember.freezeStatus === 'FROZEN') {
-                setFeedback({ kind: 'error', text: 'This membership is frozen and cannot borrow books.' });
-                return;
-            }
-
-            const currentBorrows = await borrowService.getMemberBorrows(memberId);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const lateBooks = currentBorrows.filter(book => toLocalDate(book.returnDate) < today);
-            if (lateBooks.length > 0) {
-                setFeedback({
-                    kind: 'error',
-                    text: `This member has overdue books: ${lateBooks.map(book => `"${book.title}"`).join(', ')}.`,
-                });
-                return;
-            }
-
-            const alreadyBorrowed = currentBorrows.some(book => book.bookId === selectedBook.bookId);
-            if (alreadyBorrowed) {
-                setFeedback({ kind: 'error', text: 'This member has already borrowed a copy of this book.' });
-                return;
-            }
-
-            const copy = await borrowService.getAvailableCopyById(selectedBook.bookId, memberId);
-            const borrowRequest: BorrowRequest = {
-                memberId,
-                bookCopyId: copy.copyId,
-                librarianId: librarian.librarianId,
-                librarianName: librarian.fullName,
-            };
-            await borrowService.commitBorrow(borrowRequest);
-
-            try {
-                await activityService.addActivity({
-                    memberId,
-                    type: 'BORROW',
-                    affectedEntityId: copy.copyId,
-                });
-                setFeedback({ kind: 'success', text: `"${selectedBook.title}" was borrowed for ${targetMember.fullName}.` });
-            } catch (error) {
-                console.error('Borrow succeeded, but its activity could not be recorded', error);
-                setFeedback({
-                    kind: 'error',
-                    text: `"${selectedBook.title}" was borrowed, but its activity could not be recorded.`,
-                });
-            }
-        } catch (error) {
-            console.error('Failed to borrow book', error);
-            setFeedback({ kind: 'error', text: 'The book could not be borrowed. Check the member and copy availability.' });
         } finally {
             setActionLoading(false);
         }
@@ -304,20 +219,17 @@ const BookDetails: React.FC = () => {
         <div className="mx-auto max-w-6xl p-4 font-sans text-primary sm:p-6 lg:p-8">
             {/* Top Navigation Bar */}
             <nav className="mb-6 flex items-center justify-between">
-                <button
-                    type="button"
+                <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => navigate(-1)}
-                    className="group inline-flex items-center gap-2 rounded-md px-2.5 py-1.5 text-sm font-medium text-secondary transition-colors duration-150 can-hover:text-primary can-hover:bg-surface-soft enabled:active:scale-[0.96] focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-1"
+                    className="gap-2"
                 >
-                    <svg className="h-4 w-4 transition-transform duration-150 group-hover:-translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="m15 18-6-6 6-6" />
                     </svg>
                     <span>Back to catalog</span>
-                </button>
-                
-                <span className="inline-flex items-center rounded-full border border-border-subtle bg-surface-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-accent-text">
-                    {selectedBook.genre || 'Book'}
-                </span>
+                </Button>
             </nav>
 
             <div className="grid grid-cols-1 gap-8 md:grid-cols-[220px_minmax(0,1fr)] lg:grid-cols-[250px_minmax(0,1fr)] lg:gap-12 items-start">
@@ -381,6 +293,74 @@ const BookDetails: React.FC = () => {
                             </div>
                         )}
                     </div>
+
+                    {userType === 'LIBRARIAN' && (
+                        <div className="w-full max-w-[220px] lg:max-w-[250px] space-y-2">
+                            <button
+                                type="button"
+                                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-accent-border bg-accent-solid px-4 py-2.5 text-sm font-semibold text-inverse shadow-sm transition-transform duration-150 ease-out can-hover:bg-accent-solid-hover enabled:active:scale-[0.96] focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                onClick={() => navigate('/borrow-book', { state: { selectedBook } })}
+                                disabled={availableCopies === 0}
+                            >
+                                Open Borrow Desk
+                            </button>
+                            {availableCopies === 0 && (
+                                <p className="text-[11px] text-muted text-center">
+                                    All copies checked out.
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    {userType === 'MEMBER' && availableCopies > 0 && (
+                        <BookActionCard
+                            title="Purchase a copy"
+                            description={`Order a permanent copy${selectedBook.orderPrice != null ? ` for $${Number(selectedBook.orderPrice).toFixed(2)}` : ''}.`}
+                            buttonLabel="Purchase Copy"
+                            onAction={() => void handleOrder()}
+                            disabled={actionLoading || !member}
+                            actionLoading={actionLoading}
+                        />
+                    )}
+
+                    {userType === 'MEMBER' && availableCopies === 0 && (
+                        <BookActionCard
+                            title="Join title waitlist"
+                            description="All copies are currently checked out. Join the waitlist to be notified when a copy is returned."
+                            buttonLabel="Join Waitlist"
+                            onAction={() => void handleWaitlist()}
+                            disabled={actionLoading || !member}
+                            actionLoading={actionLoading}
+                        />
+                    )}
+
+                    {/* Status Feedback Notification */}
+                    {feedback && (
+                        <div
+                            className={`mt-5 flex items-start gap-3 rounded-xl border p-4 text-sm w-full ${
+                                feedback.kind === 'success'
+                                    ? 'border-success-dark/30 bg-success-subtle text-primary'
+                                    : 'border-danger-border/40 bg-danger-subtle text-danger-text'
+                            }`}
+                            role={feedback.kind === 'error' ? 'alert' : 'status'}
+                        >
+                            <svg className="h-5 w-5 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                {feedback.kind === 'success' ? (
+                                    <>
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                        <polyline points="22 4 12 14.01 9 11.01" />
+                                    </>
+                                ) : (
+                                    <>
+                                        <circle cx="12" cy="12" r="10" />
+                                        <line x1="12" x2="12" y1="8" y2="12" />
+                                        <line x1="12" x2="12.01" y1="16" y2="16" />
+                                    </>
+                                )}
+                            </svg>
+                            <p className="font-medium leading-relaxed">{feedback.text}</p>
+                        </div>
+                    )}
                 </aside>
 
                 {/* Right Column: Book Details & Actions */}
@@ -390,70 +370,48 @@ const BookDetails: React.FC = () => {
                             {selectedBook.title}
                         </h1>
                         <p className="text-base sm:text-lg text-secondary font-medium">
-                            by <span className="text-primary font-semibold">{selectedBook.author || 'Author not listed'}</span>
+                            by{' '}
+                            <button
+                                type="button"
+                                onClick={() => navigate('/search', { state: { initialSearch: selectedBook.author } })}
+                                className="text-primary font-semibold underline underline-offset-2 can-hover:text-accent-text transition-colors cursor-pointer inline"
+                            >
+                                {selectedBook.author || 'Author not listed'}
+                            </button>
                         </p>
+
+                        {/* Rating & Pages Sub-section */}
+                        {(selectedBook.rating != null || selectedBook.pages) && (
+                            <div className="mt-1.5 flex items-center gap-2 text-xs sm:text-sm text-secondary">
+                                {selectedBook.rating != null && (
+                                    <span className="flex items-center gap-1.5 font-medium text-primary">
+                                        <span className="flex items-center gap-0.5">
+                                            {Array.from({ length: Math.floor(Number(selectedBook.rating)) }).map((_, i) => (
+                                                <svg key={i} className="h-4 w-4 fill-amber-500 text-amber-500 inline" viewBox="0 0 20 20">
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                            ))}
+                                        </span>
+                                        <span>{Number(selectedBook.rating).toFixed(2)}</span>
+                                    </span>
+                                )}
+                                {selectedBook.rating != null && selectedBook.pages && (
+                                    <span className="text-muted">•</span>
+                                )}
+                                {selectedBook.pages && (
+                                    <span className="font-medium text-secondary">{selectedBook.pages} pages</span>
+                                )}
+                            </div>
+                        )}
+
                         {copyName !== selectedBook.title && availableCopies > 0 && (
-                            <p className="inline-block rounded-md bg-surface-soft px-2.5 py-1 text-xs text-muted border border-border-subtle">
+                            <p className="inline-block rounded-md bg-surface-soft px-2.5 py-1 text-xs text-muted border border-border-subtle mt-1">
                                 Available copy edition: <span className="font-medium text-secondary">{copyName}</span>
                             </p>
                         )}
                     </header>
 
-                    {/* Refined Book Highlights Ribbon */}
-                    <div className="mt-6 flex flex-wrap items-center divide-y divide-border-subtle rounded-xl border border-border-subtle bg-surface-soft/60 sm:divide-y-0 sm:divide-x w-full">
-                        {/* Rating */}
-                        <div className="flex flex-1 min-w-[130px] items-center gap-3 px-4 py-3">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500">
-                                <svg className="h-5 w-5 fill-current" viewBox="0 0 20 20">
-                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <span className="block text-xs font-medium text-muted">Rating</span>
-                                <div className="flex items-baseline gap-1">
-                                    <span className="text-base font-bold text-primary">
-                                        {selectedBook.rating != null ? Number(selectedBook.rating).toFixed(2) : '—'}
-                                    </span>
-                                    {selectedBook.rating != null && (
-                                        <span className="text-xs text-muted">/ 5.0</span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
 
-                        {/* Pages */}
-                        <div className="flex flex-1 min-w-[130px] items-center gap-3 px-4 py-3">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-wash text-accent-text">
-                                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
-                                    <path d="M6 6h10" />
-                                    <path d="M6 10h10" />
-                                </svg>
-                            </div>
-                            <div>
-                                <span className="block text-xs font-medium text-muted">Length</span>
-                                <span className="text-base font-bold text-primary">
-                                    {selectedBook.pages ? `${selectedBook.pages} pp.` : '—'}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Order price */}
-                        <div className="flex flex-1 min-w-[130px] items-center gap-3 px-4 py-3">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
-                                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M12 2v20" />
-                                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                                </svg>
-                            </div>
-                            <div>
-                                <span className="block text-xs font-medium text-muted">Purchase Price</span>
-                                <span className="text-base font-bold text-primary">
-                                    {selectedBook.orderPrice != null ? `$${Number(selectedBook.orderPrice).toFixed(2)}` : 'Free'}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
 
                     {/* Unified Library Holdings & Circulation Panel */}
                     <div className="mt-6 rounded-xl border border-border-subtle bg-surface p-5 shadow-sm w-full">
@@ -529,9 +487,23 @@ const BookDetails: React.FC = () => {
                         </div>
                     </section>
 
-                    {/* Characters & Keywords Pill Chips */}
-                    {(characterList.length > 0 || keywordList.length > 0) && (
+                    {/* Genres, Characters & Keywords Pill Chips */}
+                    {(selectedBook.genre || characterList.length > 0 || keywordList.length > 0) && (
                         <div className="mt-8 space-y-5 border-t border-border-subtle pt-6 w-full">
+                            {selectedBook.genre && (
+                                <div>
+                                    <h3 className="text-xs font-bold uppercase tracking-wider text-muted mb-2.5">GENRES</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        <Tag 
+                                            key={selectedBook.genre} 
+                                            label={selectedBook.genre} 
+                                            variant="character" 
+                                            icon={<span className="h-1.5 w-1.5 rounded-full bg-accent-border/60" />}
+                                        />   
+                                    </div>
+                                </div>
+                            )}
+
                             {characterList.length > 0 && (
                                 <div>
                                     <h3 className="text-xs font-bold uppercase tracking-wider text-muted mb-2.5">Key Characters</h3>
@@ -563,113 +535,6 @@ const BookDetails: React.FC = () => {
                                     </div>
                                 </div>
                             )}
-                        </div>
-                    )}
-
-                    {/* Action Hub (Member Purchase/Order OR Member Waitlist OR Librarian Borrow) */}
-                    {userType === 'MEMBER' && availableCopies > 0 && (
-                        <section className="mt-8 rounded-xl border border-border-subtle bg-surface p-5 sm:p-6 shadow-sm w-full">
-                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div>
-                                    <h2 className="text-base font-bold text-primary">Purchase a copy</h2>
-                                    <p className="mt-1 text-sm text-secondary">
-                                        Order a permanent copy for your collection
-                                        {selectedBook.orderPrice != null ? ` for $${Number(selectedBook.orderPrice).toFixed(2)}` : ''}.
-                                    </p>
-                                </div>
-
-                                <button
-                                    type="button"
-                                    className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg border border-accent-border bg-accent-solid px-6 py-2.5 text-sm font-semibold text-inverse shadow-sm transition-transform duration-150 ease-out can-hover:bg-accent-solid-hover enabled:active:scale-[0.96] focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    onClick={() => void handleOrder()}
-                                    disabled={actionLoading || !member}
-                                >
-                                    {actionLoading ? 'Processing...' : 'Purchase Copy'}
-                                </button>
-                            </div>
-                        </section>
-                    )}
-
-                    {userType === 'MEMBER' && availableCopies === 0 && (
-                        <section className="mt-8 rounded-xl border border-border-subtle bg-surface p-5 sm:p-6 shadow-sm w-full">
-                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div>
-                                    <h2 className="text-base font-bold text-primary">Join title waitlist</h2>
-                                    <p className="mt-1 text-sm text-secondary">
-                                        All copies are currently checked out. Join the waitlist to be notified via email and phone when a copy is returned.
-                                    </p>
-                                </div>
-
-                                <button
-                                    type="button"
-                                    className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg border border-accent-border bg-accent-solid px-6 py-2.5 text-sm font-semibold text-inverse shadow-sm transition-transform duration-150 ease-out can-hover:bg-accent-solid-hover enabled:active:scale-[0.96] focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    onClick={() => void handleWaitlist()}
-                                    disabled={actionLoading || !member}
-                                >
-                                    {actionLoading ? 'Processing...' : 'Join Waitlist'}
-                                </button>
-                            </div>
-                        </section>
-                    )}
-
-                    {userType === 'LIBRARIAN' && (
-                        <section className="mt-8 rounded-xl border border-border-subtle bg-surface p-5 sm:p-6 shadow-sm w-full">
-                            <h2 className="text-base font-bold text-primary">Librarian Borrow Desk</h2>
-                            <p className="mt-1 text-sm text-secondary">Record a live checkout for an active library member.</p>
-                            
-                            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
-                                <label className="flex-1 space-y-1.5">
-                                    <span className="block text-xs font-bold uppercase tracking-wider text-secondary">Member ID Number</span>
-                                    <input
-                                        className="w-full rounded-lg border border-border bg-input px-3.5 py-2.5 text-base text-primary outline-none focus:border-accent-border focus:ring-2 focus:ring-accent-wash sm:text-sm"
-                                        placeholder="e.g. 1042"
-                                        inputMode="numeric"
-                                        value={memberIdInput}
-                                        onChange={event => setMemberIdInput(event.target.value)}
-                                    />
-                                </label>
-                                <button
-                                    type="button"
-                                    className="inline-flex min-h-10 items-center justify-center rounded-lg border border-accent-border bg-accent-solid px-6 py-2.5 text-sm font-semibold text-inverse shadow-sm transition-transform duration-150 ease-out can-hover:bg-accent-solid-hover enabled:active:scale-[0.96] focus:outline-none focus:ring-2 focus:ring-accent-border focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    onClick={() => void handleBorrow()}
-                                    disabled={actionLoading || availableCopies === 0}
-                                >
-                                    {actionLoading ? 'Processing...' : 'Record Borrow'}
-                                </button>
-                            </div>
-                            {availableCopies === 0 && (
-                                <p className="mt-2 text-xs text-muted">
-                                    Checkout is unavailable because all copies are currently checked out.
-                                </p>
-                            )}
-                        </section>
-                    )}
-
-                    {/* Status Feedback Notification */}
-                    {feedback && (
-                        <div
-                            className={`mt-5 flex items-start gap-3 rounded-xl border p-4 text-sm w-full ${
-                                feedback.kind === 'success'
-                                    ? 'border-success-dark/30 bg-success-subtle text-primary'
-                                    : 'border-danger-border/40 bg-danger-subtle text-danger-text'
-                            }`}
-                            role={feedback.kind === 'error' ? 'alert' : 'status'}
-                        >
-                            <svg className="h-5 w-5 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                {feedback.kind === 'success' ? (
-                                    <>
-                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                        <polyline points="22 4 12 14.01 9 11.01" />
-                                    </>
-                                ) : (
-                                    <>
-                                        <circle cx="12" cy="12" r="10" />
-                                        <line x1="12" x2="12" y1="8" y2="12" />
-                                        <line x1="12" x2="12.01" y1="16" y2="16" />
-                                    </>
-                                )}
-                            </svg>
-                            <p className="font-medium leading-relaxed">{feedback.text}</p>
                         </div>
                     )}
                 </section>

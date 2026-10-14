@@ -1,7 +1,7 @@
 import React from 'react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: 'primary' | 'secondary' | 'danger' | 'outline';
+    variant?: 'primary' | 'secondary' | 'danger' | 'outline' | 'success';
     size?: 'sm' | 'md' | 'lg';
     fullWidth?: boolean;
     children: React.ReactNode;
@@ -24,6 +24,7 @@ export const Button: React.FC<ButtonProps> = ({
         secondary: "border border-accent-border bg-surface text-accent-text can-hover:bg-accent-wash",
         outline: "border border-border bg-surface text-primary can-hover:bg-surface-soft",
         danger: "border border-danger-border bg-danger-subtle text-danger-text can-hover:opacity-90",
+        success: "border border-success-dark bg-success-dark text-inverse can-hover:opacity-90",
     };
 
     const sizeStyles = {
@@ -43,6 +44,44 @@ export const Button: React.FC<ButtonProps> = ({
         >
             {children}
         </button>
+    );
+};
+
+export interface BookActionCardProps {
+    title: string;
+    description: React.ReactNode;
+    buttonLabel: string;
+    onAction: () => void;
+    disabled?: boolean;
+    actionLoading?: boolean;
+}
+
+export const BookActionCard: React.FC<BookActionCardProps> = ({
+    title,
+    description,
+    buttonLabel,
+    onAction,
+    disabled = false,
+    actionLoading = false,
+}) => {
+    return (
+        <div className="w-full max-w-[220px] lg:max-w-[250px] rounded-xl border border-border-subtle bg-surface p-4 shadow-sm space-y-3">
+            <div>
+                <h2 className="text-xs font-bold uppercase tracking-wide text-primary">{title}</h2>
+                <p className="mt-1 text-xs text-secondary leading-relaxed">
+                    {description}
+                </p>
+            </div>
+            <Button
+                variant="primary"
+                size="sm"
+                fullWidth
+                onClick={onAction}
+                disabled={disabled}
+            >
+                {actionLoading ? 'Processing...' : buttonLabel}
+            </Button>
+        </div>
     );
 };
 

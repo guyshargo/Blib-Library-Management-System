@@ -5,6 +5,7 @@ import { borrowService } from '../../services/borrowService';
 import { activityService } from '../../services/activityService';
 import type { Member, BorrowedBook, Activity } from '../../types';
 import FormField from '../../components/FormField';
+import Button from '../../components/Button';
 import DataTable, { type DataTableColumn } from '../../components/DataTable';
 import Tag from '../../components/Tag';
 import { ACTIVITY_CONFIG } from '../../config/activityConfig';
@@ -89,6 +90,8 @@ const ViewMember: React.FC = () => {
         }
     };
 
+    const isFrozen = member?.freezeStatus === 'FROZEN';
+
     const selectedBook = borrows.find(book => book.bookCopyId === selectedCopyId);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -99,7 +102,7 @@ const ViewMember: React.FC = () => {
 
     const extensionIneligibleReason = !selectedBook || !member
         ? 'Select a book above to check extension.'
-        : member.freezeStatus === 'FROZEN'
+        : isFrozen
             ? 'Membership is frozen.'
             : today > selectedReturnDate!
                 ? 'Overdue books cannot be extended.'
@@ -221,114 +224,140 @@ const ViewMember: React.FC = () => {
             )}
 
             {/* Top Portion: Symmetric 2-Column Grid for Member Details & Borrowed Books */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
                 
                 {/* Left Column: Member Details & Status Control */}
-                <div className="lg:col-span-4 flex flex-col gap-6">
-                    <div className="rounded-2xl border border-border-subtle bg-surface p-6 sm:p-7 shadow-sm space-y-5">
-                        <div className="flex items-center gap-3.5 border-b border-border-subtle pb-4">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent-subtle text-accent-text font-bold text-lg">
-                                {member.fullName.charAt(0).toUpperCase()}
+                <div className="lg:col-span-4 flex flex-col">
+                    <div className="rounded-2xl border border-border-subtle bg-surface p-6 sm:p-7 shadow-sm space-y-5 h-full flex flex-col justify-between">
+                        <div>
+                            <div className="flex items-center gap-3.5 border-b border-border-subtle pb-4">
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent-subtle text-accent-text font-bold text-lg">
+                                    {member.fullName.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                    <h2 className="text-lg font-semibold text-primary truncate">{member.fullName}</h2>
+                                    <p className="text-xs text-secondary">ID: {member.memberId}</p>
+                                </div>
                             </div>
-                            <div className="min-w-0">
-                                <h2 className="text-lg font-semibold text-primary truncate">{member.fullName}</h2>
-                                <p className="text-xs text-secondary">ID: {member.memberId}</p>
+
+                            <div className="space-y-4 mt-5">
+                                <FormField
+                                    label="Email address"
+                                    value={member.email}
+                                    readOnly
+                                    labelClassName="text-xs font-semibold text-secondary"
+                                />
+                                <FormField
+                                    label="Phone number"
+                                    value={member.phoneNum || 'Not listed'}
+                                    readOnly
+                                    labelClassName="text-xs font-semibold text-secondary"
+                                />
                             </div>
                         </div>
 
-                        <div className="space-y-4">
-                            <FormField
-                                label="Email address"
-                                value={member.email}
-                                readOnly
-                                labelClassName="text-xs font-semibold text-secondary"
-                            />
-                            <FormField
-                                label="Phone number"
-                                value={member.phoneNum || 'Not listed'}
-                                readOnly
-                                labelClassName="text-xs font-semibold text-secondary"
-                            />
-                            <label className="flex min-w-0 flex-col gap-1.5 text-xs font-semibold text-secondary">
-                                Membership status
-                                <select
-                                    className="min-w-0 rounded-lg border border-border bg-surface px-3.5 py-2.5 text-sm text-primary outline-none focus:border-accent-border focus:ring-1 focus:ring-accent-border"
-                                    value={member.freezeStatus}
-                                    onChange={event => void handleToggleFreeze(event.target.value)}
-                                >
-                                    <option value="FROZEN">Frozen</option>
-                                    <option value="NOT_FROZEN">Not frozen</option>
-                                </select>
-                            </label>
+                        <div className="pt-4 border-t border-border-subtle space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-semibold text-secondary">Membership Status</span>
+                                <div className="flex items-center gap-2">
+                                    <span className={`inline-block h-2 w-2 rounded-full ${isFrozen ? 'bg-danger-border animate-pulse' : 'bg-success-dark'}`} />
+                                    <span className={`text-xs font-semibold ${isFrozen ? 'text-danger-text' : 'text-success-dark'}`}>
+                                        {isFrozen ? 'Frozen & Suspended' : 'Active & Eligible'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="pt-1">
+                                {isFrozen ? (
+                                    <Button
+                                        variant="success"
+                                        size="sm"
+                                        fullWidth
+                                        onClick={() => void handleToggleFreeze('NOT_FROZEN')}
+                                    >
+                                        Activate Membership
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        variant="danger"
+                                        size="sm"
+                                        fullWidth
+                                        onClick={() => void handleToggleFreeze('FROZEN')}
+                                    >
+                                        Freeze Membership
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Right Column: Borrowed Books & Extension Manager */}
-                <div className="lg:col-span-8 flex flex-col gap-6">
-                    <div className="rounded-2xl border border-border-subtle bg-surface p-6 sm:p-8 shadow-sm space-y-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-subtle pb-4">
-                            <div>
-                                <h2 className="text-lg font-semibold text-primary">Borrowed Books ({borrows.length})</h2>
-                                <p className="text-xs text-muted mt-0.5">Select a book card to execute a borrow extension.</p>
+                <div className="lg:col-span-8 flex flex-col">
+                    <div className="rounded-2xl border border-border-subtle bg-surface p-6 sm:p-8 shadow-sm space-y-4 h-full flex flex-col justify-between">
+                        <div>
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-subtle pb-4">
+                                <div>
+                                    <h2 className="text-lg font-semibold text-primary">Borrowed Books ({borrows.length})</h2>
+                                    <p className="text-xs text-muted mt-0.5">Select a book card to execute a borrow extension.</p>
+                                </div>
+                                <input
+                                    className="w-full sm:w-56 rounded-lg border border-border-subtle bg-surface px-3 py-2 text-xs text-primary outline-none focus:border-accent-border focus:ring-1 focus:ring-accent-border"
+                                    placeholder="Filter borrows..."
+                                    value={filterQuery}
+                                    onChange={event => setFilterQuery(event.target.value)}
+                                />
                             </div>
-                            <input
-                                className="w-full sm:w-56 rounded-lg border border-border-subtle bg-surface px-3 py-2 text-xs text-primary outline-none focus:border-accent-border focus:ring-1 focus:ring-accent-border"
-                                placeholder="Filter borrows..."
-                                value={filterQuery}
-                                onChange={event => setFilterQuery(event.target.value)}
-                            />
-                        </div>
 
-                        {filteredBorrows.length === 0 ? (
-                            <div className="rounded-xl border border-border-subtle bg-surface-soft p-12 text-center text-muted text-sm">
-                                {borrows.length ? 'No borrowed books match this filter.' : 'No active borrowed books for this member.'}
-                            </div>
-                        ) : (
-                            <div className="flex flex-col gap-3 max-h-[360px] overflow-y-auto pr-1">
-                                {filteredBorrows.map(book => {
-                                    const isSelected = selectedCopyId === book.bookCopyId;
-                                    const isOverdue = today > toLocalDate(book.returnDate);
-                                    return (
-                                        <div
-                                            key={book.bookCopyId}
-                                            onClick={() => setSelectedCopyId(book.bookCopyId)}
-                                            className={`flex cursor-pointer items-center gap-4 rounded-xl border p-3.5 transition-all ${
-                                                isSelected
-                                                    ? 'border-accent-border bg-accent-subtle shadow-sm'
-                                                    : 'border-border-subtle bg-surface hover:border-accent-border'
-                                            }`}
-                                        >
-                                            <input
-                                                type="radio"
-                                                name="borrowed-book-selection"
-                                                checked={isSelected}
-                                                onChange={() => setSelectedCopyId(book.bookCopyId)}
-                                                className="h-4 w-4 accent-accent-solid"
-                                            />
-                                            <img
-                                                src={`/images/covers/${book.bookId}.jpg`}
-                                                alt={book.title}
-                                                onError={e => { e.currentTarget.src = '/images/book_logo.png'; }}
-                                                className="h-14 w-10 shrink-0 rounded object-cover shadow-sm"
-                                            />
-                                            <div className="flex flex-1 flex-col justify-center min-w-0">
-                                                <h3 className="truncate text-sm font-semibold text-primary">{book.title}</h3>
-                                                <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted">
-                                                    <span>Borrowed: {formatDate(book.borrowDate)}</span>
-                                                    <span>•</span>
-                                                    <span className={isOverdue ? 'font-semibold text-danger-text' : ''}>
-                                                        Due: {formatDate(book.returnDate)} {isOverdue ? '· Overdue' : ''}
-                                                    </span>
+                            {filteredBorrows.length === 0 ? (
+                                <div className="rounded-xl border border-border-subtle bg-surface-soft p-12 text-center text-muted text-sm my-4">
+                                    {borrows.length ? 'No borrowed books match this filter.' : 'No active borrowed books for this member.'}
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-3 max-h-[360px] overflow-y-auto pr-1 my-4">
+                                    {filteredBorrows.map(book => {
+                                        const isSelected = selectedCopyId === book.bookCopyId;
+                                        const isOverdue = today > toLocalDate(book.returnDate);
+                                        return (
+                                            <div
+                                                key={book.bookCopyId}
+                                                onClick={() => setSelectedCopyId(book.bookCopyId)}
+                                                className={`flex cursor-pointer items-center gap-4 rounded-xl border p-3.5 transition-all ${
+                                                    isSelected
+                                                        ? 'border-accent-border bg-accent-subtle shadow-sm'
+                                                        : 'border-border-subtle bg-surface hover:border-accent-border'
+                                                }`}
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name="borrowed-book-selection"
+                                                    checked={isSelected}
+                                                    onChange={() => setSelectedCopyId(book.bookCopyId)}
+                                                    className="h-4 w-4 accent-accent-solid"
+                                                />
+                                                <img
+                                                    src={`/images/covers/${book.bookId}.jpg`}
+                                                    alt={book.title}
+                                                    onError={e => { e.currentTarget.src = '/images/book_logo.png'; }}
+                                                    className="h-14 w-10 shrink-0 rounded object-cover shadow-sm"
+                                                />
+                                                <div className="flex flex-1 flex-col justify-center min-w-0">
+                                                    <h3 className="truncate text-sm font-semibold text-primary">{book.title}</h3>
+                                                    <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted">
+                                                        <span>Borrowed: {formatDate(book.borrowDate)}</span>
+                                                        <span>•</span>
+                                                        <span className={isOverdue ? 'font-semibold text-danger-text' : ''}>
+                                                            Due: {formatDate(book.returnDate)} {isOverdue ? '· Overdue' : ''}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
 
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-border-subtle">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-border-subtle">
                             <p className={`text-xs ${extensionIneligibleReason ? 'text-muted' : 'text-success-dark'}`} role="status">
                                 {extensionIneligibleReason || 'Selected book is eligible for a 2-week extension.'}
                             </p>

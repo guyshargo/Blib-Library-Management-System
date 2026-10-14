@@ -51,14 +51,14 @@ public class Report implements Serializable {
         this.data = data;
     }
 
-    public LocalDate getReportDate() { return date; }
-    public void setReportDate(LocalDate date) { this.date = date; }
+    public LocalDate getDate() { return date; }
+    public void setDate(LocalDate date) { this.date = date; }
 
-    public ReportType getReportType() { return type; }
-    public void setReportType(ReportType type) { this.type = type; }
+    public ReportType getType() { return type; }
+    public void setType(ReportType type) { this.type = type; }
 
-    public String getReportData() { return data; }
-    public void setReportData(String data) { this.data = data; }
+    public String getData() { return data; }
+    public void setData(String data) { this.data = data; }
 
 
     private String convertToCSVStatusTracking(List<StatusTracking> statusTrackings) {

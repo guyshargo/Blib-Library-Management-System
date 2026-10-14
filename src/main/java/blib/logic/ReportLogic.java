@@ -261,21 +261,21 @@ public class ReportLogic {
         }
     }
 
-    public synchronized Report fetchReportByDate(String reportType, LocalDate reportDate) {
+    public synchronized Report fetchReportByDate(ReportType reportType, LocalDate reportDate) {
         String query = "SELECT report_date, report_type, report_data FROM reports WHERE report_date = ? AND report_type = ?";
         
         try (Connection connection = dbConnector.getConnection();
              PreparedStatement ps = connection.prepareStatement(query)) {
              
             ps.setDate(1, java.sql.Date.valueOf(reportDate));
-            ps.setString(2, reportType);
+            ps.setString(2, reportType.name());
             
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    LocalDate retrievedReportDate = rs.getDate("report_date").toLocalDate().plusDays(1);
-                    String retrievedReportType = rs.getString("report_type");
+                    LocalDate retrievedReportDate = rs.getDate("report_date").toLocalDate();
+                    ReportType retrievedReportType = ReportType.valueOf(rs.getString("report_type"));
                     String reportData = rs.getString("report_data");
-                    return new Report(retrievedReportDate, ReportType.fromValue(retrievedReportType), reportData);
+                    return new Report(retrievedReportDate, retrievedReportType, reportData);
                 }
             }
         } catch (SQLException e) {
@@ -290,9 +290,9 @@ public class ReportLogic {
         try (Connection connection = dbConnector.getConnection();
              PreparedStatement ps = connection.prepareStatement(query)) {
              
-            ps.setDate(1, Date.valueOf(report.getReportDate()));
-            ps.setString(2, report.getReportType().toString());
-            ps.setString(3, report.getReportData());
+            ps.setDate(1, Date.valueOf(report.getDate()));
+            ps.setString(2, report.getType().name());
+            ps.setString(3, report.getData());
             ps.executeUpdate();
             
         } catch (SQLException e) {

@@ -106,38 +106,38 @@
   --color-chart-series-2: #c58c73;
 }
 
-:root[data-theme="clementine"] {
-  --color-bg-page: #fef1ea;
-  --color-bg-header: #c85a17;
-  --color-bg-surface: #fffdfc;
-  --color-bg-surface-soft: #fcf4ef;
-  --color-bg-table-header: #f2cbaf;
-  --color-bg-table-row-alt: #fae4d5;
-  --color-bg-row-hover: #f7d2bc;
-  --color-bg-input: #fff9f5;
-  --color-bg-neutral: #f5ebe3;
+:root[data-theme="ruby"] {
+  --color-bg-page: #fcf1f2;
+  --color-bg-header: #9b1c31;
+  --color-bg-surface: #ffffff;
+  --color-bg-surface-soft: #f7e6e8;
+  --color-bg-table-header: #f2c4c9;
+  --color-bg-table-row-alt: #f9dcdc;
+  --color-bg-row-hover: #f5cecf;
+  --color-bg-input: #fff6f6;
+  --color-bg-neutral: #f0dfe1;
   --color-bg-pattern:
-    radial-gradient(circle at 50% 50%, rgba(200, 90, 23, 0.12) 0, rgba(200, 90, 23, 0.12) 3px, transparent 3px),
-    radial-gradient(circle at 0 0, rgba(200, 90, 23, 0.08) 0, rgba(200, 90, 23, 0.08) 2px, transparent 2px);
+    radial-gradient(circle at 50% 50%, rgba(155, 28, 49, 0.12) 0, rgba(155, 28, 49, 0.12) 3px, transparent 3px),
+    radial-gradient(circle at 0 0, rgba(155, 28, 49, 0.08) 0, rgba(155, 28, 49, 0.08) 2px, transparent 2px);
   --color-bg-pattern-size: 32px 32px;
-  --color-text-primary: #3a2215;
-  --color-text-secondary: #593826;
-  --color-text-muted: #75503c;
+  --color-text-primary: #3d1218;
+  --color-text-secondary: #5e222a;
+  --color-text-muted: #7d333d;
   --color-text-inverse: #fff;
-  --color-border: #f0d1bd;
-  --color-border-subtle: #f5e2d6;
-  --color-border-strong: #d9824c;
-  --color-accent-solid: #c85a17;
-  --color-accent-solid-hover: #a84812;
-  --color-accent-text: #c85a17;
-  --color-accent-text-hover: #a84812;
-  --color-accent-border: #c85a17;
-  --color-accent-subtle: #f7c9ad;
-  --color-accent-subtle-hover: #f3a97c;
-  --color-accent-wash: rgba(200, 90, 23, 0.12);
-  --color-shadow: 58, 34, 21;
-  --color-chart-series-1: #c85a17;
-  --color-chart-series-2: #e09f3e;
+  --color-border: #f0cbd0;
+  --color-border-subtle: #f5dde1;
+  --color-border-strong: #b82d45;
+  --color-accent-solid: #9b1c31;
+  --color-accent-solid-hover: #7d1527;
+  --color-accent-text: #9b1c31;
+  --color-accent-text-hover: #7d1527;
+  --color-accent-border: #9b1c31;
+  --color-accent-subtle: #f4c2c7;
+  --color-accent-subtle-hover: #eaa4ad;
+  --color-accent-wash: rgba(155, 28, 49, 0.12);
+  --color-shadow: 61, 18, 24;
+  --color-chart-series-1: #9b1c31;
+  --color-chart-series-2: #d97706;
 }
 
 :root[data-theme="amethyst"] {
