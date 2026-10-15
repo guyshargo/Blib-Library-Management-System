@@ -30,4 +30,12 @@ public class LibrarianController {
         }
         return ResponseEntity.badRequest().body("Failed to update login status");
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteLibrarian(@PathVariable int id){
+        if(librarianLogic.deleteLibrarian(id))
+            return ResponseEntity.ok("Librarian deleted successfully");
+
+        return ResponseEntity.badRequest().body("Failed to delete librarian");
+    }
 }

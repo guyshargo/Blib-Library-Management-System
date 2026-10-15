@@ -1,5 +1,5 @@
 import type { ActivityType } from '../types/enums';
-import type { TagVariant } from '../components/Tag';
+import type { TagVariant } from '../components/ui/Tag';
 
 export interface ActivityUIConfig {
     variant: TagVariant;

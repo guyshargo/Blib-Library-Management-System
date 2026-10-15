@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { librarianService } from '../../services/librarianService';
 import type { Member } from '../../types';
-import FormField from '../../components/FormField';
-import Button from '../../components/Button';
+import FormField from '../../components/ui/FormField';
+import Button from '../../components/ui/Button';
 
 const ManageMember: React.FC = () => {
     const [members, setMembers] = useState<Member[]>([]);

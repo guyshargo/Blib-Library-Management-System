@@ -1,5 +1,5 @@
 import api from './api';
-import type { ChangeReturnDateRequest, Member, RegisterRequest } from '../types';
+import type { ChangeReturnDateRequest, Member } from '../types';
 
 export const librarianService = {
     getMember: async (memberId: number): Promise<Member> => {
@@ -29,8 +29,7 @@ export const librarianService = {
         return response.data;
     },
 
-    registerMember: async (registerReq: RegisterRequest) => {
-        const response = await api.post('/members/register', registerReq);
-        return response.data;
+    deleteAccount: async (librarianId: number): Promise<void> => {
+    await api.delete(`/librarians/${librarianId}`);
     }
 };

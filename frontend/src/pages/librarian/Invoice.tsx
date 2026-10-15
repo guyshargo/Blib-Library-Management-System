@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { invoiceService } from '../../services/invoiceService';
 import type { InvoiceMessage } from '../../types';
-import AlertBanner from '../../components/AlertBanner';
-import Button from '../../components/Button';
-import Tag from '../../components/Tag';
+import AlertBanner from '../../components/ui/AlertBanner';
+import Button from '../../components/ui/Button';
+import Tag from '../../components/ui/Tag';
 
 const Invoice: React.FC = () => {
     const [invoices, setInvoices] = useState<InvoiceMessage[]>([]);

@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import DataTable, { type DataTableColumn } from '../../components/DataTable';
-import Tag from '../../components/Tag';
-import FormField from '../../components/FormField';
+import { useNavigate } from 'react-router-dom';
+import DataTable, { type DataTableColumn } from '../../components/common/DataTable';
+import Tag from '../../components/ui/Tag';
+import FormField from '../../components/ui/FormField';
+import Button from '../../components/ui/Button';
 import { activityService } from '../../services/activityService';
 import { memberService } from '../../services/memberService';
 import { borrowService } from '../../services/borrowService';
 import { orderService } from '../../services/orderService';
+import { authService } from '../../services/authService';
 import type { Activity } from '../../types';
 import { ACTIVITY_CONFIG } from '../../config/activityConfig';
+import { librarianService } from '../../services/librarianService';
 
 const PersonalInfo: React.FC = () => {
+    const navigate = useNavigate();
     const [user, setUser] = useState<any>(null);
     const [isLibrarian, setIsLibrarian] = useState(false);
     const [activities, setActivities] = useState<Activity[]>([]);
@@ -120,6 +125,28 @@ const PersonalInfo: React.FC = () => {
             alert("Personal information updated.");
         } catch (error) {
             alert("Unable to update your information. Check your connection and try again.");
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (!user) return;
+        const confirmMessage = isLibrarian
+            ? "Are you sure you want to delete your staff account? This action cannot be undone."
+            : "Are you sure you want to delete your account? This action cannot be undone.";
+
+        if (!window.confirm(confirmMessage)) return;
+
+        try {
+            if (isLibrarian) {
+                await librarianService.deleteAccount(user.librarianId);
+            } else {
+                await memberService.deleteAccount(user.memberId);
+            }
+            await authService.logout();
+            alert("Account deleted successfully.");
+            navigate('/login');
+        } catch (error) {
+            alert("Unable to delete account. Please try again.");
         }
     };
 
@@ -298,6 +325,22 @@ const PersonalInfo: React.FC = () => {
                     ) : undefined}
                     emptyMessage="No activities found yet."
                 />
+            </section>
+
+            <section className="space-y-4 pt-4 border-t border-border-subtle" aria-labelledby="management-heading">
+                <div>
+                    <h2 id="management-heading" className="text-xl font-semibold tracking-tight text-primary">Account management</h2>
+                    <p className="mt-1 text-sm text-muted">Permanently remove your account and all associated local session data.</p>
+                </div>
+                <div>
+                    <Button
+                        variant="danger"
+                        size="md"
+                        onClick={handleDeleteAccount}
+                    >
+                        Delete account
+                    </Button>
+                </div>
             </section>
         </div>
     );

@@ -1,4 +1,4 @@
-import type { BrowseIconName } from '../components/BrowseIcon';
+import type { BrowseIconName } from '../components/ui/BrowseIcon';
 
 export interface BrowseLink {
     path: string;

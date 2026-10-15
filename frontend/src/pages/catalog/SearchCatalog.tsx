@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { catalogService } from '../../services/catalogService';
 import type { Book } from '../../types';
-import HorizontalBookCard from '../../components/HorizontalBookCard';
+import HorizontalBookCard from '../../components/common/HorizontalBookCard';
 
 const getInitials = (name: string) =>
     name

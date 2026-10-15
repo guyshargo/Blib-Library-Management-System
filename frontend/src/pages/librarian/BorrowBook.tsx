@@ -4,8 +4,8 @@ import { librarianService } from '../../services/librarianService';
 import { borrowService } from '../../services/borrowService';
 import { activityService } from '../../services/activityService';
 import type { Member } from '../../types';
-import FormField from '../../components/FormField';
-import Button from '../../components/Button';
+import FormField from '../../components/ui/FormField';
+import Button from '../../components/ui/Button';
 
 const BorrowBook: React.FC = () => {
     const location = useLocation();

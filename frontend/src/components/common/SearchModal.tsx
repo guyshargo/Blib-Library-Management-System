@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { catalogService } from '../services/catalogService';
-import type { Book } from '../types';
+import { catalogService } from '../../services/catalogService';
+import type { Book } from '../../types';
 
 interface SearchModalProps {
     isOpen: boolean;

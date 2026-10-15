@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { catalogService } from '../../services/catalogService';
-import BookCard from '../../components/BookCard';
+import BookCard from '../../components/common/BookCard';
 import type { Book } from '../../types';
 import type { BookGenre } from '../../types/enums';
 

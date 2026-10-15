@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom';
 import { catalogService } from '../../services/catalogService';
 import { borrowService } from '../../services/borrowService';
 import type { Book, Member } from '../../types';
-import BookShelf from '../../components/BookShelf';
-import FeatureCard, { type FeatureCardProps } from '../../components/FeatureCard';
+import BookShelf from '../../components/common/BookShelf';
+import FeatureCard, { type FeatureCardProps } from '../../components/common/FeatureCard';
 
 const homeFeatures: FeatureCardProps[] = [
     {

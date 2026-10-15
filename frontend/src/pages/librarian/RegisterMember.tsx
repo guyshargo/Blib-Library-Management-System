@@ -1,15 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { librarianService } from '../../services/librarianService';
 import { activityService } from '../../services/activityService';
-import FormField from '../../components/FormField';
-import Button from '../../components/Button';
-
-type ColorTheme = 'wood' | 'botanical' | 'coastal' | 'ruby' | 'amethyst';
-
-const getColorTheme = (value: string | null): ColorTheme => {
-    return value === 'botanical' || value === 'coastal' || value === 'ruby' || value === 'amethyst' ? value : 'wood';
-};
+import FormField from '../../components/ui/FormField';
+import Button from '../../components/ui/Button';
+import { memberService } from '../../services/memberService';
 
 const RegisterMember: React.FC = () => {
     const [id, setId] = useState('');
@@ -18,14 +12,8 @@ const RegisterMember: React.FC = () => {
     const [password, setPassword] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
-    const [colorTheme, setColorTheme] = useState<ColorTheme>(() => getColorTheme(localStorage.getItem('blib-color-theme')));
 
     const navigate = useNavigate();
-
-    useEffect(() => {
-        document.documentElement.dataset.theme = colorTheme;
-        localStorage.setItem('blib-color-theme', colorTheme);
-    }, [colorTheme]);
 
     const handleClear = () => {
         setId(''); setFullName(''); setUsername('');
@@ -57,7 +45,7 @@ const RegisterMember: React.FC = () => {
         try {
             const newMemberId = parseInt(id, 10);
 
-            await librarianService.registerMember({
+            await memberService.registerMember({
                 memberId: newMemberId,
                 fullName,
                 userName,
@@ -81,25 +69,6 @@ const RegisterMember: React.FC = () => {
 
     return (
         <main className="relative flex min-h-dvh flex-col items-center justify-center bg-page px-4 py-6 font-sans text-primary sm:px-8 sm:py-10">
-            {/* Theme Picker Corner Widget */}
-            <div className="absolute right-4 top-4 z-10 sm:right-8 sm:top-8">
-                <label className="flex items-center gap-2 rounded-lg border border-border-subtle bg-surface px-3 py-1.5 text-xs font-semibold text-secondary shadow-sm">
-                    <span>Theme</span>
-                    <select
-                        aria-label="Color theme"
-                        className="rounded border border-border bg-input px-2 py-1 text-xs text-primary outline-none focus:ring-1 focus:ring-accent-border"
-                        value={colorTheme}
-                        onChange={event => setColorTheme(getColorTheme(event.currentTarget.value))}
-                    >
-                        <option value="wood">Timber (Wood)</option>
-                        <option value="botanical">Oak (Botanical)</option>
-                        <option value="coastal">Bay (Coastal)</option>
-                        <option value="ruby">Ruby (Crimson)</option>
-                        <option value="amethyst">Amethyst (Berry)</option>
-                    </select>
-                </label>
-            </div>
-
             <div className="mx-auto my-auto flex min-h-[min(760px,calc(100dvh-3rem))] w-full max-w-6xl flex-col overflow-hidden bg-surface shadow-[0_12px_40px_rgba(var(--color-shadow),0.12)] md:min-h-[680px] md:flex-row">
                 <section className="flex w-full flex-col justify-center bg-accent-subtle px-8 py-12 sm:px-12 md:w-[42%] md:px-14 lg:px-16">
                     <div className="max-w-md">

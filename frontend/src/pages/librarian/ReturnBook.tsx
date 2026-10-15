@@ -3,8 +3,8 @@ import { librarianService } from '../../services/librarianService';
 import { borrowService } from '../../services/borrowService';
 import { activityService } from '../../services/activityService';
 import type { BorrowedBook, Member } from '../../types';
-import FormField from '../../components/FormField';
-import Button from '../../components/Button';
+import FormField from '../../components/ui/FormField';
+import Button from '../../components/ui/Button';
 
 const toLocalDate = (value: string) => {
     const [year, month, day] = value.slice(0, 10).split('-').map(Number);

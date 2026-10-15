@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { reportService } from '../../services/reportService';
 import type { ReportType } from '../../types/enums';
-import DataTable, { type DataTableColumn } from '../../components/DataTable';
-import Button from '../../components/Button';
-import SelectDropdown from '../../components/SelectDropdown';
+import DataTable, { type DataTableColumn } from '../../components/common/DataTable';
+import Button from '../../components/ui/Button';
+import SelectDropdown from '../../components/ui/SelectDropdown';
+import { REPORT_CONFIG, CHART_TOOLTIP_STYLE } from '../../config/reportConfig';
 import { 
     BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, 
     XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
@@ -261,26 +262,7 @@ const Reports: React.FC = () => {
         label: String(y)
     })), [availableDates.years]);
 
-    const reportTypeConfig: Record<ReportType, { title: string, desc: string, s1: string, s2: string, chartType: 'bar' | 'line' | 'pie' }> = {
-        BORROW_REPORT: { title: 'Borrowed Books', desc: 'Overdue severity & return compliance', s1: 'Total Loans', s2: 'Late Loans', chartType: 'bar' },
-        MEMBER_STATUS_REPORT: { title: 'Member Status', desc: 'Account freezes & active memberships', s1: 'Frozen', s2: 'Active', chartType: 'pie' },
-        BORROW_TRACKING: { title: 'Borrow Tracking', desc: 'Circulation volume & utilization', s1: 'Borrowed', s2: 'Late', chartType: 'line' },
-        STATUS_TRACKING: { title: 'Status Tracking', desc: 'Daily frozen vs. active member trends', s1: 'Frozen', s2: 'Active', chartType: 'line' },
-    };
-
-    const currentConfig = reportTypeConfig[selectedType];
-
-    // High-contrast tooltip style for Recharts
-    const tooltipStyle = {
-        backgroundColor: '#0f172a',
-        border: '1px solid #334155',
-        borderRadius: '0.75rem',
-        color: '#f8fafc',
-        boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.5), 0 8px 10px -6px rgb(0 0 0 / 0.5)',
-        padding: '12px 16px',
-        fontSize: '13px',
-        fontWeight: '600',
-    };
+    const currentConfig = REPORT_CONFIG[selectedType];
 
     return (
         <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6 font-sans sm:px-6 lg:px-8 lg:py-8">
@@ -332,9 +314,9 @@ const Reports: React.FC = () => {
                 {/* Left Column: Report Type Cards & KPIs (Span 4) */}
                 <div className="lg:col-span-4 flex flex-col gap-3">
                     <span className="text-xs font-bold uppercase tracking-wider text-secondary px-1">Select Report Domain</span>
-                    {(Object.keys(reportTypeConfig) as ReportType[]).map(type => {
+                    {(Object.keys(REPORT_CONFIG) as ReportType[]).map(type => {
                         const isSelected = selectedType === type;
-                        const info = reportTypeConfig[type];
+                        const info = REPORT_CONFIG[type];
                         return (
                             <button
                                 key={type}
@@ -400,14 +382,20 @@ const Reports: React.FC = () => {
                                             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-subtle)" />
                                             <XAxis dataKey="name" stroke="var(--color-text-secondary)" tick={{ fontSize: 11 }} />
                                             <YAxis stroke="var(--color-text-secondary)" tick={{ fontSize: 12 }} />
-                                            <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: '#f8fafc', padding: '2px 0' }} labelStyle={{ color: '#cbd5e1', fontWeight: '700', marginBottom: '4px' }} />
+                                            <Tooltip contentStyle={CHART_TOOLTIP_STYLE}
+                                                     itemStyle={{ color: '#f8fafc', padding: '2px 0' }} 
+                                                     labelStyle={{ color: '#cbd5e1', fontWeight: '700', marginBottom: '4px' }} 
+                                            />
                                             <Legend wrapperStyle={{ paddingTop: '10px' }} />
                                             <Line type="monotone" dataKey="series1" stroke="var(--color-chart-series-1)" strokeWidth={3} dot={{ r: 3 }} name={currentConfig.s1} />
                                             <Line type="monotone" dataKey="series2" stroke="var(--color-chart-series-2)" strokeWidth={3} dot={{ r: 3 }} name={currentConfig.s2} />
                                         </LineChart>
                                     ) : currentConfig.chartType === 'pie' ? (
                                         <PieChart>
-                                            <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: '#f8fafc', padding: '2px 0' }} labelStyle={{ color: '#cbd5e1', fontWeight: '700', marginBottom: '4px' }} />
+                                            <Tooltip contentStyle={CHART_TOOLTIP_STYLE} 
+                                                     itemStyle={{ color: '#f8fafc', padding: '2px 0' }} 
+                                                     labelStyle={{ color: '#cbd5e1', fontWeight: '700', marginBottom: '4px' }} 
+                                            />
                                             <Legend wrapperStyle={{ paddingTop: '10px' }} />
                                             <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={110} innerRadius={55} paddingAngle={4} label>
                                                 {pieData.map((entry, index) => (
@@ -420,7 +408,10 @@ const Reports: React.FC = () => {
                                             <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-subtle)" />
                                             <XAxis dataKey="name" stroke="var(--color-text-secondary)" tick={{ fontSize: 11 }} />
                                             <YAxis stroke="var(--color-text-secondary)" tick={{ fontSize: 12 }} />
-                                            <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: '#f8fafc', padding: '2px 0' }} labelStyle={{ color: '#cbd5e1', fontWeight: '700', marginBottom: '4px' }} />
+                                            <Tooltip contentStyle={CHART_TOOLTIP_STYLE} 
+                                                     itemStyle={{ color: '#f8fafc', padding: '2px 0' }} 
+                                                     labelStyle={{ color: '#cbd5e1', fontWeight: '700', marginBottom: '4px' }} 
+                                            />
                                             <Legend wrapperStyle={{ paddingTop: '10px' }} />
                                             <Bar dataKey="series1" fill="var(--color-chart-series-1)" radius={[4, 4, 0, 0]} name={currentConfig.s1} />
                                             {currentConfig.s2 && <Bar dataKey="series2" fill="var(--color-chart-series-2)" radius={[4, 4, 0, 0]} name={currentConfig.s2} />}

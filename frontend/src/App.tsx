@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
 
-import Layout from './components/Layout';
+import Layout from './components/layout/Layout';
 
 import Login from './pages/auth/Login';
 

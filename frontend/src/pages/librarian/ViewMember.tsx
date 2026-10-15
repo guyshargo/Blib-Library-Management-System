@@ -4,10 +4,10 @@ import { librarianService } from '../../services/librarianService';
 import { borrowService } from '../../services/borrowService';
 import { activityService } from '../../services/activityService';
 import type { Member, BorrowedBook, Activity } from '../../types';
-import FormField from '../../components/FormField';
-import Button from '../../components/Button';
-import DataTable, { type DataTableColumn } from '../../components/DataTable';
-import Tag from '../../components/Tag';
+import FormField from '../../components/ui/FormField';
+import Button from '../../components/ui/Button';
+import DataTable, { type DataTableColumn } from '../../components/common/DataTable';
+import Tag from '../../components/ui/Tag';
 import { ACTIVITY_CONFIG } from '../../config/activityConfig';
 
 const toLocalDate = (value: string) => {

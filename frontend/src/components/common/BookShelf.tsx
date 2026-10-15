@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type FC } from 'react';
-import type { Book } from '../types';
+import type { Book } from '../../types';
 import BookCard from './BookCard';
 
 interface BookShelfProps {

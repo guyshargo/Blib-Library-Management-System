@@ -10,10 +10,7 @@ import blib.model.Librarian;
 
 public class LibrarianLogic {
 
-    //Connection to the mySQL database
     private final MysqlConnection dbConnector;
-
-    // Singleton database connector
     public LibrarianLogic() { dbConnector = MysqlConnection.getInstance(); }
 
 
@@ -104,5 +101,20 @@ public class LibrarianLogic {
             System.out.println("Failed to fetch librarian ID: " + e.getMessage());
         }
         return librarian;
+    }
+
+    public synchronized boolean deleteLibrarian(int id){
+        String query = "DELETE FROM librarians WHERE librarian_id = ?";
+
+        try(Connection connection = dbConnector.getConnection();
+             PreparedStatement ps = connection.prepareStatement(query)){
+
+                ps.setInt(1, id);
+                return (ps.executeUpdate() > 0);
+             
+            } catch(SQLException e){
+                System.out.println("Error during librarian deletion: " + e.getMessage());
+            }
+        return false;
     }
 }

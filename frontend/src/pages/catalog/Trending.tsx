@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { catalogService } from '../../services/catalogService';
 import type { Book } from '../../types';
 import type { BookGenre } from '../../types/enums';
-import HorizontalBookCard from '../../components/HorizontalBookCard';
-import { Tag } from '../../components/Tag';
+import HorizontalBookCard from '../../components/common/HorizontalBookCard';
+import { Tag } from '../../components/ui/Tag';
 
 const formatGenreLabel = (genre: string): string => {
     if (genre === 'SCI_FI') return 'Sci-Fi';

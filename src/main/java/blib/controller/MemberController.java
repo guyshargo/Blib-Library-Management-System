@@ -126,4 +126,12 @@ public class MemberController {
         }
         return ResponseEntity.badRequest().body("Failed to update login status");
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteMember(@PathVariable int id){
+        if(memberLogic.deleteMember(id))
+            return ResponseEntity.ok("Member deleted successfully");
+
+        return ResponseEntity.badRequest().body("Failed to delete member");
+    }
 }

@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { catalogService } from '../../services/catalogService';
 import type { Book } from '../../types';
 import type { BookGenre } from '../../types/enums';
-import BookShelf from '../../components/BookShelf';
-import { Tag } from '../../components/Tag';
+import BookShelf from '../../components/common/BookShelf';
+import { Tag } from '../../components/ui/Tag';
 
 const formatGenreLabel = (genre: string): string => {
     if (genre === 'SCI_FI') return 'Sci-Fi';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Book } from '../types';
+import type { Book } from '../../types';
 
 interface HorizontalBookCardProps {
     book: Book;
@@ -20,11 +20,12 @@ const formatGenreLabel = (genre: string): string => {
 
 export const HorizontalBookCard: React.FC<HorizontalBookCardProps> = ({
     book,
+    highlightTerm: _highlightTerm,
     onAuthorClick,
 }) => {
     const navigate = useNavigate();
 
-    const handlePreview = () => {
+    const handleCardClick = () => {
         navigate('/book-details', { state: { selectedBook: book } });
     };
 
@@ -40,21 +41,20 @@ export const HorizontalBookCard: React.FC<HorizontalBookCardProps> = ({
     const keywordsList = book.keywords
         ? book.keywords
               .split(',')
-              .map(k => k.trim())
+              .map((k: string) => k.trim())
               .filter(Boolean)
               .slice(0, 3)
         : [];
 
     const ratingValue = Number(book.rating || 0);
     const fullStars = Math.round(ratingValue);
-
     return (
         <article className="flex flex-col gap-4 rounded-lg border border-border-subtle bg-surface-soft/50 p-4 transition-colors can-hover:bg-surface-soft sm:flex-row sm:items-center sm:justify-between sm:gap-6">
             {/* Left + Middle: Cover & Book Info */}
             <div className="flex min-w-0 flex-1 items-start gap-4 sm:gap-5">
                 <button
                     type="button"
-                    onClick={handlePreview}
+                    onClick={handleCardClick}
                     className="shrink-0 overflow-hidden rounded shadow-[0_4px_12px_rgba(var(--color-shadow),0.18)] transition-transform can-hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border"
                 >
                     <img
@@ -70,7 +70,7 @@ export const HorizontalBookCard: React.FC<HorizontalBookCardProps> = ({
                 <div className="flex min-w-0 flex-1 flex-col pt-1">
                     <button
                         type="button"
-                        onClick={handlePreview}
+                        onClick={handleCardClick}
                         className="text-start text-lg font-extrabold leading-snug text-primary can-hover:text-accent-text can-hover:underline sm:text-xl"
                     >
                         {book.title}
@@ -128,7 +128,7 @@ export const HorizontalBookCard: React.FC<HorizontalBookCardProps> = ({
             <div className="flex shrink-0 items-center sm:self-center">
                 <button
                     type="button"
-                    onClick={handlePreview}
+                    onClick={handleCardClick}
                     className="w-full rounded-md bg-accent-solid px-6 py-2.5 text-center text-sm font-bold text-inverse shadow-sm transition-opacity can-hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border sm:w-44"
                 >
                     Preview Book

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Book } from '../types';
-import { Tag } from './Tag';
+import type { Book } from '../../types';
+import { Tag } from '../ui/Tag';
 
 interface BookCardProps {
     book: Book;

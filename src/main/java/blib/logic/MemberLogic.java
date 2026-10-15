@@ -17,7 +17,6 @@ public class MemberLogic {
 
     private final MysqlConnection dbConnector;
 
-    // Singleton database connector
     public MemberLogic() { dbConnector = MysqlConnection.getInstance(); }
     
 
@@ -239,22 +238,6 @@ public class MemberLogic {
         }
         return members;
     }
-
-    
-    public synchronized void logOutStatusToAllMembers() {
-        String query = "UPDATE members SET is_logged_in = ? WHERE is_logged_in = ?";
-        
-        try (Connection connection = dbConnector.getConnection();
-             PreparedStatement ps = connection.prepareStatement(query)) {
-             
-            ps.setBoolean(1, false);
-            ps.setBoolean(2, true);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            System.out.println("Failed to logout members: " + e.getMessage());
-        }
-    }
-
     
     public synchronized List<Member> fetchFrozenMembersOlderThanAMonth() {
         String query = "SELECT * FROM members WHERE freeze_status = ? AND freeze_date = ?";
@@ -328,7 +311,7 @@ public class MemberLogic {
         String query = "INSERT INTO members (member_id, full_name, username, password, freeze_status, email_address, phone_number, reader_card_barcode) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection connection = dbConnector.getConnection();
-             PreparedStatement ps = connection.prepareStatement(query)) {
+            PreparedStatement ps = connection.prepareStatement(query)) {
              
             ps.setInt(1, membershipNumber);
             ps.setString(2, fullName);
@@ -351,5 +334,20 @@ public class MemberLogic {
     public synchronized static String customHashBarcode(int membershipNumber, String memberFullName) {
         String rawData = membershipNumber + "|" + memberFullName;
         return Base64.getEncoder().encodeToString(rawData.getBytes());
+    }
+
+    public synchronized boolean deleteMember(int id){
+        String query = "DELETE FROM members WHERE member_id = ?";
+
+        try (Connection connection = dbConnector.getConnection();
+            PreparedStatement ps = connection.prepareStatement(query)) {
+
+            ps.setInt(1, id);
+            return (ps.executeUpdate() > 0);
+
+        } catch(SQLException e){
+            System.out.println("Error during member deletion: " + e.getMessage());
+        }
+        return false;
     }
 }

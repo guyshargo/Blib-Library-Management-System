@@ -1,21 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { authService } from '../services/authService';
-import SearchModal from './SearchModal';
-import DropdownOption from './DropdownOption';
-import BrowseIcon from './BrowseIcon';
-import { librarianLinks, memberLinks } from '../config/navigationConfig';
-
-type ColorTheme = 'wood' | 'botanical' | 'coastal' | 'ruby' | 'amethyst';
-
-const getColorTheme = (value: string | null): ColorTheme => {
-    return value === 'botanical' || value === 'coastal' || value === 'ruby' || value === 'amethyst' ? value : 'wood';
-};
+import { authService } from '../../services/authService';
+import SearchModal from '../common/SearchModal';
+import DropdownOption from '../ui/DropdownOption';
+import BrowseIcon from '../ui/BrowseIcon';
+import { librarianLinks, memberLinks } from '../../config/navigationConfig';
 
 const Layout: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [colorTheme, setColorTheme] = useState<ColorTheme>(() => getColorTheme(localStorage.getItem('blib-color-theme')));
     const browseMenuRef = useRef<HTMLDivElement>(null);
     const [browseOpen, setBrowseOpen] = useState(false);
     const [searchOpen, setSearchOpen] = useState(false);
@@ -27,11 +20,6 @@ const Layout: React.FC = () => {
     const user = userStr ? JSON.parse(userStr) : null;
     const userName = user?.fullName || '';
     const roleLabel = userType === 'LIBRARIAN' ? 'Librarian' : (userType === 'MEMBER' ? 'Member' : '');
-
-    useEffect(() => {
-        document.documentElement.dataset.theme = colorTheme;
-        localStorage.setItem('blib-color-theme', colorTheme);
-    }, [colorTheme]);
 
     useEffect(() => {
         const handleUnload = () => {
@@ -86,26 +74,11 @@ const Layout: React.FC = () => {
 
     return (
         <div className="flex min-h-screen flex-col bg-page font-sans">
-            {/* TOP HEADER WITH THEME PICKER */}
+            {/* TOP HEADER */}
             <header className="flex items-center justify-between bg-header px-4 py-2.5 text-white sm:px-8">
                 <span className="text-xs font-semibold tracking-wider uppercase opacity-90 truncate">
                     Blib Library System
                 </span>
-                <label className="flex items-center gap-2 text-xs font-semibold text-white cursor-pointer shrink-0">
-                    <span>Theme</span>
-                    <select
-                        aria-label="Color theme"
-                        className="rounded-md border border-white/20 bg-black/30 px-2.5 py-1 text-xs text-white outline-none transition-colors hover:bg-black/40 focus:ring-1 focus:ring-white"
-                        value={colorTheme}
-                        onChange={event => setColorTheme(getColorTheme(event.currentTarget.value))}
-                    >
-                        <option value="wood" className="bg-slate-900 text-white">Timber (Wood)</option>
-                        <option value="botanical" className="bg-slate-900 text-white">Oak (Botanical)</option>
-                        <option value="coastal" className="bg-slate-900 text-white">Bay (Coastal)</option>
-                        <option value="ruby" className="bg-slate-900 text-white">Ruby (Crimson)</option>
-                        <option value="amethyst" className="bg-slate-900 text-white">Amethyst (Berry)</option>
-                    </select>
-                </label>
             </header>
 
             {/* HORIZONTAL NAV BAR */}
@@ -114,51 +87,11 @@ const Layout: React.FC = () => {
                     {/* Left Group: Logo + Desktop Nav Items (My Books, Browse) */}
                     <div className="flex items-center justify-between gap-x-6 lg:justify-start">
                         <button className="shrink-0 whitespace-nowrap font-extrabold text-[20px] sm:text-[24px] text-primary flex items-center gap-2.5" onClick={() => navigate('/home')}>
-                            {colorTheme === 'botanical' && (
-                                <>
-                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7 text-accent-text shrink-0" fill="currentColor">
-                                        <path d="M17.5 3C14 3 10.5 5 8.5 8c-3 1.5-5 4.5-5 8 0 2.5 1.5 4 4 4 3.5 0 6.5-2 8-5 3-2 5-5.5 5-9 0-1.5-.5-3-1-4-.5-.5-1.5-1-2-1zm-9 14c-1.1 0-2-.9-2-2 0-.3.1-.6.3-.8L12 9.5l2.5 2.5-5.2 5.2c-.2.2-.5.3-.8.3z" />
-                                    </svg>
-                                    <span>Oak Library</span>
-                                </>
-                            )}
-                            {colorTheme === 'coastal' && (
-                                <>
-                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7 text-accent-text shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M2 12c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 7.5 0" />
-                                        <path d="M2 16c2.5-3 5-3 7.5 0s5 3 7.5 0 5-3 7.5 0" />
-                                        <path d="M12 2v6" />
-                                    </svg>
-                                    <span>Bay Library</span>
-                                </>
-                            )}
-                            {colorTheme === 'wood' && (
-                                <>
-                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7 text-accent-text shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
-                                        <path d="M6 6h12M6 10h12" />
-                                    </svg>
-                                    <span>Timber Library</span>
-                                </>
-                            )}
-                            {colorTheme === 'ruby' && (
-                                <>
-                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7 text-accent-text shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M6 3h12l4 6-10 12L2 9z" />
-                                        <path d="M11 3v18M6 9h12" />
-                                    </svg>
-                                    <span>Ruby Library</span>
-                                </>
-                            )}
-                            {colorTheme === 'amethyst' && (
-                                <>
-                                    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7 text-accent-text shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M6 3h12l4 6-10 12L2 9z" />
-                                        <path d="M2 9h20M12 21L9 9M12 21l3-12" />
-                                    </svg>
-                                    <span>Amethyst Library</span>
-                                </>
-                            )}
+                            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7 text-accent-text shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+                                <path d="M6 6h12M6 10h12" />
+                            </svg>
+                            <span>Timber Library</span>
                         </button>
 
                         {/* Desktop Nav Items Group (My Books & Browse) */}

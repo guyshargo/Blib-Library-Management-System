@@ -4,8 +4,8 @@ import { catalogService } from '../../services/catalogService';
 import { activityService } from '../../services/activityService';
 import { orderService } from '../../services/orderService';
 import { waitlistService } from '../../services/waitlistService';
-import { Tag } from '../../components/Tag';
-import { Button, BookActionCard } from '../../components/Button';
+import { Tag } from '../../components/ui/Tag';
+import { Button, BookActionCard } from '../../components/ui/Button';
 import type { Book, Member, OrderRequest } from '../../types';
 
 type MemberWithBackendFields = Member & {
