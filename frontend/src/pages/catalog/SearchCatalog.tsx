@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom';
 import { catalogService } from '../../services/catalogService';
 import type { Book } from '../../types';
 import HorizontalBookCard from '../../components/common/HorizontalBookCard';
+import { useDebounce } from '../../hooks/useDebounce';
+import { DEFAULT_PAGE_SIZE } from '../../constants/appConstants';
 
 const getInitials = (name: string) =>
     name
@@ -16,8 +18,10 @@ const SearchCatalog: React.FC = () => {
     const location = useLocation();
     const [allBooks, setAllBooks] = useState<Book[]>([]);
     const [query, setQuery] = useState<string>(() => location.state?.initialSearch || '');
+    const debouncedQuery = useDebounce(query, 300);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
+    const [displayLimit, setDisplayLimit] = useState(DEFAULT_PAGE_SIZE);
 
     // Sync query whenever SearchModal navigates to /catalog with a new initialSearch
     useEffect(() => {
@@ -25,6 +29,10 @@ const SearchCatalog: React.FC = () => {
             setQuery(location.state.initialSearch);
         }
     }, [location.state]);
+
+    useEffect(() => {
+        setDisplayLimit(DEFAULT_PAGE_SIZE);
+    }, [debouncedQuery]);
 
     const fetchAllBooks = async () => {
         setLoading(true);
@@ -44,7 +52,7 @@ const SearchCatalog: React.FC = () => {
         void fetchAllBooks();
     }, []);
 
-    const trimmedQuery = query.trim().toLowerCase();
+    const trimmedQuery = debouncedQuery.trim().toLowerCase();
 
     // Matching unique authors when a search term is present
     const matchingAuthors = useMemo(() => {
@@ -68,6 +76,10 @@ const SearchCatalog: React.FC = () => {
                 book.keywords?.toLowerCase().includes(trimmedQuery)
         );
     }, [allBooks, trimmedQuery]);
+
+    const paginatedBooks = useMemo(() => {
+        return matchingBooks.slice(0, displayLimit);
+    }, [matchingBooks, displayLimit]);
 
     return (
         <div className="flex flex-col gap-6 px-4 py-6 sm:px-8 sm:py-8">
@@ -166,20 +178,31 @@ const SearchCatalog: React.FC = () => {
                             </h2>
                             <span className="text-xs text-muted">
                                 {matchingBooks.length > 0
-                                    ? `1 - ${matchingBooks.length} of ${matchingBooks.length} results`
+                                    ? `1 - ${paginatedBooks.length} of ${matchingBooks.length} results`
                                     : '0 results'}
                             </span>
                         </div>
 
                         {matchingBooks.length > 0 ? (
                             <div className="flex flex-col gap-4">
-                                {matchingBooks.map(book => (
+                                {paginatedBooks.map(book => (
                                     <HorizontalBookCard
                                         key={book.bookId}
                                         book={book}
                                         onAuthorClick={authorName => setQuery(authorName)}
                                     />
                                 ))}
+                                {paginatedBooks.length < matchingBooks.length && (
+                                    <div className="flex justify-center pt-4 pb-8">
+                                        <button
+                                            type="button"
+                                            onClick={() => setDisplayLimit(prev => prev + DEFAULT_PAGE_SIZE)}
+                                            className="rounded-xl border border-border-subtle bg-surface px-8 py-3.5 text-sm font-bold text-primary shadow-sm transition-colors can-hover:bg-surface-soft can-hover:border-accent-border"
+                                        >
+                                            Load More ({matchingBooks.length - paginatedBooks.length} remaining)
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="rounded-lg border border-border-subtle bg-surface-soft/40 p-8 text-center text-sm text-muted">

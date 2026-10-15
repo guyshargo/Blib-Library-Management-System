@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../../services/authService';
+import { useAuth } from '../../context/AuthContext';
 import SearchModal from '../common/SearchModal';
 import DropdownOption from '../ui/DropdownOption';
 import BrowseIcon from '../ui/BrowseIcon';
@@ -14,23 +15,18 @@ const Layout: React.FC = () => {
     const [searchOpen, setSearchOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    const userStr = localStorage.getItem('currentUser');
-    const userType = localStorage.getItem('userType');
-
-    const user = userStr ? JSON.parse(userStr) : null;
+    const { currentUser, currentRole, logout: authLogout } = useAuth();
+    const user = currentUser;
+    const userType = currentRole ? currentRole.toUpperCase() : null;
     const userName = user?.fullName || '';
-    const roleLabel = userType === 'LIBRARIAN' ? 'Librarian' : (userType === 'MEMBER' ? 'Member' : '');
+    const roleLabel = currentRole === 'librarian' ? 'Librarian' : (currentRole === 'member' ? 'Member' : '');
 
     useEffect(() => {
         const handleUnload = () => {
-            const currentStr = localStorage.getItem('currentUser');
-            const currentType = localStorage.getItem('userType');
-
-            if (currentStr && currentType) {
-                const currentUser = JSON.parse(currentStr);
-                const endpoint = currentType === 'LIBRARIAN' 
-                    ? `/librarians/${currentUser.librarianId}/login-status`
-                    : `/members/${currentUser.memberId}/login-status`;
+            if (currentUser && currentRole) {
+                const endpoint = currentRole === 'librarian' 
+                    ? `/librarians/${(currentUser as any).librarianId}/login-status`
+                    : `/members/${(currentUser as any).memberId}/login-status`;
 
                 fetch(`http://localhost:8080/api${endpoint}?status=false`, {
                     method: 'PUT',
@@ -41,7 +37,7 @@ const Layout: React.FC = () => {
 
         window.addEventListener('beforeunload', handleUnload);
         return () => window.removeEventListener('beforeunload', handleUnload);
-    }, []);
+    }, [currentUser, currentRole]);
 
     useEffect(() => {
         if (!browseOpen) return;
@@ -65,6 +61,7 @@ const Layout: React.FC = () => {
 
     const handleLogout = async () => {
         await authService.logout();
+        authLogout();
         navigate('/login');
     };
 

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useEffect } from 'react';
+import { AuthProvider } from './context/AuthContext';
 
 import Layout from './components/layout/Layout';
 
@@ -34,8 +35,9 @@ const ScrollToTop = () => {
 function App() {
   return (
     <BrowserRouter>
-      <ScrollToTop />
-      <Routes>
+      <AuthProvider>
+        <ScrollToTop />
+        <Routes>
         {/* Standalone Gateway Windows */}
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/login" element={<Login />} />
@@ -67,6 +69,7 @@ function App() {
             <Route path="/invoices" element={<Invoice />} />
         </Route>
       </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

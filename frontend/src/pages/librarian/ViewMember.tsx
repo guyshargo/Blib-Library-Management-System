@@ -9,20 +9,7 @@ import Button from '../../components/ui/Button';
 import DataTable, { type DataTableColumn } from '../../components/common/DataTable';
 import Tag from '../../components/ui/Tag';
 import { ACTIVITY_CONFIG } from '../../config/activityConfig';
-
-const toLocalDate = (value: string) => {
-    const [year, month, day] = value.slice(0, 10).split('-').map(Number);
-    return new Date(year, month - 1, day);
-};
-
-const formatDate = (value: string) => new Intl.DateTimeFormat(navigator.language).format(toLocalDate(value));
-
-const toApiDate = (date: Date = new Date()) => {
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`; // dd-MM-yyyy expected by backend
-};
+import { toLocalDate, formatDate, toApiDate } from '../../utils/formatters';
 
 const ViewMember: React.FC = () => {
     const location = useLocation();

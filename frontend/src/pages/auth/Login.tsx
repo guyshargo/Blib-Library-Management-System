@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
+import { useAuth } from '../../context/AuthContext';
 import type { LoginRole } from '../../types/enums';
 
 const Login: React.FC = () => {
@@ -10,6 +11,7 @@ const Login: React.FC = () => {
     const [errorMessage, setErrorMessage] = useState('');
 
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleRoleChange = (selectedRole: LoginRole) => {
         setRole(selectedRole);
@@ -23,10 +25,12 @@ const Login: React.FC = () => {
         try {
             if (role === 'MEMBER') {
                 const member = await authService.loginMember(username, password);
+                login(member, 'member');
                 alert(`Welcome back, ${member.fullName}!`);
                 navigate('/home');
             } else {
                 const librarian = await authService.loginLibrarian(username, password);
+                login(librarian, 'librarian');
                 alert(`Welcome back, ${librarian.fullName}!`);
                 navigate('/home');
             }
