@@ -1,3 +1,6 @@
+CREATE DATABASE IF NOT EXISTS `oak` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE `oak`;
+
 -- MySQL dump 10.13  Distrib 8.0.46, for Win64 (x86_64)
 --
 -- Host: localhost    Database: oak
