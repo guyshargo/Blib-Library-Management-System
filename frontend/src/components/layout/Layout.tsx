@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { authService } from '../../services/authService';
+import { useAuth } from '../../context/AuthContext';
 import SearchModal from '../common/SearchModal';
 import DropdownOption from '../ui/DropdownOption';
 import BrowseIcon from '../ui/BrowseIcon';
 import { librarianLinks, memberLinks } from '../../config/navigationConfig';
+import logoImg from '../../../public/images/layout/logo.png';
 
 const Layout: React.FC = () => {
     const navigate = useNavigate();
@@ -14,23 +16,18 @@ const Layout: React.FC = () => {
     const [searchOpen, setSearchOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-    const userStr = localStorage.getItem('currentUser');
-    const userType = localStorage.getItem('userType');
-
-    const user = userStr ? JSON.parse(userStr) : null;
+    const { currentUser, currentRole, logout: authLogout } = useAuth();
+    const user = currentUser;
+    const userType = currentRole ? currentRole.toUpperCase() : null;
     const userName = user?.fullName || '';
-    const roleLabel = userType === 'LIBRARIAN' ? 'Librarian' : (userType === 'MEMBER' ? 'Member' : '');
+    const roleLabel = currentRole === 'librarian' ? 'Librarian' : (currentRole === 'member' ? 'Member' : '');
 
     useEffect(() => {
         const handleUnload = () => {
-            const currentStr = localStorage.getItem('currentUser');
-            const currentType = localStorage.getItem('userType');
-
-            if (currentStr && currentType) {
-                const currentUser = JSON.parse(currentStr);
-                const endpoint = currentType === 'LIBRARIAN' 
-                    ? `/librarians/${currentUser.librarianId}/login-status`
-                    : `/members/${currentUser.memberId}/login-status`;
+            if (currentUser && currentRole) {
+                const endpoint = currentRole === 'librarian' 
+                    ? `/librarians/${(currentUser as any).librarianId}/login-status`
+                    : `/members/${(currentUser as any).memberId}/login-status`;
 
                 fetch(`http://localhost:8080/api${endpoint}?status=false`, {
                     method: 'PUT',
@@ -41,7 +38,7 @@ const Layout: React.FC = () => {
 
         window.addEventListener('beforeunload', handleUnload);
         return () => window.removeEventListener('beforeunload', handleUnload);
-    }, []);
+    }, [currentUser, currentRole]);
 
     useEffect(() => {
         if (!browseOpen) return;
@@ -65,6 +62,7 @@ const Layout: React.FC = () => {
 
     const handleLogout = async () => {
         await authService.logout();
+        authLogout();
         navigate('/login');
     };
 
@@ -77,25 +75,24 @@ const Layout: React.FC = () => {
             {/* TOP HEADER */}
             <header className="flex items-center justify-between bg-header px-4 py-2.5 text-white sm:px-8">
                 <span className="text-xs font-semibold tracking-wider uppercase opacity-90 truncate">
-                    Blib Library System
+                    Oak Management System
                 </span>
             </header>
 
-            {/* HORIZONTAL NAV BAR */}
+            {/* NAV BAR */}
             <nav className="bg-transparent px-4 pt-4 sm:px-8">
-                <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 lg:flex-row lg:items-center lg:justify-between lg:gap-x-6">
-                    {/* Left Group: Logo + Desktop Nav Items (My Books, Browse) */}
-                    <div className="flex items-center justify-between gap-x-6 lg:justify-start">
-                        <button className="shrink-0 whitespace-nowrap font-extrabold text-[20px] sm:text-[24px] text-primary flex items-center gap-2.5" onClick={() => navigate('/home')}>
-                            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-6 w-6 sm:h-7 sm:w-7 text-accent-text shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
-                                <path d="M6 6h12M6 10h12" />
-                            </svg>
-                            <span>Timber Library</span>
-                        </button>
+                <div className="mx-auto flex w-full max-w-[1360px] flex-col gap-3 xl:flex-row xl:items-center xl:justify-between xl:gap-x-6">
+                    {/* Left Group: Logo + Nav Items */}
+                    <div className="flex items-center justify-between gap-x-6 xl:justify-start">
+                        <Link
+                            to="/home" 
+                            className="flex shrink-0 items-center focus:outline-none transition-opacity" onClick={() => navigate('/home')}
+                        >
+                            <img src={logoImg} alt="Oak Library Logo" className="block h-16 sm:h-20 w-auto object-contain" />
+                        </Link>
 
                         {/* Desktop Nav Items Group (My Books & Browse) */}
-                        <div className="hidden lg:flex items-center gap-x-3">
+                        <div className="hidden xl:flex items-center gap-x-3">
                             {!isLibrarian && (
                                 <button
                                     className={headerButtonClass}
@@ -151,7 +148,7 @@ const Layout: React.FC = () => {
                         </div>
 
                         {/* Mobile right controls: Search trigger + Hamburger */}
-                        <div className="flex items-center gap-2 lg:hidden">
+                        <div className="flex items-center gap-2 xl:hidden">
                             <button
                                 type="button"
                                 onClick={() => setSearchOpen(true)}
@@ -183,11 +180,11 @@ const Layout: React.FC = () => {
                     </div>
 
                     {/* Desktop Right Actions */}
-                    <div className="hidden lg:flex shrink-0 items-center gap-3">
+                    <div className="hidden xl:flex shrink-0 items-center gap-3">
                         <button
                             type="button"
                             onClick={() => setSearchOpen(true)}
-                            className="flex w-[180px] xl:w-[220px] items-center justify-between rounded-lg border border-border bg-surface px-3.5 py-2 text-sm text-secondary transition-colors can-hover:border-accent-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border"
+                            className="flex w-[150px] xl:w-[180px] 2xl:w-[220px] items-center justify-between rounded-lg border border-border bg-surface px-3.5 py-2 text-sm text-secondary transition-colors can-hover:border-accent-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-border"
                         >
                             <span>Search</span>
                             <svg
@@ -238,7 +235,7 @@ const Layout: React.FC = () => {
 
                     {/* Mobile Collapsible Navigation Drawer */}
                     {mobileMenuOpen && (
-                        <div className="flex flex-col gap-2 rounded-xl border border-border-subtle bg-surface p-4 shadow-lg lg:hidden" role="navigation" aria-label="Mobile navigation">
+                        <div className="flex flex-col gap-2 rounded-xl border border-border-subtle bg-surface p-4 shadow-lg xl:hidden" role="navigation" aria-label="Mobile navigation">
                             {!isLibrarian && (
                                 <button
                                     className="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-secondary hover:bg-surface-soft text-start"
@@ -305,7 +302,7 @@ const Layout: React.FC = () => {
             </nav>
 
             {/* DYNAMIC CENTER CONTENT */}
-            <main className="mx-auto my-4 w-[calc(100%-2rem)] max-w-6xl flex-grow rounded-xl bg-surface shadow-[0_8px_28px_rgba(var(--color-shadow),0.08)]">
+            <main className="mx-auto my-4 w-[calc(100%-2rem)] max-w-[1360px] flex-grow rounded-xl bg-surface shadow-[0_8px_28px_rgba(var(--color-shadow),0.08)]">
                 <Outlet />
             </main>
             

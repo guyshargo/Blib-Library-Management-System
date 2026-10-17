@@ -2,13 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { catalogService } from '../../services/catalogService';
 import type { Book } from '../../types';
+import { RECENT_SEARCHES_KEY } from '../../constants/appConstants';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
 
 interface SearchModalProps {
     isOpen: boolean;
     onClose: () => void;
 }
-
-const RECENT_SEARCHES_KEY = 'blib-recent-searches';
 
 export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
     const navigate = useNavigate();
@@ -18,14 +18,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
     const [query, setQuery] = useState('');
     const [allBooks, setAllBooks] = useState<Book[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [recentSearches, setRecentSearches] = useState<string[]>(() => {
-        try {
-            const saved = localStorage.getItem(RECENT_SEARCHES_KEY);
-            return saved ? JSON.parse(saved) : [];
-        } catch {
-            return [];
-        }
-    });
+    const [recentSearches, setRecentSearches] = useLocalStorage<string[]>(RECENT_SEARCHES_KEY, []);
 
     // Load catalog once so live typing filters instantaneously by title & author
     useEffect(() => {

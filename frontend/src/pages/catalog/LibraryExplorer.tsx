@@ -4,17 +4,10 @@ import { catalogService } from '../../services/catalogService';
 import BookCard from '../../components/common/BookCard';
 import type { Book } from '../../types';
 import type { BookGenre } from '../../types/enums';
+import { DEFAULT_PAGE_SIZE } from '../../constants/appConstants';
+import { formatGenreLabel } from '../../utils/formatters';
 
 type SortOption = 'alphabetical' | 'trending' | 'most-read' | 'least-read' | 'random';
-
-const formatGenreLabel = (genre: string): string => {
-    if (genre === 'SCI_FI') return 'Sci-Fi';
-    return genre
-        .toLowerCase()
-        .split('_')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-};
 
 const LibraryExplorer: React.FC = () => {
     const [searchParams] = useSearchParams();
@@ -31,6 +24,7 @@ const LibraryExplorer: React.FC = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [sortBy, setSortBy] = useState<SortOption>(urlSort);
     const [randomSeed, setRandomSeed] = useState(Math.random());
+    const [displayLimit, setDisplayLimit] = useState(DEFAULT_PAGE_SIZE);
 
     // Sync state if URL searchParams change
     useEffect(() => {
@@ -39,6 +33,11 @@ const LibraryExplorer: React.FC = () => {
         if (g !== genre) setGenre(g);
         if (s && s !== sortBy) setSortBy(s);
     }, [searchParams]);
+
+    // Reset display limit when filters change
+    useEffect(() => {
+        setDisplayLimit(DEFAULT_PAGE_SIZE);
+    }, [name, genre, freeText, sortBy]);
 
     // Fetch all books initially to populate genres list and initial view
     useEffect(() => {
@@ -100,6 +99,10 @@ const LibraryExplorer: React.FC = () => {
         }
     }, [books, sortBy, randomSeed]);
 
+    const displayedBooks = useMemo(() => {
+        return sortedBooks.slice(0, displayLimit);
+    }, [sortedBooks, displayLimit]);
+
     const handleSortChange = (option: SortOption) => {
         if (option === 'random') {
             setRandomSeed(Math.random());
@@ -147,7 +150,7 @@ const LibraryExplorer: React.FC = () => {
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <h2 className="text-2xl font-bold tracking-tight text-primary">
                         Library Catalog
-                        <span className="ml-2 text-sm font-normal text-muted">({books.length} books)</span>
+                        <span className="ml-2 text-sm font-normal text-muted">({displayedBooks.length} of {sortedBooks.length} books)</span>
                     </h2>
                     
                     <div className="flex items-center gap-3">
@@ -188,17 +191,31 @@ const LibraryExplorer: React.FC = () => {
                 </div>
             )}
 
-            {sortedBooks.length > 0 && (
-                <div className="grid w-full max-w-6xl grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-                    {sortedBooks.map((book, index) => (
-                        <div 
-                            key={book.bookId}
-                            className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both"
-                            style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
-                        >
-                            <BookCard book={book} />
+            {displayedBooks.length > 0 && (
+                <div className="flex w-full max-w-6xl flex-col gap-8">
+                    <div className="grid w-full grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                        {displayedBooks.map((book, index) => (
+                            <div 
+                                key={book.bookId}
+                                className="animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both"
+                                style={{ animationDelay: `${Math.min(index * 50, 500)}ms` }}
+                            >
+                                <BookCard book={book} />
+                            </div>
+                        ))}
+                    </div>
+
+                    {displayedBooks.length < sortedBooks.length && (
+                        <div className="flex justify-center pb-8">
+                            <button
+                                type="button"
+                                onClick={() => setDisplayLimit(prev => prev + DEFAULT_PAGE_SIZE)}
+                                className="rounded-xl border border-border-subtle bg-surface px-8 py-3.5 text-sm font-bold text-primary shadow-sm transition-colors can-hover:bg-surface-soft can-hover:border-accent-border"
+                            >
+                                Load More ({sortedBooks.length - displayedBooks.length} remaining)
+                            </button>
                         </div>
-                    ))}
+                    )}
                 </div>
             )}
         </div>

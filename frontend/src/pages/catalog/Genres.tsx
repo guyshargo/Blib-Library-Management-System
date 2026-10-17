@@ -5,15 +5,7 @@ import type { Book } from '../../types';
 import type { BookGenre } from '../../types/enums';
 import BookShelf from '../../components/common/BookShelf';
 import { Tag } from '../../components/ui/Tag';
-
-const formatGenreLabel = (genre: string): string => {
-    if (genre === 'SCI_FI') return 'Sci-Fi';
-    return genre
-        .toLowerCase()
-        .split('_')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-};
+import { formatGenreLabel } from '../../utils/formatters';
 
 const Genres: React.FC = () => {
     const [books, setBooks] = useState<Book[]>([]);

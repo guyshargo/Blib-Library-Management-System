@@ -9,7 +9,7 @@ export interface ReportUIConfig {
 }
 
 export const REPORT_CONFIG: Record<ReportType, ReportUIConfig> = {
-    BORROW_REPORT: { title: 'Borrowed Books', desc: 'Overdue severity & return compliance', s1: 'Total Loans', s2: 'Late Loans', chartType: 'bar' },
+    BORROW_REPORT: { title: 'Borrowed Books', desc: 'Overdue severity & return compliance', s1: 'On-Time', s2: 'Late', chartType: 'bar' },
     MEMBER_STATUS_REPORT: { title: 'Member Status', desc: 'Account freezes & active memberships', s1: 'Frozen', s2: 'Active', chartType: 'pie' },
     BORROW_TRACKING: { title: 'Borrow Tracking', desc: 'Circulation volume & utilization', s1: 'Borrowed', s2: 'Late', chartType: 'line' },
     STATUS_TRACKING: { title: 'Status Tracking', desc: 'Daily frozen vs. active member trends', s1: 'Frozen', s2: 'Active', chartType: 'line' },

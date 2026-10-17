@@ -1,22 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Book } from '../../types';
+import { formatGenreLabel } from '../../utils/formatters';
 
 interface HorizontalBookCardProps {
     book: Book;
     highlightTerm?: string;
     onAuthorClick?: (author: string) => void;
 }
-
-const formatGenreLabel = (genre: string): string => {
-    if (!genre) return '';
-    if (genre === 'SCI_FI') return 'Sci-Fi';
-    return genre
-        .toLowerCase()
-        .split('_')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-};
 
 export const HorizontalBookCard: React.FC<HorizontalBookCardProps> = ({
     book,

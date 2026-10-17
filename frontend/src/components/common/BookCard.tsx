@@ -2,20 +2,11 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Book } from '../../types';
 import { Tag } from '../ui/Tag';
+import { formatGenreLabel } from '../../utils/formatters';
 
 interface BookCardProps {
     book: Book;
 }
-
-const formatGenreLabel = (genre: string): string => {
-    if (!genre) return '';
-    if (genre === 'SCI_FI') return 'Sci-Fi';
-    return genre
-        .toLowerCase()
-        .split('_')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-};
 
 const BookCard: React.FC<BookCardProps> = ({ book }) => {
     const navigate = useNavigate();

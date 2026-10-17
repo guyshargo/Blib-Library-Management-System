@@ -223,12 +223,17 @@ const Reports: React.FC = () => {
     const kpiMetrics = useMemo(() => {
         const totalRecords = tableData.length;
         if (selectedType === 'BORROW_REPORT') {
+            let onTime = 0;
             let lateCount = 0;
             tableData.forEach(row => {
                 const lateDays = Number.parseInt(row[6] || '0', 10) || 0;
-                if (lateDays > 0) lateCount++;
+                if (lateDays <= 0) {
+                    onTime++;
+                } else {
+                    lateCount++;
+                }
             });
-            return { totalRecords, sumSeries1: totalRecords, sumSeries2: lateCount };
+            return { totalRecords, sumSeries1: onTime, sumSeries2: lateCount };
         }
         if (selectedType === 'MEMBER_STATUS_REPORT') {
             return {
@@ -245,8 +250,8 @@ const Reports: React.FC = () => {
                 sumSeries2: lastDay?.series2 ?? 0,
             };
         }
-        const sumSeries1 = chartData.reduce((acc, curr) => acc + curr.series1, 0);
-        const sumSeries2 = chartData.reduce((acc, curr) => acc + curr.series2, 0);
+        const sumSeries1 = chartData.reduce((acc, curr) => acc + (curr.series1 ?? 0), 0);
+        const sumSeries2 = chartData.reduce((acc, curr) => (curr.series2 !== undefined ? acc + curr.series2 : acc), 0);
         return { totalRecords, sumSeries1, sumSeries2 };
     }, [selectedType, tableData, chartData, pieData]);
 
@@ -266,7 +271,7 @@ const Reports: React.FC = () => {
 
     return (
         <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 px-4 py-6 font-sans sm:px-6 lg:px-8 lg:py-8">
-            {/* Innovative Bento Top Bar: Title + Period selectors */}
+            {/* Top Bar: Title + Period selectors */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
                 <div className="lg:col-span-8 flex flex-col gap-1">
                     <div className="flex items-center gap-2">
@@ -308,10 +313,10 @@ const Reports: React.FC = () => {
                 </div>
             )}
 
-            {/* Asymmetrical Bento Grid: Left Report Type Selector & KPIs (Span 4) + Right Analytics Chart Studio (Span 8) */}
+            {/* Asymmetrical Grid: Left Report Type Selector & KPIs + Right Analytics Chart */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 
-                {/* Left Column: Report Type Cards & KPIs (Span 4) */}
+                {/* Left Column: Report Type Cards & KPIs */}
                 <div className="lg:col-span-4 flex flex-col gap-3">
                     <span className="text-xs font-bold uppercase tracking-wider text-secondary px-1">Select Report Domain</span>
                     {(Object.keys(REPORT_CONFIG) as ReportType[]).map(type => {
@@ -413,8 +418,8 @@ const Reports: React.FC = () => {
                                                      labelStyle={{ color: '#cbd5e1', fontWeight: '700', marginBottom: '4px' }} 
                                             />
                                             <Legend wrapperStyle={{ paddingTop: '10px' }} />
-                                            <Bar dataKey="series1" fill="var(--color-chart-series-1)" radius={[4, 4, 0, 0]} name={currentConfig.s1} />
-                                            {currentConfig.s2 && <Bar dataKey="series2" fill="var(--color-chart-series-2)" radius={[4, 4, 0, 0]} name={currentConfig.s2} />}
+                                            <Bar dataKey="series1" fill="var(--color-chart-series-1)" radius={[4, 4, 0, 0]} name={selectedType === 'BORROW_REPORT' ? 'Returns' : currentConfig.s1} />
+                                            {selectedType !== 'BORROW_REPORT' && currentConfig.s2 && <Bar dataKey="series2" fill="var(--color-chart-series-2)" radius={[4, 4, 0, 0]} name={currentConfig.s2} />}
                                         </BarChart>
                                     )}
                                 </ResponsiveContainer>
