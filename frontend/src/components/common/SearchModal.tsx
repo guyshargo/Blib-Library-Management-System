@@ -4,6 +4,7 @@ import { catalogService } from '../../services/catalogService';
 import type { Book } from '../../types';
 import { RECENT_SEARCHES_KEY } from '../../constants/appConstants';
 import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useAuth } from '../../context/AuthContext';
 
 interface SearchModalProps {
     isOpen: boolean;
@@ -14,11 +15,19 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
     const navigate = useNavigate();
     const inputRef = useRef<HTMLInputElement>(null);
     const modalRef = useRef<HTMLDivElement>(null);
+    const { currentUser, currentRole } = useAuth();
+
+    const storageKey = useMemo(() => {
+        if (!currentUser) return `${RECENT_SEARCHES_KEY}-guest`;
+        const user = currentUser as any;
+        const identifier = user.memberId || user.librarianId || user.username || 'user';
+        return `${RECENT_SEARCHES_KEY}-${currentRole}-${identifier}`;
+    }, [currentUser, currentRole]);
 
     const [query, setQuery] = useState('');
     const [allBooks, setAllBooks] = useState<Book[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [recentSearches, setRecentSearches] = useLocalStorage<string[]>(RECENT_SEARCHES_KEY, []);
+    const [recentSearches, setRecentSearches] = useLocalStorage<string[]>(storageKey, []);
 
     // Load catalog once so live typing filters instantaneously by title & author
     useEffect(() => {
@@ -96,7 +105,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
             ...recentSearches.filter(item => item.toLowerCase() !== clean.toLowerCase()),
         ].slice(0, 6);
         setRecentSearches(updated);
-        localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+        localStorage.setItem(storageKey, JSON.stringify(updated));
     };
 
     const handleSelectAuthor = (author: string) => {
@@ -237,7 +246,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
                                                     e.stopPropagation();
                                                     const updated = recentSearches.filter(item => item !== term);
                                                     setRecentSearches(updated);
-                                                    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+                                                    localStorage.setItem(storageKey, JSON.stringify(updated));
                                                 }}
                                                 className="ml-2 rounded p-1 text-muted transition-colors can-hover:bg-surface-soft can-hover:text-primary"
                                             >
