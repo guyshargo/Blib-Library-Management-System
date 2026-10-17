@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import { useAuth } from '../../context/AuthContext';
 import type { LoginRole } from '../../types/enums';
+import logoImg from '../../../public/images/layout/logo.png';
 
 const Login: React.FC = () => {
     const [role, setRole] = useState<LoginRole>('MEMBER');
@@ -55,9 +56,9 @@ const Login: React.FC = () => {
                         <p className="mb-5 text-sm font-semibold uppercase tracking-[0.2em] text-primary">
                             Your library, wherever you are
                         </p>
-                        <h1 className="text-4xl font-semibold tracking-tight text-primary sm:text-5xl">
-                            Timber Library
-                        </h1>
+                        <span>
+                            <img src={logoImg} alt="Timber Library Logo" className="h-16 sm:h-20 w-auto object-contain" />
+                        </span>
                         <p className="mt-6 max-w-sm text-lg leading-8 text-muted">
                             Sign in to borrow books, manage your reading, and stay connected with your library.
                         </p>
